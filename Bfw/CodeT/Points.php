@@ -1,10 +1,11 @@
 <?php
 namespace App\DOM\Points;
+use Lib\BoPoints;
 /**
- * @author Herry
+ * @author bfw
  *CONTMEMO
  */
-class Points_CONTNAME extends Points_Base
+class Points_CONTNAME extends BoPoints
 {
     
 }

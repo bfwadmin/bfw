@@ -5,7 +5,7 @@ use Lib\Bfw;
 use Lib\BoModel;
 
 /**
- * @author Herry
+ * @author bfw
  * CONTMEMO数据模型
  */
 class Model_CONTNAME extends BoModel

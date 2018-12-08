@@ -6,7 +6,7 @@ use Lib\BoControler;
 use App\DOM\Client\Client_CONTNAME;
 
 /**
- * @author Administrator
+ * @author bfw
  *CONTMEMO
  */
 class Controler_CONTNAME extends BoControler
@@ -68,7 +68,7 @@ class Controler_CONTNAME extends BoControler
         $this->OutCharset("utf-8");
         if ($this->IsPost()) {
             $_formdata = $this->FormArray(array(
-              FIELDNAMEARRAY
+              FIELDEDITNAMEARRAY
             ), false, "CONTNAME");
             
             if ($_formdata['err']) {

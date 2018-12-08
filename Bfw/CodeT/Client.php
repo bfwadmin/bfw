@@ -5,7 +5,7 @@ use Lib\BoClient;
 
 
 /**
- * @author Herry
+ * @author bfw
  * CONTMEMO调用类
  */
 class Client_CONTNAME extends BoClient
@@ -30,8 +30,6 @@ class Client_CONTNAME extends BoClient
      * );
      */
     protected $_service_remote = false;
-    // http://passport.88art.com/application/index.php
-    // http://localhost/boframeworkserver/index.php
     private static $_instance;
 
     /**

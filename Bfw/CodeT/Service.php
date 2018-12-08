@@ -7,7 +7,7 @@ use App\DOM\Model\Model_CONTNAME;
 
 /**
  *
- * @author Herry
+ * @author bfw
  * CONTMEMO
  */
 class Service_CONTNAME extends BoService

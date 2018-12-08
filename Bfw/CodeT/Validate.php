@@ -6,7 +6,7 @@ use Lib\BoValidate;
 
 /**
  *
- * @author Herry
+ * @author bfw
  *         CONTMEMO
  */
 class Validate_CONTNAME extends BoValidate

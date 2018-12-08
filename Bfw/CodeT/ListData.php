@@ -1,5 +1,6 @@
 <?php
 use Lib\Bfw;
+use Lib\Util\HtmlUtil;
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -35,7 +36,7 @@ use Lib\Bfw;
                         <td><input type="checkbox" name="check[]"  value="<?=$item['id']?>" /></td>
 				           <temp>
 				
-				          <td><?=$item['FIELDNAME']?></td>
+				          <td><?=HtmlUtil::Encode($item['FIELDNAME'])?></td>
               
 				            </temp>
                             <td>
@@ -53,10 +54,10 @@ use Lib\Bfw;
 				</table>	
 						
 				<div class="add" >
-					<span class="a right"><a href="<?=ACLINK("CONTNAME","AddData")?>"> 增加</a>  </span>
+					<span class="a right"><a href="<?=Bfw::ACLINK("CONTNAME","AddData")?>"> 增加</a>  </span>
                 </div>
               	</form>
-			 <?=Bfw::include_file("Pager","Common")?>
+			     <?=Bfw::Widget("Pager",$pagerdata)?>
 			</div>
 		</div>
 	</div>
