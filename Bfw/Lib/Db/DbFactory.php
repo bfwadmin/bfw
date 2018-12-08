@@ -13,8 +13,9 @@ class DbFactory {
 			}
 			return self::$_instance ['default'];
 		} else {
-			if (isset ( $_connarray ['dbconnstr'] )) {
-				$key = md5 ( $_connarray ['dbconnstr'] );
+			if (!empty ( $_connarray )) {
+			    $_db_connstr= var_export($_connarray,true);
+				$key = md5 ( $_db_connstr );
 				if (! isset ( self::$_instance [$key] ) || is_null ( self::$_instance [$key] )) {
 					if (isset ( $_connarray ['dbtype'] )) {
 						self::$_instance [$key] = Core::LoadClass ( "Lib\\Db\\" . $_connarray ['dbtype'], $_connarray );

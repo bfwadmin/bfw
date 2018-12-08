@@ -25,10 +25,11 @@ define("ACTION_NAME", "act"); // 动作器名称
 define("DOMIAN_NAME", "dom"); // 域名称
 define("APPSELF", isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : ''); // 当前脚本名称
 $_intval = Bfw::GetInitVal(array(
-    "Hbapi",
-    "Usermoney",
-    "AddData"
+    "Wxapi",
+    "User",
+    "WxLogin"
 ));
+//define("ALLOW_DOMIAN", "WxAdm,Admin,Pm,Yungou");//允许访问的app
 define("CONTROL_VALUE", $_intval[1]); // 控制器传值
 define("ACTION_VALUE", $_intval[2]); // 动作器传值
 define("DOMIAN_VALUE", $_intval[0]); // 域传值
@@ -52,8 +53,22 @@ define("LOG_HANDLER_NAME", "LogFiles"); // log存储方式 logFiles LogServer// 
 define("LOG_DIR", APP_ROOT . DS . "Log" . DS); // 日志记录路径
 define("LOG_TO_SERVER", false); // 把日志发送日志服务器
                                 
-// 缓存设置
-                                
+// 数据库设置
+define("DB_TYPE", "Mysql");
+define("DB_HOST", "127.0.0.1");
+define("DB_NAME", "pmdb");
+define("DB_PORT", 3306);
+define("DB_UNAME", "root");
+define("DB_PASSWD", "root");
+define("DB_CHARACTER", "utf8");//编码，自动创建数据库时需要
+define("DB_COLLATE", "utf8_general_ci");//排序方式，自动创建数据库时需要
+//define("DB_TYPE", "DbMysql"); // 数据库连接类型
+define("TB_PRE", "wb_"); // 表前缀
+define("DB_CACHE_ENABLE", true); // 数据二级缓存是否开启
+// 代码生成设置
+define("GEN_CODE", false); // 运行时从数据库生成代码
+define("CODE_TEMP_PATH", 'CodeT'); // 代码模板文件 必须放在app下
+
 // 缓存设置
 define("CACHE_HANDLER_NAME", "CacheFiles"); // cache存储方式 FCache与MCache RCache
 define("CACHE_DEPENDCY_PRE", "cache_dependcy_"); // 依赖缓存pre
@@ -74,6 +89,7 @@ define("USERIMG_DIR", DS . 'home' . DS . 'uploadfiles' . DS . 'userimg' . DS);
 define("AD_DIR", DS . 'home/uploadfiles/adfile/');
 define("IMG_EXPIRE_TIME", 3600 * 24 * 3); // img expire time//单位秒
 define("WATERMARK_URL", APP_ROOT . DS . 'WaterMark/logo.gif');
+define("FILES_FILE_PATH", 'http://localhost'); // 文件附件地址
 define("IMG_FILE_PATH", 'http://localhost'); // 文件附件地址
 define("UPLOAD_FILE_PATH", 'http://mupl.88art.com/Cms/Attach/AddData'); // 文件附件地址
 define("ACTION_PATH", 'http://action.88art.com'); // 后端处理url
@@ -85,7 +101,7 @@ define("SECRIT_KEY", "wW!@#3"); // KEY
 define("ROOT_DOMIAN", "88art.com"); // domian
 define("CONTENT_IMG_WIDTH", 600); // 内容页图片长度
                                   // 通信相关设置
-define("OUTPUT_ERR", false); // 是否向客户端发送php错误
+define("OUTPUT_ERR", true); // 是否向客户端发送php错误
 define("RESPONSE_JOSN", false);
 define("SERVICE_REMOTE", false); // 是否远程服务
 define("RPC_WAY", "RpcJson"); // 通讯协议
@@ -108,13 +124,7 @@ define("ADMINUSER_ID", "adminuid"); // admin session用户id
 define("ADMINROLE_ID", "adminkindid"); // admin session角色id
 
 define("SERVICE_REG_CENTER_URL", "http://localhost/boframeworklogserver/index.php?cont=Service&dom=Cms&");
-// 数据库配置
-define("DB_TYPE", "DbMysql"); // 数据库连接类型
-define("TB_PRE", "wb_"); // 表前缀
-define("DB_CACHE_ENABLE", true); // 数据二级缓存是否开启
-                                 // 代码生成设置
-define("GEN_CODE", true); // 运行时从数据库生成代码
-define("CODE_TEMP_PATH", 'CodeT'); // 代码模板文件 必须放在app下
+
                                    // 日期设置
 
                              

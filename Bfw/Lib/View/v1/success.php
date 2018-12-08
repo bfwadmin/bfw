@@ -17,7 +17,7 @@ use Lib\Util\HtmlUtil;
         </div>
         <div class="tishitubiao">
                <div class="tishiwenzi">
-                <img src="http://static.zhongpaiwang.com/public/images/xitong3.gif"/>
+             
                 <b class="layer_wenzi"><?=$but_msg?></b>
                </div> 
         </div>

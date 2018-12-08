@@ -78,7 +78,12 @@ class BoModel
      * @var string
      */
     protected $_tablename = "";
-
+    /**
+     * 前缀
+     *
+     * @var string
+     */
+    protected $_tbpre = "";
     /**
      * 分页大小
      *
@@ -102,15 +107,22 @@ class BoModel
     protected $_oldprikey = array();
 
     protected $_oldisview = array();
+    
+    
 
     public function __construct()
     {
         $this->_model_table_map = Bfw::Config("Db", "map");
+        $this->_tbpre = Bfw::Config("Db", "tbpre");
         $_m_n = str_replace("App\\" . DOMIAN_VALUE . "\\Model\\Model_", "", get_class($this));
         if (isset($this->_model_table_map[$_m_n])) {
             $this->_tablename = $this->_model_table_map[$_m_n];
         } else {
-            $this->_tablename = TB_PRE . $_m_n;
+            if( $this->_tbpre ==null){
+                $this->_tbpre = TB_PRE ;
+            }
+            $this->_tablename = $this->_tbpre . $_m_n;
+         
         }
         if ($this->_dbhandle == null) {
             if (isset($this->_connarray)) {
@@ -121,7 +133,7 @@ class BoModel
         }
     }
 
-    public function ChangeDb($_table = "", $_prekey = "", $_isview = false, $_connarray = null)
+    public function ChangeDb($_table = "", $_prekey = "", $_isview = false, $_connarray = null, $_tablemap = false)
     {
         array_push($this->_oldisview, $this->_isview);
         $this->_isview = $_isview;
@@ -134,7 +146,11 @@ class BoModel
         if ($_table != "") {
             array_push($this->_oldtablename, $this->_tablename);
             // $this->_oldtablename = $this->_tablename;
-            $this->_tablename = $_table;
+            if ($_tablemap) {
+                $this->_tablename = $this->GetTableName($_table);
+            } else {
+                $this->_tablename = $_table;
+            }
         }
         if ($_prekey != "") {
             array_push($this->_oldprikey, $this->_prikey);

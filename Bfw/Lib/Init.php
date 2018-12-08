@@ -22,7 +22,9 @@ $_exception = null;
 try {
     spl_autoload_register("autoloadclient", true); // class自动搜寻加载
     set_error_handler("BoErrorHandler", E_ALL);
-    require_once APP_ROOT . DS . 'Lib'.DS.'config.php';
+    register_shutdown_function('err_function');
+    set_exception_handler("exception_handler");
+    require_once APP_ROOT . DS . 'Lib' . DS . 'config.php';
     date_default_timezone_set(TIMEZONE);
     define("SYS_TIME", date('Y-m-d H:i:s')); // 系统当前时间
     define("UNIX_TIME", time()); // 当前时间戳，整形
@@ -105,7 +107,7 @@ if (RUN_MODE === "S") {
             }
         } else {
             if (is_array($_exception)) {
-                Bfw::LogR($_exception['errmsg'] . $_exception['errline'] . $_exception['errfile'], 'INIT_ERR', BoErrEnum::BFW_WARN);
+                Bfw::LogR($_exception['errmsg'] . "行:" . $_exception['errline'] . "文件:" . $_exception['errfile'] . "跟踪:" . $_exception['trace'], 'INIT_ERR', BoErrEnum::BFW_WARN);
                 Core::V("error", "System", "v1", [
                     'but_msg' => $_exception['type'] . "_ERR"
                 ]);
@@ -131,6 +133,45 @@ function autoloadclient($class)
         }
     } else {
         throw new Exception(Bfw::Config("Sys", "webapp", "System")['class_not_found'] . $class);
+    }
+}
+
+function exception_handler($_exception)
+{
+    if (strtolower(PHP_SAPI) != "cli") {
+        if (WEB_DEBUG && DEBUG_IP == IP) {
+            Core::V("deverror", "System", "v1", [
+                'errmsg' => $_exception['errmsg'],
+                "errline" => $_exception['errline'],
+                "errfile" => $_exception['errfile'],
+                "trace" => $_exception['trace']
+            ]);
+        } else {
+            Bfw::LogR("PHP Warning: {$_exception->getMessage()}", "php", BoErrEnum::BFW_ERROR);
+        }
+    } else {
+        print $_exception;
+    }
+}
+
+function err_function()
+{
+    $_e = error_get_last();
+    if ($_e) {
+        if (strtolower(PHP_SAPI) != "cli") {
+            if (WEB_DEBUG && DEBUG_IP == IP) {
+                Core::V("deverror", "System", "v1", [
+                    'errmsg' => $_e['message'],
+                    "errline" => $_e['line'],
+                    "errfile" => $_e['file'],
+                    "trace" => $_e['type']
+                ]);
+            } else {
+                Bfw::LogR("PHP Warning: {$_e['message']}, {$_e['message']}, {$_e['message']}", "php", BoErrEnum::BFW_ERROR);
+            }
+        } else {
+            print $_e;
+        }
     }
 }
 

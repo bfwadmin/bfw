@@ -278,69 +278,94 @@ class WebApp extends WangBo
                 }
                 exit();
             }
+
             // 服务端删除
             if (isset($_GET['updateyourconfig'])) {
                 if (isset($_GET['servicename']) && isset($_GET['methodname']) && isset($_GET['domainname'])) {
-                    $_config_file = APP_ROOT . DS.'App'.DS .$_GET['domainname'].DS. "Config"  . DS . "Client" . DS . $_GET['servicename'] . DS . $_GET['methodname'] . ".php";
+                    $_config_file = APP_ROOT . DS . 'App' . DS . $_GET['domainname'] . DS . "Config" . DS . "Client" . DS . $_GET['servicename'] . DS . $_GET['methodname'] . ".php";
                     unlink($_config_file);
                     exit();
                 }
             }
-			if (SHOW_APIDOC&&isset($_GET['getapidoc'])) {
-				$_filelist = FileUtil::getFileListByDir(APP_ROOT . DS."App".DS .  DOMIAN_VALUE . DS ."Controler" . DS);
-				$_con_act_array = array();
-				foreach ($_filelist as $_file) {
-					
-					$_control_name = str_replace(".php", "", $_file);
-					Bfw::import("App." . DOMIAN_VALUE . ".Controler." . $_control_name);
-					$_control_name_dll="App\\" . DOMIAN_VALUE . "\\Controler\\" . $_control_name;
-					$r = new \reflectionclass($_control_name_dll);
-					$_cont_act_a=[];
-					foreach ($r->getmethods() as $key => $methodobj) 
-					{
-						if ($methodobj->ispublic()) {
-							if($methodobj->name!="__get")	{
-								$_cont_act_a[]=array(
-									$methodobj->name,
-									str_replace("/**","",$methodobj->getDocComment())
-								);
-							}
-	
-						}
-					}
-					$_con_act_array[str_replace("Controler_", "", $_control_name)] = $_cont_act_a;
-				}
-				Core::V("apilist", "System", "v1", [
-					'con_act_array' => $_con_act_array
-				]);
-				
-				exit();
-
-			}
-            if (GEN_CODE && WEB_DEBUG&&isset($_GET['gencode'])) {
+            if (SHOW_APIDOC && isset($_GET['getapidoc'])) {
+                $_filelist = FileUtil::getFileListByDir(APP_ROOT . DS . "App" . DS . DOMIAN_VALUE . DS . "Controler" . DS);
+                $_con_act_array = array();
+                foreach ($_filelist as $_file) {  
+                    $_control_name = str_replace(".php", "", $_file);
+                    Bfw::import("App." . DOMIAN_VALUE . ".Controler." . $_control_name);
+                    $_control_name_dll = "App\\" . DOMIAN_VALUE . "\\Controler\\" . $_control_name;
+                    $r = new \reflectionclass($_control_name_dll);
+                    $_cont_act_a = [];
+                    foreach ($r->getmethods() as $key => $methodobj) {
+                        if ($methodobj->ispublic()) {
+                            if ($methodobj->name != "__get") {
+                                $_cont_act_a[] = array(
+                                    $methodobj->name,
+                                    str_replace("/**", "", $methodobj->getDocComment())
+                                );
+                            }
+                        }
+                    }
+                    $_con_act_array[str_replace("Controler_", "", $_control_name)] = $_cont_act_a;
+                }
+                Core::V("apilist", "System", "v1", [
+                    'con_act_array' => $_con_act_array
+                ]);
+                
+                exit();
+            }
+            if (GEN_CODE && WEB_DEBUG && isset($_GET['gencode'])) {
                 $_bocodeins = Core::LoadClass("Lib\\BoCode");
                 $_bocodeins->Generate($_domian, isset($_GET['t']) ? $_GET['t'] : '', isset($_GET['o']) ? true : false);
-				exit();
+                exit();
             }
-			if(WEB_DEBUG&&isset($_GET['uploadapp'])){
-				FileUtil::zip(APP_ROOT.DS."App".DS.$_GET['uploadapp'].DS,RUNTIME_DIR.$_GET['uploadapp'].".zip");
-				echo "ok";
-				exit();
-			}
-			if(WEB_DEBUG&&isset($_GET['getapp'])){
-				$_appdata = file_get_contents(APP_HOST_URL.$_GET['getapp'].".zip");
-				file_put_contents(RUNTIME_DIR.$_GET['getapp'].".zip",$_appdata);
-				FileUtil::unzip(RUNTIME_DIR.$_GET['getapp'].".zip",APP_ROOT.DS."App".DS.$_GET['getapp']);
-				echo "ok";
-				exit();
-			}
-			if(WEB_DEBUG&&isset($_GET['console'])){
-				Core::V("console", "System", "v1");
-				exit();
-			}
-            
+            if (WEB_DEBUG && isset($_GET['uploadapp'])) {
+                set_time_limit(0); // 无时间限制
+                FileUtil::zip(APP_ROOT . DS . "App" . DS . $_GET['uploadapp'] , RUNTIME_DIR . $_GET['uploadapp'] . "back.zip");
+               // FileUtil::zip(APP_BASE . DS . "static" . DS . $_GET['uploadapp'] , RUNTIME_DIR . $_GET['uploadapp'] . "static.zip");
+                $_bocodeins = Core::LoadClass("Lib\\BoDb");
+                $_bocodeins->Backup($_GET['uploadapp'], RUNTIME_DIR.$_GET['uploadapp'] . ".sql");
+                //发送到服务器
+                echo "ok";
+                exit();
+            }
+            if (WEB_DEBUG && isset($_GET['initproject'])) {
+                $_bocodeins = Core::LoadClass("Lib\\BoCode");
+                $_bocodeins->InitProject($_GET['initproject'] );
+                echo "ok";
+                exit();
+            }
+            if (WEB_DEBUG && isset($_GET['addcont'])) {
+                $_bocodeins = Core::LoadClass("Lib\\BoCode");
+                $para=explode("|",$_GET['addcont']);
+                if(count($para)>=2){
+                    $_bocodeins->InitProject($para[0],$para[1]);
+                    echo "ok";
+                }else{
+                    echo "参数错误,请按照这样 bfw add appname controlername'";
+                }
+                exit();
+            }
+            if (WEB_DEBUG && isset($_GET['getapp'])) {
+                set_time_limit(0); // 无时间限制
+                //$_appdata = file_get_contents(APP_HOST_URL . $_GET['getapp'] . "back.zip");
+               // file_put_contents(RUNTIME_DIR . $_GET['getapp'] . "back.zip", $_appdata);
+                FileUtil::unzip(RUNTIME_DIR . $_GET['getapp'] . "back.zip", APP_ROOT . DS . "App" . DS . $_GET['getapp']);
+               // $_staticdata = file_get_contents(APP_HOST_URL . $_GET['getapp'] . "static.zip");
+               // file_put_contents(RUNTIME_DIR . $_GET['getapp'] . "static.zip", $_staticdata);
+             //   FileUtil::unzip(RUNTIME_DIR . $_GET['getapp'] . "static.zip", APP_BASE . DS . "static" . DS . $_GET['getapp']);
+                $_bocodeins = Core::LoadClass("Lib\\BoDb");
+                $_bocodeins->Restore($_GET['getapp'], RUNTIME_DIR.$_GET['getapp'] . ".sql");
+                echo "ok";
+                exit();
+            }
+            if (WEB_DEBUG && isset($_GET['console'])) {
+                Core::V("console", "System", "v1");
+                exit();
+            }
+            //根据control生成控制器与动作器
             if (AUTO_CON && WEB_DEBUG) {
-                $_filelist = FileUtil::getFileListByDir(APP_ROOT . DS .  DOMIAN_VALUE . DS ."Controler" . DS);
+                $_filelist = FileUtil::getFileListByDir(APP_ROOT . DS . DOMIAN_VALUE . DS . "Controler" . DS);
                 $_con_act_array = array();
                 foreach ($_filelist as $_file) {
                     $_control_name = str_replace(".php", "", $_file);
@@ -367,9 +392,17 @@ class WebApp extends WangBo
                     $_powerins->InsertOrUpdate($_con_act_array);
                 }
             }
+            if(defined("ALLOW_DOMIAN")){
+                if (strpos(strtolower(ALLOW_DOMIAN), strtolower(DOMIAN_VALUE))===false) {
+                    header('HTTP/1.1 404 Not Found');
+                    header("status: 404 Not Found");
+                    exit();
+                }
+            }
+
             // 消费端执行
             
-            if (self::ValidateStr($_controler) && self::ValidateStr($_action) && self::ValidateStr($_domian)&&strtolower($_domian)!="system") {
+            if (self::ValidateStr($_controler) && self::ValidateStr($_action) && self::ValidateStr($_domian) && strtolower($_domian) != "system") {
                 if (! URL_CASE_SENS) {
                     $_domian = ucfirst($_domian);
                     $_controler = ucfirst($_controler);

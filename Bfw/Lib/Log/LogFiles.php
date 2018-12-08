@@ -4,6 +4,7 @@ namespace Lib\Log;
 
 use Lib\BoErrEnum;
 use Lib\Exception\LogException;
+use Lib\Util\FileUtil;
 
 class LogFiles implements BoLogInterface {
 	private static $_instance = null;
@@ -26,7 +27,9 @@ class LogFiles implements BoLogInterface {
 	}
 	public function Log($_word, $_tag, $_level = BoErrEnum::BFW_INFO) {
 		try {
-			$fp = @fopen ( $this->getLogfilename(0,$_level), "a" );
+		    $file_path=$this->getLogfilename(0,$_level);
+		    FileUtil::CreatDir(dirname($file_path));
+			$fp = @fopen ( $file_path, "a" );
 			if ($fp) {
 				if (flock ( $fp, LOCK_EX )) {
 					fwrite ( $fp, strftime ( "%Y-%m-%d %H:%M:%S", time () ) . "|T_" . $_tag . " \n" . $_word . "\n" );

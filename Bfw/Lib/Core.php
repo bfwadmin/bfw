@@ -75,7 +75,6 @@ class Core
     public static function LoadClass($class, $para = null)
     {
         $classpath = APP_ROOT . DS . str_replace(".", DS, str_replace("\\", DS, $class)) . ".php";
-        
         if (file_exists($classpath)) {
             include_once $classpath;
             if (is_null($para)) {

@@ -45,6 +45,11 @@ class HttpUtil
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_HEADER, 0);
+		if(stripos($url,"https://")!==FALSE){
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+            curl_setopt($ch, CURLOPT_SSLVERSION, 1); //CURL_SSLVERSION_TLSv1
+		}
         $output = curl_exec($ch);
         if (curl_errno($ch)) {
             $_errmsg = curl_error($ch);
