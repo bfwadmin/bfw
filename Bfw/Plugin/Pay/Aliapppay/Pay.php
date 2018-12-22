@@ -2,7 +2,7 @@
 namespace App\Plugin\Pay\Aliapppay;
 
 use App\Plugin\Pay\BoPayInterface;
-use App\Lib\Bfw;
+use Lib\Bfw;
 require_once ("lib/alipay_notify.class.php");
 
 class Pay implements BoPayInterface

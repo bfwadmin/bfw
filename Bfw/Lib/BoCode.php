@@ -2,9 +2,12 @@
 namespace Lib;
 
 use Lib\Db\DbFactory;
+use Lib\Exception\DbException;
 
 class BoCode extends WangBo
 {
+
+    protected $_dbinfo = [];
     // 不需要重新生成的
     protected $_nogentable = array(
         "cms_user"
@@ -14,16 +17,7 @@ class BoCode extends WangBo
 
     public function __construct()
     {
-        if ($this->_dbhandle == null) {
-            $this->_dbhandle = DbFactory::GetInstance([
-                "dbtype" => "Db" . DB_TYPE,
-                "dbport" => DB_PORT,
-                "dbuser" => DB_UNAME,
-                "dbpwd" => DB_PASSWD,
-                "dbname"=>DB_NAME,
-                "dbhost"=>DB_HOST
-            ]);
-        }
+        if ($this->_dbhandle == null) {}
     }
 
     private function createdb($_dbname)
@@ -36,30 +30,88 @@ class BoCode extends WangBo
         $this->_dbhandle->executeNonquery('CREATE TABLE IF NOT EXISTS `' . $_tbname . '` (`id` int(11) NOT NULL AUTO_INCREMENT,  `title` varchar(50) NOT NULL,`content` text NOT NULL,PRIMARY KEY (`id`)) ENGINE=MyISAM  DEFAULT CHARSET=utf8 ;', []);
     }
 
-    public function InitProject($_domian, $_controlername = "Hello", $_isoveride = false)
+    public function InitApp($_appname, $_dbinfo = array())
     {
-        $this->createdb($_domian . "_db");
-        $this->createtb("bfw_".$_controlername);
-        $this->_generate([
-            'name' => $_controlername
-        ], [
-            [
-                'key' => "",
-                "name" => "title",
-                "memo" => "标题"
-            ],
-            [
-                'key' => "pre",
-                "name" => "id",
-                "memo" => "编号"
-            ],
-            [
-                'key' => "",
-                "name" => "content",
-                "memo" => "内容"
-            ]
-        ], $_domian, $_isoveride);
-        echo "".Bfw::ACLINK($_controlername,"ListData","",$_domian);
+        if (! is_array($_dbinfo) || count($_dbinfo) != 4) {
+            echo "dbconfig wrong";
+            return false;
+        }
+        $_controlername = "Hello";
+        try {
+            $this->_dbinfo = [
+                "dbtype" => "DbMysql",
+                "dbhost" => $_dbinfo[0],
+                "dbport" => $_dbinfo[1],
+                "dbuser" => $_dbinfo[2],
+                "dbpwd" => $_dbinfo[3],
+                "dbname" => "mysql"
+            ];
+            $this->_dbhandle = DbFactory::GetInstance($this->_dbinfo);
+            $this->createdb($_appname . "_db");
+            $this->createtb("bfw_" . $_controlername);
+            $this->_generate([
+                'name' => $_controlername
+            ], [
+                [
+                    'key' => "",
+                    "name" => "title",
+                    "memo" => "标题"
+                ],
+                [
+                    'key' => "pre",
+                    "name" => "id",
+                    "memo" => "编号"
+                ],
+                [
+                    'key' => "",
+                    "name" => "content",
+                    "memo" => "内容"
+                ]
+            ], $_appname, false);
+            echo "" . Bfw::ACLINK($_controlername, "ListData", "", $_appname);
+            return true;
+        } catch (DbException $ex) {
+            echo $ex->getException()['errmsg'];
+            return false;
+        } catch (\Exception $ex) {
+            echo $ex->getException()['errmsg'];
+            return false;
+        }
+    }
+
+    public function AddCont($_appname, $_controlername = "Hello")
+    {
+        try {
+            $this->_dbhandle = DbFactory::GetInstance(Bfw::Config("Db", "localconfig", $_appname));
+            $this->createtb("bfw_" . $_controlername);
+            $this->_generate([
+                'name' => $_controlername
+            ], [
+                [
+                    'key' => "",
+                    "name" => "title",
+                    "memo" => "标题"
+                ],
+                [
+                    'key' => "pre",
+                    "name" => "id",
+                    "memo" => "编号"
+                ],
+                [
+                    'key' => "",
+                    "name" => "content",
+                    "memo" => "内容"
+                ]
+            ], $_appname, false);
+            echo "" . Bfw::ACLINK($_controlername, "ListData", "", $_appname);
+            return true;
+        } catch (\Exception $ex) {
+            echo $ex->getException()['errmsg'];
+            return false;
+        } catch (DbException $ex) {
+            echo $ex->getException()['errmsg'];
+            return false;
+        }
     }
 
     public function Generate($_domian, $_tablename = "", $_isoveride = false)
@@ -111,10 +163,15 @@ class BoCode extends WangBo
                 }
             }
             $_temp_cont = str_replace("DOM", $_dom, $_temp_cont);
-            $_temp_cont = str_replace("DBNAME", $_dom."_db", $_temp_cont);
+            $_temp_cont = str_replace("DBNAME", $_dom . "_db", $_temp_cont);
+            $_temp_cont = str_replace("DBTYPE", $this->_dbinfo['dbtype'], $_temp_cont);
+            $_temp_cont = str_replace("DBHOST", $this->_dbinfo['dbhost'], $_temp_cont);
+            $_temp_cont = str_replace("DBUSER", $this->_dbinfo['dbuser'], $_temp_cont);
+            $_temp_cont = str_replace("DBPWD", $this->_dbinfo['dbpwd'], $_temp_cont);
+            $_temp_cont = str_replace("DBPORT", $this->_dbinfo['dbport'], $_temp_cont);
             $_temp_cont = str_replace("KEY", "", $_temp_cont);
             $_temp_cont = str_replace("FIELDNAMEARRAY", $this->_implode(",", $_fields), $_temp_cont);
-            $_temp_cont = str_replace("FIELDEDITNAMEARRAY", $this->_implode(",", $_fields,true), $_temp_cont);
+            $_temp_cont = str_replace("FIELDEDITNAMEARRAY", $this->_implode(",", $_fields, true), $_temp_cont);
             $_temp_cont = str_replace("CONTNAME", $_m, $_temp_cont);
             $_temp_cont = str_replace("CONTMEMO", $_table['memo'], $_temp_cont);
             
@@ -168,6 +225,10 @@ class BoCode extends WangBo
                     "/$_domian/Config/Db.php"
                 ),
                 array(
+                    "Config.php",
+                    "/$_domian/Config/Config.php"
+                ),
+                array(
                     "AddData.php",
                     "/$_domian/View/$_m_name/AddData.php"
                 ),
@@ -217,7 +278,7 @@ class BoCode extends WangBo
                 )
             );
             foreach ($_temp_arr as $item) {
-                if (strpos(strtolower($item[0]), "widget") === false && $item[0] != "Db.php") {
+                if (strpos(strtolower($item[0]), "widget") === false && $item[0] != "Db.php" && $item[0] != "Config.php") {
                     $_ret = $this->_replacetag(APP_ROOT . '/' . CODE_TEMP_PATH . '/' . $item[0], APP_ROOT . "/App/" . $item[1], $_fields, $_table, $_m_name, $_isoveride, $_domian);
                 } else {
                     $_ret = $this->_replacetag(APP_ROOT . '/' . CODE_TEMP_PATH . '/' . $item[0], APP_ROOT . "/App/" . $item[1], $_fields, $_table, $_m_name, false, $_domian);
@@ -236,18 +297,17 @@ class BoCode extends WangBo
         }
     }
 
-    private function _implode($de, $ar,$full=false)
+    private function _implode($de, $ar, $full = false)
     {
         $str = "";
         foreach ($ar as $_a) {
-            if(!$full){
+            if (! $full) {
                 if ($_a['key'] == "") {
                     $str .= '"' . $_a['name'] . '"' . $de;
                 }
-            }else{
+            } else {
                 $str .= '"' . $_a['name'] . '"' . $de;
             }
-          
         }
         return rtrim($str, $de);
     }

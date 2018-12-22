@@ -2,7 +2,7 @@
 namespace App\Plugin\Pay\Weipay;
 
 use App\Plugin\Pay\BoPayInterface;
-use App\Lib\Bfw;
+use Lib\Bfw;
 require_once "lib/WxPay.Api.php";
 require_once "lib/WxPay.NativePay.php";
 require_once 'lib/WxPay.Notify.php';

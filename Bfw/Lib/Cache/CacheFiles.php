@@ -2,6 +2,7 @@
 namespace Lib\Cache;
 
 use Lib\Exception\CacheException;
+use Lib\BoDebug;
 
 class CacheFiles implements BoCacheInterface
 {
@@ -13,6 +14,7 @@ class CacheFiles implements BoCacheInterface
 
     static function getInstance()
     {
+        BoDebug::Info("opencachedir  ".CACHE_DIR);
         if (self::$_instance == null) {
             self::$_instance = new CacheFiles();
         }
@@ -21,6 +23,7 @@ class CacheFiles implements BoCacheInterface
 
     function setkey($_key, $_val, $_expire = 1800)
     {
+        BoDebug::Info("filecache setkey ".$_key);
         $cachedatafile = CACHE_DIR . DS . md5($_key);
         $cacheexipirefile = CACHE_DIR . DS . md5('cachetime_' . $_key);
         try {
@@ -33,6 +36,7 @@ class CacheFiles implements BoCacheInterface
 
     function getkey($_key)
     {
+        BoDebug::Info("filecache getkey ".$_key);
         $ret = null;
         $cachedatafile = CACHE_DIR . DS . md5($_key);
         $cacheexipirefile = CACHE_DIR . DS . md5('cachetime_' . $_key);
@@ -48,6 +52,7 @@ class CacheFiles implements BoCacheInterface
 
     function del($_key)
     {
+        BoDebug::Info("filecache delkey ".$_key);
         $cachedatafile = CACHE_DIR . DS . md5($_key);
         $cacheexipirefile = CACHE_DIR . DS . md5('cachetime_' . $_key);
         $cacheexipirefile = CACHE_DIR . DS . md5('cachetime_' . $_key);

@@ -71,7 +71,7 @@ class PagerUtil
     private static function GetPageUrl($_url, $_page, $_pageid = "page", $routetype)
     {
        
-        if ($routetype == 1) {
+        if ($routetype == 1||$routetype ==0) {
             $url_parts = parse_url($_url);
             if (isset($url_parts['query'])) {
                 parse_str($url_parts['query'], $queryarr);
@@ -84,6 +84,9 @@ class PagerUtil
         }
         if ($routetype == 2) {
            // die($_url);
+            if (PAGE_SUFFIX != "") {
+                $_url=rtrim($_url,PAGE_SUFFIX);
+            }
             $_url = str_replace("index.php/", "", $_url);
             if (preg_match("/{$_pageid}\/(\d+)/", $_url, $match)) {
                 $_url = str_replace($match[0], str_replace($match[1], $_page, $match[0]), $_url);
@@ -93,6 +96,9 @@ class PagerUtil
                 } else {
                     $_url = $_url . "/{$_pageid}/" . $_page;
                 }
+            }
+            if (PAGE_SUFFIX != "") {
+                $_url=$_url.PAGE_SUFFIX;
             }
         }
         return $_url;

@@ -14,7 +14,7 @@ interface BoDbInterface
 
     public function listdata($_tablename, $_field, $_wherestr, $_wherearr, $_pagesize, $_page, $_orderby, $_needcount);
 
-    public function single($_id, $_field, $_tablename,$_key);
+    public function single($_id, $_field, $_tablename,$_key,$_islock);
 
     public function begintrans();
 

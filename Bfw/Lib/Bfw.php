@@ -5,7 +5,8 @@ use Lib\Registry;
 use Lib\Util\StringUtil;
 use Lib\Util\CryptionUtil;
 use Lib\Util\UrlUtil;
-use Lib\Util\HttpUtil;
+use Lib\Util\ArrayUtil;
+use Lib\Exception\CoreException;
 
 class Bfw
 {
@@ -40,6 +41,45 @@ class Bfw
     }
 
     /**
+     * 修改配置文件
+     *
+     * @param unknown $_file            
+     * @param unknown $_key            
+     * @param unknown $_infoarr            
+     * @param string $_domian            
+     */
+    public static function ConfigSet($_file, $_key, $_infoarr, $_domian = DOMIAN_VALUE)
+    {
+        $_configfile = APP_ROOT . DS . 'App' . DS . $_domian . DS . "Config" . DS . $_file . ".php";
+        $_str = ArrayUtil::printArrayAsPhpCode($_infoarr, true);
+        file_put_contents($_configfile, "<?php \r\n\$_config_arr['{$_file}']['{$_key}']=" . $_str . ";");
+    }
+
+    public static function ConfigGet($_file, $_key, $_domian = DOMIAN_VALUE)
+    {
+        static $_config_arr = array();
+        if (isset($_config_arr[$_key])) {
+            return $_config_arr[$_key];
+        }
+        $_config_path = "";
+        if ($_domian == "System") {
+            $_config_path = APP_ROOT . DS . 'Lib' . DS . "Config" . DS . $_file . ".php";
+        } else {
+            $_config_path = APP_ROOT . DS . 'App' . DS . $_domian . DS . "Config" . DS . $_file . ".php";
+        }
+        if (file_exists($_config_path)) {
+            include $_config_path;
+            if (isset($_config_arr[$_key])) {
+                return $_config_arr[$_key];
+            } else {
+                return null;
+            }
+        } else {
+            throw new CoreException("配置文件不存在" . $_config_path);
+        }
+    }
+
+    /**
      * 获取自定义数组
      *
      * @param string $_file            
@@ -52,16 +92,21 @@ class Bfw
         if (isset($_config_arr[$_file][$_key])) {
             return $_config_arr[$_file][$_key];
         }
-		if($_domian=="System"){
-			include APP_ROOT .DS.'Lib' . DS . "Config" . DS .  $_file . ".php";
-		}else{
-			include APP_ROOT .DS.'App'. DS .$_domian . DS . "Config" . DS .  $_file . ".php";
-		}
-        
-        if (isset($_config_arr[$_file][$_key])) {
-            return $_config_arr[$_file][$_key];
+        $_config_path = "";
+        if ($_domian == "System") {
+            $_config_path = APP_ROOT . DS . 'Lib' . DS . "Config" . DS . $_file . ".php";
         } else {
-            return null;
+            $_config_path = APP_ROOT . DS . 'App' . DS . $_domian . DS . "Config" . DS . $_file . ".php";
+        }
+        if (file_exists($_config_path)) {
+            include $_config_path;
+            if (isset($_config_arr[$_file][$_key])) {
+                return $_config_arr[$_file][$_key];
+            } else {
+                return null;
+            }
+        } else {
+            throw new CoreException("配置文件不存在" . $_config_path);
         }
     }
 
@@ -267,40 +312,6 @@ class Bfw
         return self::ACLINK($args['c'], $args['a'], $args['p']);
     }
 
-    public static function GetInitVal($defalut)
-    {
-        $ret = array();
-        // var_dump($_para);
-        if (strtolower(PHP_SAPI) === 'cli') {
-            global $argv;
-            $ret[] = isset($argv[1]) ? $argv[1] : $defalut[0];
-            $ret[] = isset($argv[2]) ? $argv[2] : $defalut[1];
-            $ret[] = isset($argv[3]) ? $argv[3] : $defalut[2];
-        } else {
-            if (RUN_MODE == "S") {
-                $ret[] = isset($_POST["domian"]) ? $_POST["domian"] : $defalut[0];
-                $ret[] = isset($_POST["servicename"]) ? $_POST["servicename"] : $defalut[1];
-                $ret[] = isset($_POST["methodname"]) ? $_POST["methodname"] : $defalut[2];
-                return $ret;
-            }
-            
-            if (ROUTETYPE == 1) {
-                $ret[] = isset($_GET[DOMIAN_NAME]) ? $_GET[DOMIAN_NAME] : $defalut[0];
-                $ret[] = isset($_GET[CONTROL_NAME]) ? $_GET[CONTROL_NAME] : $defalut[1];
-                $ret[] = isset($_GET[ACTION_NAME]) ? $_GET[ACTION_NAME] : $defalut[2];
-            }
-            if (ROUTETYPE == 2) {
-                $arr = Bfw::GetParaByUrl();
-                $ret[] = $arr[DOMIAN_NAME] != "" ? $arr[DOMIAN_NAME] : $defalut[0];
-                $ret[] = $arr[CONTROL_NAME] != "" ? $arr[CONTROL_NAME] : $defalut[1];
-                $ret[] = $arr[ACTION_NAME] != "" ? $arr[ACTION_NAME] : $defalut[2];
-            }
-            if (ROUTETYPE == 3) {}
-        }
-        
-        return $ret;
-    }
-
     /**
      * url解析 routetype为 2时可用
      *
@@ -309,7 +320,7 @@ class Bfw
      */
     public static function UrlCode($_url, $_decode = false)
     {
-        if (ROUTETYPE == 1) {
+        if (ROUTETYPE == 1 || ROUTETYPE == 0) {
             if ($_decode) {
                 return urldecode($_url);
             }
@@ -322,9 +333,9 @@ class Bfw
             return str_replace("&", "|____|", str_replace('=', "|___|", str_replace("?", "|__|", str_replace("/", "|_|", $_url))));
         }
         if ($_decode) {
-            return urlencode($_url);
+            return urldecode($_url);
         }
-        return urldecode($_url);
+        return urlencode($_url);
     }
 
     /**
@@ -354,8 +365,23 @@ class Bfw
         if (ROUTETYPE == 1) {
             return APPSELF . "?" . CONTROL_NAME . '=' . $c . '&' . ACTION_NAME . '=' . $a . '&' . DOMIAN_NAME . '=' . $d . '&' . $p;
         }
+        if (ROUTETYPE == 0) {
+            return APPSELF . "?" . ROUTER_NAME . '=' . $d . '|' . $c . "|" . $a . '&' . $p;
+        }
         if (ROUTETYPE == 2) {
-            return str_replace('index.php', "", $_SERVER["SCRIPT_NAME"]) . $d . '/' . $c . '/' . $a . '/' . str_replace("&", "/", str_replace("=", "/", $p));
+            $_url = str_replace('index.php', "", $_SERVER["SCRIPT_NAME"]);
+            if (defined("HOST_HIDE_DOM") && $d == HOST_HIDE_DOM) {
+                $_url = $_url . $c . '/' . $a;
+            } else {
+                $_url = $_url . $d . '/' . $c . '/' . $a;
+            }
+            if ($p != "") {
+                $_url = $_url . '/' . str_replace("&", "/", str_replace("=", "/", $p));
+            }
+            if (PAGE_SUFFIX != "") {
+                $_url = $_url . PAGE_SUFFIX;
+            }
+            return $_url;
         }
         if (ROUTETYPE == 3) {
             if ($p != null && $p != "") {
@@ -370,20 +396,20 @@ class Bfw
     public static function SLogR($status, $log, $sid)
     {
         if (strtolower(PHP_SAPI) != 'cli') {
-            $_http_pro = "http://";
-            if (! empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') {
-                $_http_pro = "https://";
-            }
-            $_url_par = parse_url(SERVICE_REG_CENTER_URL);
-            $_ret = HttpUtil::AsynPost($_url_par['host'], 80, $_url_par['path'] . "?" . $_url_par['query'] . "act=AddLog", array(
-                "msg" => $log,
-                "status" => $status,
-                "clienturl" => $_http_pro . $_SERVER['SERVER_NAME'] . $_SERVER['PHP_SELF'],
-                "serviceid" => $sid
-            ), 3);
-            if ($_ret['err']) {
-                self::LogR($_ret['msg'], "logservicefailed", 3);
-            }
+            // $_http_pro = "http://";
+            // if (! empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') {
+            // $_http_pro = "https://";
+            // }
+            // $_url_par = parse_url(SERVICE_REG_CENTER_URL);
+            // $_ret = HttpUtil::AsynPost($_url_par['host'], 80, $_url_par['path'] . "?" . $_url_par['query'] . "act=AddLog", array(
+            // "msg" => $log,
+            // "status" => $status,
+            // "clienturl" => $_http_pro . $_SERVER['SERVER_NAME'] . $_SERVER['PHP_SELF'],
+            // "serviceid" => $sid
+            // ), 3);
+            // if ($_ret['err']) {
+            // self::LogR($_ret['msg'], "logservicefailed", 3);
+            // }
         }
     }
 
@@ -401,8 +427,12 @@ class Bfw
         if (! is_string($word)) {
             $word = var_export($word, true);
         }
-        $_classname = "Lib\\Log\\" . LOG_HANDLER_NAME;
-        $_classname::getInstance()->Log($word, $tag, $level);
+        if (defined("LOG_HANDLER_NAME")) {
+            $_classname = "Lib\\Log\\" . LOG_HANDLER_NAME;
+            $_classname::getInstance()->Log($word, $tag, $level);
+        } else {
+            echo $word;
+        }
     }
 
     public static function is_serialized($data)
@@ -436,64 +466,7 @@ class Bfw
         return $cipher->encrypt($str);
     }
 
-    /**
-     * 计时开始
-     *
-     * @param string $tag
-     *            计时标签
-     */
-    public static function TickStart($tag)
-    {
-        if (preg_match("/^[A-Za-z]/", $tag)) {
-            $_tag = md5($tag);
-        } else {
-            $_tag = $tag;
-        }
-        $_ts = microtime(true);
-        Registry::getInstance()->set("bo_nowtime_" . $_tag, $_ts);
-        Registry::getInstance()->set("bo_nowmemo_" . $_tag, memory_get_usage());
-        $_info = &Registry::getInstance()->get("debug_info");
-        $_info[] = array(
-            $_ts,
-            $tag
-        );
-        Registry::getInstance()->set("debug_info", $_info);
-        // LogR($_ts . ":" . $msg);
-    }
 
-    /**
-     * 计时结束
-     *
-     * @param string $tag
-     *            计时标签
-     */
-    public static function TickStop($tag)
-    {
-        if (preg_match("/^[A-Za-z]/", $tag)) {
-            $_tag = md5($tag);
-        } else {
-            $_tag = $tag;
-        }
-        $_te = microtime(true);
-        $_ts = &Registry::getInstance()->get("bo_nowtime_" . $_tag);
-        $_tm = &Registry::getInstance()->get("bo_nowmemo_" . $_tag);
-        
-        $_info = &Registry::getInstance()->get("debug_info");
-        if ("" == $_ts) {
-            $_info[] = array(
-                $_te,
-                $tag . ',please set TickStart first'
-            );
-        } else {
-            $_info[] = array(
-                $_te,
-                $tag . ',spend ' . round($_te - $_ts, 3) . "s" . " cost mem:" . ((memory_get_usage() - $_tm) / 1024) . "KB"
-            );
-        }
-        Registry::getInstance()->set("debug_info", $_info);
-        
-        // LogR($_te . ":" . $msg . ",耗时" . round($_te - $_ts, 3) . "s");
-    }
 
     public static function DestorySess($_key = null)
     {
@@ -608,13 +581,15 @@ class Bfw
      */
     public static function Debug($str)
     {
-        if (WEB_DEBUG) {
-            $_info = &Registry::getInstance()->get("debug_info");
-            $_info[] = array(
-                microtime(true),
-                $str . ",mem:" . (memory_get_usage() / 1024) . "KB"
-            );
-            Registry::getInstance()->set("debug_info", $_info);
+        if (defined("WEB_DEBUG")) {
+            if (WEB_DEBUG) {
+                $_info = &Registry::getInstance()->get("debug_info");
+                $_info[] = array(
+                    microtime(true),
+                    $str . ",mem:" . (memory_get_usage() / 1024) . "KB"
+                );
+                Registry::getInstance()->set("debug_info", $_info);
+            }
         }
     }
 
@@ -642,14 +617,15 @@ class Bfw
         return $rollnum;
     }
 
-    public static function DebugHtml($_import_info_arr, $_debug_info_arr, $_spendtime, $_log_toserver)
+    public static function DebugHtml($_import_info_arr, $_debug_info_arr, $_spendtime, $_log_toserver, $_totalmem, $_file = "debug")
     {
         ob_start();
-        Core::V("debug", "System", "v1", [
+        Core::V($_file, "System", "v1", [
             'import_info' => $_import_info_arr,
             "debug_info" => $_debug_info_arr,
             "spendtime" => $_spendtime,
-            "islogserver" => $_log_toserver
+            "islogserver" => $_log_toserver,
+            "totalmem" => $_totalmem
         ]);
         $_cont = ob_get_clean();
         ob_start();
@@ -665,10 +641,11 @@ class Bfw
                 "import_file" => $_import_info,
                 "debug_info" => $_debug_info,
                 "spend_time" => $spendtime,
-                "log_toserver" => LOG_TO_SERVER
+                "log_toserver" => LOG_TO_SERVER,
+                "totalmem" => memory_get_usage()
             );
         }
-        echo self::DebugHtml($_import_info, $_debug_info, $spendtime, LOG_TO_SERVER);
+        echo self::DebugHtml($_import_info, $_debug_info, $spendtime, LOG_TO_SERVER, memory_get_usage());
     }
 
     /**

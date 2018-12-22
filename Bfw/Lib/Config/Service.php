@@ -12,6 +12,7 @@ $_config_arr['Service']['config'] = [
     "Cms_Address_Update" => ["type"=>"session","limit"=>3],
     "Cms_Address_Insert" => ["type"=>"session","limit"=>5],
     "Cms_Artwork_Insert" => ["type"=>"session","limit"=>5],
-    "Cms_Order_Down" => ["type"=>"queue","para"=>0,"limit"=>3]
+    "Cms_Order_Down" => ["type"=>"queue","para"=>0,"limit"=>3],
+    "Cms_Order_Close" => ["type"=>"queue","para"=>1,"limit"=>3,"queueserver"=>"ddd"],
 ];
  

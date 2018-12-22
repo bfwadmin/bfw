@@ -38,11 +38,25 @@ class BoModel
     private $_wherestr = "";
 
     /**
+     * 别名
+     * 
+     * @var string
+     */
+    private $_alias = "";
+
+    /**
      * 条件传值
      *
      * @var array
      */
     private $_wherearr;
+
+    /**
+     * union连接数组
+     *
+     * @var array
+     */
+    private $_unionarr;
 
     /**
      * 排序语句
@@ -78,12 +92,20 @@ class BoModel
      * @var string
      */
     protected $_tablename = "";
+
     /**
      * 前缀
      *
      * @var string
      */
     protected $_tbpre = "";
+    
+    /**
+     * 是否锁表
+     * @var bool
+     */
+    protected $_locktable=false;
+
     /**
      * 分页大小
      *
@@ -92,6 +114,8 @@ class BoModel
     private $_pagesize;
 
     protected $_isview = false;
+    
+    protected $_cpsql="";
 
     /**
      * 数据库处理实例
@@ -107,22 +131,27 @@ class BoModel
     protected $_oldprikey = array();
 
     protected $_oldisview = array();
-    
-    
 
     public function __construct()
     {
-        $this->_model_table_map = Bfw::Config("Db", "map");
-        $this->_tbpre = Bfw::Config("Db", "tbpre");
-        $_m_n = str_replace("App\\" . DOMIAN_VALUE . "\\Model\\Model_", "", get_class($this));
-        if (isset($this->_model_table_map[$_m_n])) {
-            $this->_tablename = $this->_model_table_map[$_m_n];
-        } else {
-            if( $this->_tbpre ==null){
-                $this->_tbpre = TB_PRE ;
+        if($this->_isview&&$this->_cpsql!=""){
+            $this->_tablename = " (".$this->GetTableNameByTag($this->_cpsql)." ) ";
+        }else{
+           $_conf= Bfw::ConfigGet("Config", "App");
+           if(isset($_conf['dbmap'])){
+               $this->_model_table_map =$_conf['dbmap'];
+           }
+           // $this->_tbpre = Bfw::Config("Db", "tbpre");
+            $_m_n = str_replace("App\\" . DOMIAN_VALUE . "\\Model\\Model_", "", get_class($this));
+            if (isset($this->_model_table_map[$_m_n])) {
+                $this->_tablename = $this->_model_table_map[$_m_n];
+            } else {
+                if ($this->_tbpre == null) {
+                    $this->_tbpre = TB_PRE;
+                }
+                $this->_tablename = $this->_tbpre . $_m_n;
             }
-            $this->_tablename = $this->_tbpre . $_m_n;
-         
+           
         }
         if ($this->_dbhandle == null) {
             if (isset($this->_connarray)) {
@@ -131,6 +160,7 @@ class BoModel
                 $this->_dbhandle = DbFactory::GetInstance();
             }
         }
+      
     }
 
     public function ChangeDb($_table = "", $_prekey = "", $_isview = false, $_connarray = null, $_tablemap = false)
@@ -243,7 +273,7 @@ class BoModel
     public function Single($_field, $_id)
     {
         try {
-            return $this->_dbhandle->single($_id, $_field, $this->_tablename, $this->_prikey);
+            return $this->_dbhandle->single($_id, $_field, $this->_tablename, $this->_prikey,$this->_locktable);
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
         }
@@ -391,6 +421,15 @@ class BoModel
         $this->_page = $_n;
         return $this;
     }
+    
+    /**锁表
+     * @return \Lib\BoModel
+     */
+    function Lock(){
+        $this->_locktable=true;
+        return $this;
+        
+    }
 
     /**
      * 分页大小
@@ -444,13 +483,32 @@ class BoModel
      *            on条件
      * @return BoModel
      */
-    function Join($_model, $_jointype = "left", $_on)
+    function Join($_model, $_on, $_alias, $_jointype = "left")
     {
         $this->_joinarr[] = array(
             "model" => $_model,
             "type" => $_jointype,
-            "on" => $_on
+            "on" => $_on,
+            "alias" => $_alias
         );
+        return $this;
+    }
+
+    /**
+     * 表的union操作
+     *
+     * @param string $_sql            
+     * @return \Lib\BoModel
+     */
+    function Union($_sql,$_isall=false)
+    {
+        $this->_unionarr[] = [$_sql,$_isall];
+        return $this;
+    }
+
+    function Alias($_str)
+    {
+        $this->_alias = $_str;
         return $this;
     }
 
@@ -485,11 +543,27 @@ class BoModel
     function Select()
     {
         $_sql = "select " . $this->_fieldstr . " from ";
+        
         $_sql .= $this->_tablename . " ";
+        if ($this->_alias != "") {
+            $_sql .= " as " . $this->_alias . " ";
+        }
         if (is_array($this->_joinarr)) {
             foreach ($this->_joinarr as $_item) {
-                $_sql .= " " . $_item['type'] . ' join ' . " " . $this->GetTableName($_item['model']);
+                $_sql .= " " . $_item['type'] . ' join ' . " " . $this->GetTableName($_item['model']) . " as " . $_item['alias'];
                 $_sql .= " on " . $_item['on'];
+            }
+        }
+        
+        if (is_array($this->_unionarr)) {
+            foreach ($this->_unionarr as $_item) {
+                if(count($_item)==2){
+                    if($_item[1]){
+                        $_sql .= ' union  all ' . $_item[0];
+                    }else{
+                        $_sql .= ' union ' . $_item[0];
+                    }
+                }
             }
         }
         if (! empty($this->_wherestr)) {
@@ -501,7 +575,6 @@ class BoModel
         if (! empty($this->_page) && ! empty($this->_pagesize)) {
             $_sql .= " limit " . $this->_page . "," . $this->_pagesize;
         }
-        // return $this->GetTableNameByTag($_sql);
         return $this->ExecuteReader($this->GetTableNameByTag($_sql), $this->_wherearr);
     }
 
@@ -515,11 +588,22 @@ class BoModel
         $_sql = "select count(*) as num from ";
         
         $_sql .= $this->_tablename . " ";
-        
         if (is_array($this->_joinarr)) {
             foreach ($this->_joinarr as $_item) {
-                $_sql .= " " . $_item['type'] . " join " . $this->GetTableName($_item['model']);
+                $_sql .= " " . $_item['type'] . ' join ' . " " . $this->GetTableName($_item['model']) . " as " . $_item['alias'];
                 $_sql .= " on " . $_item['on'];
+            }
+        }
+        
+        if (is_array($this->_unionarr)) {
+            foreach ($this->_unionarr as $_item) {
+                if(count($_item)==2){
+                    if($_item[1]){
+                        $_sql .= ' union  all ' . $_item[0];
+                    }else{
+                        $_sql .= ' union ' . $_item[0];
+                    }
+                }
             }
         }
         if (! empty($this->_wherestr)) {
@@ -553,12 +637,14 @@ class BoModel
      */
     private function GetTableName($_m)
     {
-        // $_m = str_replace("App\\Model\\" . DOMIAN_VALUE . "\\M", "", $_m);
         if (isset($this->_model_table_map[$_m])) {
             return $this->_model_table_map[$_m];
         }
-        
-        return TB_PRE . $_m;
+        //$this->_tbpre = Bfw::Config("Db", "tbpre");
+        if ($this->_tbpre == null) {
+            $this->_tbpre = TB_PRE;
+        }
+        return $this->_tbpre . $_m;
     }
 
     /**

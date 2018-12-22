@@ -1,7 +1,7 @@
 <?php
 namespace App\Plugin;
 
-use App\Lib\Bfw;
+use Lib\Bfw;
 
 class Verify
 {

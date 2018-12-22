@@ -15,6 +15,7 @@ class LockCache implements BoLockInterface
     private $eAccelerator = false;
 
     private  static $_instance = null;
+    private $_timeout = 0;
 
     /**
      * 构造函数
@@ -25,12 +26,13 @@ class LockCache implements BoLockInterface
      * @param string $name
      *            cache key
      */
-    function __construct($name, $path = CACHE_DIR)
+    function __construct($name, $_timout =LOCK_TIMEOUT )
     {
+        $this->_timeout = $_timeout;
         // 判断是否存在eAccelerator,这里启用了eAccelerator之后可以进行内存锁提高效率
         $this->eAccelerator = function_exists("eaccelerator_lock");
         if (! $this->eAccelerator) {
-            $this->path = $path . DS . "lock_" . md5($name);
+            $this->path = CACHE_DIR . DS . "lock_" . md5($name);
         }
         $this->name = $name;
     }
@@ -59,6 +61,8 @@ class LockCache implements BoLockInterface
             if ($this->fp === false) {
                 return false;
             }
+            
+            
             return flock($this->fp, LOCK_EX|LOCK_NB);
         } else {
             return eaccelerator_lock($this->name);

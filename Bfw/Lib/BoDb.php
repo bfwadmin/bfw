@@ -27,15 +27,15 @@ class BoDb extends WangBo
         $mydb->BackDb($_filename);
     }
 
-    public function Restore($_domian, $_filename)
+    public function Restore($_domian, $_filename,$_dbinfo=[])
     {
         $_dbconf = [
-            "dbtype" => "Db" . DB_TYPE,
-            "dbport" => DB_PORT,
-            "dbuser" => DB_UNAME,
-            "dbpwd" => DB_PASSWD,
-            "dbname" => DB_NAME,
-            "dbhost" => DB_HOST
+            "dbtype" => "DbMysql" ,
+            "dbport" => $_dbinfo[1],
+            "dbuser" => $_dbinfo[2],
+            "dbpwd" => $_dbinfo[3],
+            "dbname" => "mysql",
+            "dbhost" => $_dbinfo[0]
         ];
         if (isset($_dbconf['dbtype']) && strtolower($_dbconf['dbtype']) != "dbmysql") {
             echo "仅支持mysql数据库";

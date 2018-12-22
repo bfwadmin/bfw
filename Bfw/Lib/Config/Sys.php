@@ -21,7 +21,8 @@ $_config_arr['Sys']['webapp'] = [
     "run_mode_disallow" => "运行模式不匹配",
     "controler_not_allow"=>"不允许访问此控制器",
     "ip_disallow"=>"该ip不允许访问",
-    "device_disallow"=>'访问终端不匹配'
+    "device_disallow"=>'访问终端不匹配',
+    "key_wrong"=>'秘钥不对'
 ];
 $_config_arr['Sys']['cache'] = [
     "dependcy_not_found" => "缓冲依赖找不到"

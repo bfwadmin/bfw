@@ -11,14 +11,22 @@
 	z-index: 100000;
 	cursor: pointer;
 }
-
+.serverinfo{
+	color:#adadad;
+}
+.serverinfo p{
+	padding:0;
+	margin:0;
+	text-indent:30px;
+}
 #debug_pannel {
 	border: 1px dashed grey;
 	padding: 10px;
 	position: fixed;
 	bottom: 0px;
 	width: 100%;
-	height: 100%; left : 0;
+	height: 90%;
+	left: 0;
 	background: black;
 	color: #cecece;
 	opacity: 0.9;
@@ -64,7 +72,7 @@
 			Debug Info [spend {<span style="color: #a6ff0a;"><?=$spendtime?></span>}
 			secs,import <span style="color: #039cdb;"><?= count ($import_info ) ?></span> files  <?=\Lib\Bfw::IIF($islogserver, "<span
 			style='color: green; font-weight: bold;'>L</span>", "")?> ],[mem:<span
-				style="color: #dbaa64;"><?=(memory_get_usage () / 1024 / 1024) ?>M</span>]
+				style="color: #dbaa64;"><?=($totalmem / 1024 / 1024) ?>M</span>]
 		</h1>
 	</div>
 
@@ -75,7 +83,7 @@
 		<?php
 if (! empty($import_info)) {
     foreach ($import_info as $_item) {
-    ?>
+        ?>
 <li><?=$_item?> </li>
 		<?php }}?>
 </ul>

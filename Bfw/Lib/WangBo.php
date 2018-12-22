@@ -222,7 +222,7 @@ class WangBo
             echo $str;
             return;
         }
-        if (RESPONSE_JOSN || IS_AJAX_REQUEST) {
+        if (RESPONSE_JSON || IS_AJAX_REQUEST) {
             $this->Json(Bfw::RetMsg(false, $str));
         } else {
             Core::S("but_msg", $str);
@@ -263,7 +263,7 @@ class WangBo
             echo $msg;
             return;
         }
-        if (RESPONSE_JOSN) {
+        if (RESPONSE_JSON) {
             $this->Json(Bfw::RetMsg(false, $msg));
         } else {
             if (IS_AJAX_REQUEST) {
@@ -301,7 +301,7 @@ class WangBo
             echo $msg;
             return;
         }
-        if (RESPONSE_JOSN || IS_AJAX_REQUEST) {
+        if (RESPONSE_JSON || IS_AJAX_REQUEST) {
             $this->Json(Bfw::RetMsg(false, "msgredirect:" . $msg . "---" . $url));
         } else {
             $this->Alert($msg, array(
@@ -335,7 +335,7 @@ class WangBo
                 "bo_err" => true,
                 "bo_data" => $str
             ));
-        } elseif (RESPONSE_JOSN || IS_AJAX_REQUEST) {
+        } elseif (RESPONSE_JSON || IS_AJAX_REQUEST) {
             $this->Json(Bfw::RetMsg(true, $str));
         } else {
             

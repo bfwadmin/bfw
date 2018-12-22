@@ -2,6 +2,7 @@
 namespace Lib\Db;
 
 use Lib\Bfw;
+use Lib\BoDebug;
 use Lib\Exception\DbException;
 require_once APP_ROOT . DS . "Lib" . DS . "Db" . DS . 'BoDb.php';
 
@@ -35,20 +36,23 @@ class DbMysql extends BoDb implements BoDbInterface
         try {
             $this->_connection = new \PDO($this->_connectstr, $this->_username, $this->_password, $this->_option);
             $this->_connection->query('SET NAMES utf8');
+            BoDebug::Info("mysql connect ".$this->_connectstr);
         } catch (\PDOException $e) {
             throw new DbException($e->getMessage());
         }
     }
 
-    public function single($_id, $_field, $_tablename, $_key)
+    public function single($_id, $_field, $_tablename, $_key,$_islock=false)
     {
         try {
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
-            
             $sql = "SELECT {$_field} FROM  {$_tablename} WHERE {$_key}=:id";
-            Bfw::Debug($sql);
+            if($_islock){
+                $sql.="  FOR UPDATE";
+            }
+            BoDebug::Info($sql);
             $stmt = $this->_connection->prepare($sql);
             $stmt->execute(array(
                 ':id' => $_id
@@ -89,7 +93,7 @@ class DbMysql extends BoDb implements BoDbInterface
                     $sql_val = substr($sql_val, 0, strlen($sql_val) - 1);
                 }
                 $sql = "INSERT INTO {$_tablename} ({$sql_field})VALUES ({$sql_val})";
-                Bfw::Debug($sql);
+                BoDebug::Info($sql);
                 $issuccess = $this->_connection->prepare($sql)->execute($val);
                 if ($issuccess) {
                     if ($_returnid) {
@@ -156,7 +160,7 @@ class DbMysql extends BoDb implements BoDbInterface
                 }
                 $sql = "UPDATE {$_tablename} SET " . $sql . " WHERE {$_key}=?";
                 // die($sql.var_export($val,true));
-                Bfw::Debug($sql);
+                BoDebug::Info($sql);
                 $issuccess = $this->_connection->prepare($sql)->execute($val);
                 if ($issuccess) {
                     return Bfw::RetMsg(false, true);
@@ -189,7 +193,7 @@ class DbMysql extends BoDb implements BoDbInterface
                 return Bfw::RetMsg(true, "主键空值");
             }
             $sql = "DELETE FROM  {$_tablename} WHERE {$_key}=:id";
-            Bfw::Debug($sql);
+            BoDebug::Info($sql);
             $issuccess = $this->_connection->prepare($sql)->execute(array(
                 ':id' => $_id
             ));
@@ -217,13 +221,13 @@ class DbMysql extends BoDb implements BoDbInterface
             }
             
             $_lcount = 0;
-            Bfw::TickStart($sql_count);
+           BoDebug::TickStart($sql_count);
             $stmt = $this->_connection->prepare($sql_count);
             $stmt->execute($_wherearr);
             while (($row = $stmt->fetch(\PDO::FETCH_NUM)) != false) {
                 $_lcount = $row[0];
             }
-            // Bfw::TickStop($sql_count);
+           BoDebug::TickStop($sql_count);
             return Bfw::RetMsg(false, $_lcount);
         } catch (\PDOException $e) {
             throw new DbException($e->getMessage());
@@ -252,19 +256,19 @@ class DbMysql extends BoDb implements BoDbInterface
                 $_pagenum = $_pagesize * $_page;
                 $sql = $sql . " LIMIT {$_pagenum},{$_pagesize};";
             }
-            // Bfw::Debug($sql);
+            // BoDebug::Info($sql);
             // echo $sql;
-            Bfw::TickStart($sql);
+           BoDebug::TickStart($sql);
             $stmt = $this->_connection->prepare($sql);
             $stmt->execute($_wherearr);
             $_ldata = array();
             while (($row = $stmt->fetch(\PDO::FETCH_ASSOC)) != false) {
                 $_ldata[] = $row;
             }
-            Bfw::TickStop($sql);
+            BoDebug::TickStop($sql);
             $_lcount = 0;
             if ($_needcount) {
-                Bfw::Debug($sql_count);
+                BoDebug::Info($sql_count);
                 $stmt = $this->_connection->prepare($sql_count);
                 $stmt->execute($_wherearr);
                 while (($row = $stmt->fetch(\PDO::FETCH_NUM)) != false) {
@@ -337,7 +341,7 @@ class DbMysql extends BoDb implements BoDbInterface
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
-            Bfw::Debug($_sql);
+            BoDebug::Info($_sql);
             $issuccess = $this->_connection->prepare($_sql)->execute($_val);
             if ($issuccess) {
                 return Bfw::RetMsg(false, true);
@@ -355,7 +359,7 @@ class DbMysql extends BoDb implements BoDbInterface
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
-            Bfw::Debug($_sql);
+            BoDebug::Info($_sql);
             $stmt = $this->_connection->prepare($_sql);
             $stmt->execute($_val);
             $_ldata = array();
@@ -457,6 +461,7 @@ class DbMysql extends BoDb implements BoDbInterface
 
     function __destruct()
     {
+        BoDebug::Info("mysql close");
         $this->_connection = null;
     }
 }

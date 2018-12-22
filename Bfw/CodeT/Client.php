@@ -14,17 +14,15 @@ class Client_CONTNAME extends BoClient
     /*
      * protected $_serv_url = array(
      * array(
-     * "url" => "http://localhost/boframework/server/indexservice.php",
+     * "serviceurl" => "http://localhost/boframework/server/indexservice.php",
      * "lang" => "php",
-     * "key" => "123",
-     * "dom" => "Cms",
+     * "seckey" => "123",
      * "weight" => 20
      * ),
      * array(
-     * "url" => "http://localhost/boframework/server/indexservice.php",
+     * "serviceurl" => "http://localhost/boframework/server/indexservice.php",
      * "lang" => "php",
-     * "key" => "123",
-     * "dom" => "Cms",
+     * "seckey" => "123",
      * "weight" => 20
      * )
      * );

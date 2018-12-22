@@ -83,7 +83,6 @@ class Core
                 return new $class($para);
             }
         } else {
-            
             throw new CoreException(Bfw::Config("Sys", "webapp","System")['class_not_found'] . $class);
         }
     }
@@ -115,7 +114,12 @@ class Core
         if (is_null($_val)) {
             return $_cache_instance::getInstance()->getkey($_key);
         } else {
-            return $_cache_instance::getInstance()->setkey($_key, $_val, $_lifetime);
+            if($_val==""){
+                return $_cache_instance::getInstance()->del($_key);
+            }else{
+                return $_cache_instance::getInstance()->setkey($_key, $_val, $_lifetime);
+            }
+            
         }
     }
 

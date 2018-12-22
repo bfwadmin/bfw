@@ -14,6 +14,8 @@ class Model_CONTNAME extends BoModel
     protected $_prikey = "id";
 
     protected $_isview = false;
+    
+    //protected $_cpsql="select * from [Model] as b left join [Model] as b where a.id=b.id";//
 
     private static $_instance;
 
@@ -36,16 +38,6 @@ class Model_CONTNAME extends BoModel
         return self::$_instance;
     }
 
-
-    /*
-     * protected $_connarray = array(
-     * "dbtype" => "DbMysql",
-     * "dbconnstr" => "mysql:host=127.0.0.1;dbname=88art",
-     * "dbport" => 3306,
-     * "dbuser" => "root",
-     * "dbpwd" => ""
-     * );
-     */
 }
 
 ?>

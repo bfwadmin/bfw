@@ -6,11 +6,33 @@ use Lib\BoControler;
 use App\DOM\Client\Client_CONTNAME;
 
 /**
+ *
  * @author bfw
- *CONTMEMO
+ *         CONTMEMO
  */
 class Controler_CONTNAME extends BoControler
 {
+/*
+    public $_config = [
+        'runmode' => [
+            'apache2handler',
+            "cli",
+            "fpm-fcgi"
+        ],
+        'responseformat' => 'json',
+        'expire' => 36,
+        "allowdevice" => [
+            'pc',
+            'mobile'
+        ],
+        "allowip" => [
+            '127.0.0.1'
+        ],
+        "auth" => [
+            "admin",
+            "123456"
+        ]
+    ];*/
 
     /**
      * CONTMEMO添加
@@ -20,7 +42,7 @@ class Controler_CONTNAME extends BoControler
         $this->OutCharset("utf-8");
         if ($this->IsPost()) {
             $_formdata = $this->FormArray(array(
-           FIELDNAMEARRAY
+                FIELDNAMEARRAY
             ), false, "CONTNAME");
             if ($_formdata['err']) {
                 return $this->Error($_formdata['data']);
@@ -68,7 +90,7 @@ class Controler_CONTNAME extends BoControler
         $this->OutCharset("utf-8");
         if ($this->IsPost()) {
             $_formdata = $this->FormArray(array(
-              FIELDEDITNAMEARRAY
+                FIELDEDITNAMEARRAY
             ), false, "CONTNAME");
             
             if ($_formdata['err']) {
@@ -103,10 +125,8 @@ class Controler_CONTNAME extends BoControler
     {
         $pagesize = 10;
         $this->OutCharset("utf-8");
-       
         
-        $_orderdata = Client_CONTNAME::getInstance()
-            ->PageNum($page)
+        $_orderdata = Client_CONTNAME::getInstance()->PageNum($page)
             ->PageSize($pagesize)
             ->DescBy("id")
             ->Select();
@@ -118,8 +138,6 @@ class Controler_CONTNAME extends BoControler
         $this->Assign("itemdata", $_orderdata['data']['data']);
         $this->Display();
     }
-
-  
 }
 
 ?>

@@ -1,14 +1,12 @@
 <?php
 // 数据库配置
 $_config_arr['Db']['localconfig'] = [
-    "dbtype" => "Db".DB_TYPE,
-    "dbport" => DB_PORT,
-    "dbuser" => DB_UNAME,
-    "dbpwd" => DB_PASSWD,
+    "dbtype" =>"DBTYPE",
+    "dbport" => "DBPORT",
+    "dbuser" => "DBUSER",
+    "dbpwd" => "DBPWD",
     "dbname"=>"DBNAME",
-    "dbhost"=>DB_HOST
+    "dbhost"=>"DBHOST"
 ];
-$_config_arr['Db']['map'] = [
-];
-$_config_arr['Db']['tbpre'] ="bfw_";
+
 

@@ -2,39 +2,31 @@
 namespace Lib\Cache;
 
 use Lib\Exception\CacheException;
+use Lib\BoDebug;
 
 class CacheRedis implements BoCacheInterface
 {
 
     private static $_instance = null;
 
-    private $_server_ip = "127.0.0.1";
-
-    private $_server_port = 6379;
-
-    private $_pconnect = false;
-
-    private $_timeout = 5;
-
     private $mem;
 
-    private $_key = "";
 
     function __construct()
-    {
+    {      
         $this->mem = new \Redis();
-        
-        if ($this->_pconnect) {
-            if (! $this->mem->pconnect($this->_server_ip, $this->_server_port, $this->_timeout)) {
-                throw new CacheException("redis connect fail");
+        BoDebug::Info("rediscache connect " . CACHE_REDIS_HOST);
+        if (CACHE_REDIS_PCONNECT) {
+            if (! $this->mem->pconnect(CACHE_REDIS_HOST,CACHE_REDIS_PORT,CACHE_REDIS_TIMEOUT)) {
+                throw new CacheException("rediscache connect fail");
             }
         } else {
-            if (! $this->mem->connect($this->_server_ip, $this->_server_port, $this->_timeout)) {
-                throw new CacheException("redis connect fail");
+            if (! $this->mem->connect(CACHE_REDIS_HOST,CACHE_REDIS_PORT,CACHE_REDIS_TIMEOUT)) {
+                throw new CacheException("rediscache connect fail");
             }
         }
-        if ($this->_key != "") {
-            $this->mem->auth($this->_key);
+        if (CACHE_REDIS_AUTHKEY != "") {
+            $this->mem->auth(CACHE_REDIS_AUTHKEY);
         }
     }
 
@@ -49,6 +41,7 @@ class CacheRedis implements BoCacheInterface
     function setkey($key, $val, $exprie)
     {
         if ($this->mem->set($key, serialize($val))) {
+            BoDebug::Info("rediscache setkey " . $key);
             return $this->mem->expire($key, $exprie);
         }
         return false;
@@ -57,16 +50,19 @@ class CacheRedis implements BoCacheInterface
     function getkey($key)
     {
         $_val = $this->mem->get($key);
+        BoDebug::Info("rediscache getkey " . $key);
         return $_val ? unserialize($_val) : null;
     }
 
     function del($key)
     {
+        BoDebug::Info("rediscache delkey " . $key);
         return $this->mem->delete($key);
     }
 
     function __destruct()
     {
+        BoDebug::Info("rediscache close ");
         $this->mem->close();
     }
     

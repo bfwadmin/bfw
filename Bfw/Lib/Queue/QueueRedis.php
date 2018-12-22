@@ -2,19 +2,13 @@
 namespace Lib\Queue;
 
 use Lib\Exception\QueueException;
+use Lib\BoDebug;
 
 class QueueRedis implements BoQueueInterface
 {
 
     private static $_instance = null;
 
-    private $_server_ip = "127.0.0.1";
-
-    private $_server_port = 6379;
-
-    private $_pconnect = false;
-
-    private $_timeout = 5;
 
     private $_redis;
 
@@ -22,14 +16,18 @@ class QueueRedis implements BoQueueInterface
     {
         $this->_redis = new \Redis();
         
-        if ($this->_pconnect) {
-            if (! $this->_redis->pconnect($this->_server_ip, $this->_server_port, $this->_timeout)) {
+        BoDebug::Info("queueredis connect ".QUEUE_REDIS_HOST);
+        if (QUEUE_REDIS_PCONNECT) {
+            if (! $this->_redis->pconnect(QUEUE_REDIS_HOST,QUEUE_REDIS_PORT, QUEUE_REDIS_TIMEOUT)) {
                 throw new QueueException("redis connect fail");
             }
         } else {
-            if (! $this->_redis->connect($this->_server_ip, $this->_server_port, $this->_timeout)) {
+            if (! $this->_redis->connect(QUEUE_REDIS_HOST, QUEUE_REDIS_PORT, QUEUE_REDIS_TIMEOUT)) {
                 throw new QueueException("redis connect fail");
             }
+        }
+        if (QUEUE_REDIS_AUTHKEY != "") {
+            $this->_redis->auth(QUEUE_REDIS_AUTHKEY);
         }
     }
 
@@ -44,6 +42,7 @@ class QueueRedis implements BoQueueInterface
     public function enqueue($_key, $_val)
     {
         try {
+            BoDebug::Info("queueredis enqueue ".$_key);
             $this->_redis->LPUSH($_key, $_val);
         } catch (\Exception $e) {
             throw new QueueException($e->getMessage());
@@ -53,6 +52,7 @@ class QueueRedis implements BoQueueInterface
     public function dequeue($_key)
     {
         try {
+            BoDebug::Info("queueredis dequeue ".$_key);
             return $this->_redis->LPOP($_key);
         } catch (\Exception $e) {
             throw new QueueException($e->getMessage());
@@ -61,6 +61,7 @@ class QueueRedis implements BoQueueInterface
 
     public function __destruct()
     {
+        BoDebug::Info("queueredis close ");
         $this->_redis->close();
     }
 }
