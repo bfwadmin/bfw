@@ -39,7 +39,7 @@ class BoModel
 
     /**
      * 别名
-     * 
+     *
      * @var string
      */
     private $_alias = "";
@@ -99,12 +99,13 @@ class BoModel
      * @var string
      */
     protected $_tbpre = "";
-    
+
     /**
      * 是否锁表
+     * 
      * @var bool
      */
-    protected $_locktable=false;
+    protected $_locktable = false;
 
     /**
      * 分页大小
@@ -114,8 +115,8 @@ class BoModel
     private $_pagesize;
 
     protected $_isview = false;
-    
-    protected $_cpsql="";
+
+    protected $_cpsql = "";
 
     /**
      * 数据库处理实例
@@ -134,14 +135,14 @@ class BoModel
 
     public function __construct()
     {
-        if($this->_isview&&$this->_cpsql!=""){
-            $this->_tablename = " (".$this->GetTableNameByTag($this->_cpsql)." ) ";
-        }else{
-           $_conf= Bfw::ConfigGet("Config", "App");
-           if(isset($_conf['dbmap'])){
-               $this->_model_table_map =$_conf['dbmap'];
-           }
-           // $this->_tbpre = Bfw::Config("Db", "tbpre");
+        if ($this->_isview && $this->_cpsql != "") {
+            $this->_tablename = " (" . $this->GetTableNameByTag($this->_cpsql) . " ) ";
+        } else {
+            $_conf = Bfw::ConfigGet("Config", "App");
+            if (isset($_conf['dbmap'])) {
+                $this->_model_table_map = $_conf['dbmap'];
+            }
+            // $this->_tbpre = Bfw::Config("Db", "tbpre");
             $_m_n = str_replace("App\\" . DOMIAN_VALUE . "\\Model\\Model_", "", get_class($this));
             if (isset($this->_model_table_map[$_m_n])) {
                 $this->_tablename = $this->_model_table_map[$_m_n];
@@ -151,7 +152,6 @@ class BoModel
                 }
                 $this->_tablename = $this->_tbpre . $_m_n;
             }
-           
         }
         if ($this->_dbhandle == null) {
             if (isset($this->_connarray)) {
@@ -160,7 +160,6 @@ class BoModel
                 $this->_dbhandle = DbFactory::GetInstance();
             }
         }
-      
     }
 
     public function ChangeDb($_table = "", $_prekey = "", $_isview = false, $_connarray = null, $_tablemap = false)
@@ -273,7 +272,7 @@ class BoModel
     public function Single($_field, $_id)
     {
         try {
-            return $this->_dbhandle->single($_id, $_field, $this->_tablename, $this->_prikey,$this->_locktable);
+            return $this->_dbhandle->single($_id, $_field, $this->_tablename, $this->_prikey, $this->_locktable);
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
         }
@@ -421,14 +420,16 @@ class BoModel
         $this->_page = $_n;
         return $this;
     }
-    
-    /**锁表
+
+    /**
+     * 锁表
+     * 
      * @return \Lib\BoModel
      */
-    function Lock(){
-        $this->_locktable=true;
+    function Lock()
+    {
+        $this->_locktable = true;
         return $this;
-        
     }
 
     /**
@@ -500,9 +501,12 @@ class BoModel
      * @param string $_sql            
      * @return \Lib\BoModel
      */
-    function Union($_sql,$_isall=false)
+    function Union($_sql, $_isall = false)
     {
-        $this->_unionarr[] = [$_sql,$_isall];
+        $this->_unionarr[] = [
+            $_sql,
+            $_isall
+        ];
         return $this;
     }
 
@@ -557,10 +561,10 @@ class BoModel
         
         if (is_array($this->_unionarr)) {
             foreach ($this->_unionarr as $_item) {
-                if(count($_item)==2){
-                    if($_item[1]){
+                if (count($_item) == 2) {
+                    if ($_item[1]) {
                         $_sql .= ' union  all ' . $_item[0];
-                    }else{
+                    } else {
                         $_sql .= ' union ' . $_item[0];
                     }
                 }
@@ -597,10 +601,10 @@ class BoModel
         
         if (is_array($this->_unionarr)) {
             foreach ($this->_unionarr as $_item) {
-                if(count($_item)==2){
-                    if($_item[1]){
+                if (count($_item) == 2) {
+                    if ($_item[1]) {
                         $_sql .= ' union  all ' . $_item[0];
-                    }else{
+                    } else {
                         $_sql .= ' union ' . $_item[0];
                     }
                 }
@@ -640,7 +644,7 @@ class BoModel
         if (isset($this->_model_table_map[$_m])) {
             return $this->_model_table_map[$_m];
         }
-        //$this->_tbpre = Bfw::Config("Db", "tbpre");
+        // $this->_tbpre = Bfw::Config("Db", "tbpre");
         if ($this->_tbpre == null) {
             $this->_tbpre = TB_PRE;
         }
@@ -665,6 +669,18 @@ class BoModel
 
     public function __call($method, $arguments)
     {
+        // if($method)
+        if (substr($method, 0, 6) == "FindBy") {
+            $_suff = substr($method, 6);
+            if (count($arguments) == 2 && preg_match("/([A-Za-z]+)(And|Or)([A-Za-z]+)$/", $_suff, $match)) {
+                $this->_wherestr = "  ".$match[1]."=?  ".$match[2]."  " .$match[3]."=? ";
+                $this->_wherearr = $arguments;
+                die($this->_wherestr);
+                return $this->Select();
+            } else {
+                return BfW::RetMsg(true, $method . " not defined");
+            }
+        }
         return BfW::RetMsg(true, $method . " not defined");
     }
 }

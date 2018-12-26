@@ -16,6 +16,7 @@ use Lib\Exception\SessionException;
 use Lib\Exception\LogException;
 use Lib\Util\UrlUtil;
 use Lib\BoRoute;
+use Lib\BoSocket;
 if (strtolower(PHP_SAPI) != "cli") {
     ob_start();
 }
@@ -34,7 +35,6 @@ try {
     define("HTTP_METHOD", isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '');
     define('HTTP_REFERER', isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : ''); // 来源页
     define("IP", UrlUtil::getip()); // 当前ip
-    define("AYC_CACHE_NAME", "ayccachelist"); // 当前ip
     define("URL", UrlUtil::geturl()); // 当前url
     define("IS_AJAX_REQUEST", isset($_SERVER['HTTP_X_REQUESTED_WITH']) || isset($_SERVER['HTTP_BFWAJAX']) ? true : false); // 判断是否是ajax请求
     define("SERVER_NAME", isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : ""); // 服务器域名
@@ -42,7 +42,6 @@ try {
     define("APPSELF", isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : ''); // 当前脚本名称
     define("HOST_NAME", isset($_SERVER["HTTP_HOST"]) ? $_SERVER['HTTP_HOST'] : ''); // 当前访问主机名
     define("VERSION", "11.0"); // 版本
-    define("QUEUE_INTVAL_TIME", 1); // 异步任务等待时间秒
     static $_config_arr = [];
     if (file_exists(APP_DIR . "Config.php")) {
         include APP_DIR . "Config.php";
@@ -58,7 +57,6 @@ try {
     defineinit("DOMIAN_NAME", $_config_arr['Globle'], 'domian_name', "dom"); // 域名称
     defineinit("ACTION_NAME", $_config_arr['Globle'], 'action_name', "act"); // 动作器名称
     defineinit("ROUTER_NAME", $_config_arr['Globle'], 'router_name', "r"); // 路由参数名称
-    
     $_defaultdom = "";
     $_defaultcont = "";
     $_defaultact = "";
@@ -92,7 +90,7 @@ try {
         $_defaultact
     ];
     if (strtolower(PHP_SAPI) === 'cli') {
-       // BoSocket::Start();
+        BoSocket::Start();
         global $argv;
         $_intval[0] = isset($argv[1]) ? $argv[1] : $_intval[0];
         $_intval[1] = isset($argv[2]) ? $argv[2] : $_intval[1];
@@ -242,7 +240,6 @@ try {
         defineinit("CACHE_ZK_IP", $_config_arr['App'], 'cache_zk_ip', "127.0.0.1");
         defineinit("CACHE_ZK_PORT", $_config_arr['App'], 'cache_zk_ip', 2181);
     }
-    define("CACHE_UPDATE_INTVAL_TIME", 15);
     
     defineinit("CACHE_DEPENDCY_PRE", $_config_arr['App'], 'cache_dependcy_pre', "cache_dependcy_"); // 依赖缓存pre
     defineinit("CACHE_DEPENDCY_KEY", $_config_arr['App'], 'cache_dependcy_key', " 2X!2342XDSFSSS"); // 依赖缓存key

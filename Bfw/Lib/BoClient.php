@@ -3,6 +3,8 @@ namespace Lib;
 
 use Lib\Util\HttpUtil;
 use Lib\Exception\HttpException;
+use Lib\Util\StringUtil;
+use Lib\Cache\CacheApacheNote;
 // import ( "Client." . DOMIAN_VALUE . ".config" );
 class BoClient
 {
@@ -53,11 +55,10 @@ class BoClient
      */
     public function Insert($_data, $_returnid = false)
     {
-        if ($this->_service_remote) {
-            return $this->Proxy()->Insert($_data, $_returnid);
-        } else {
-            return $this->Service()->Insert($_data, $_returnid);
-        }
+        return $this->service_call("Insert", [
+            $_data,
+            $_returnid
+        ]);
     }
 
     /**
@@ -77,12 +78,9 @@ class BoClient
                 $_data[val] = null;
             }
         }
-        
-        if ($this->_service_remote) {
-            return $this->Proxy()->Update($_data);
-        } else {
-            return $this->Service()->Update($_data);
-        }
+        return $this->service_call("Update", [
+            $_data
+        ]);
     }
 
     /**
@@ -97,11 +95,10 @@ class BoClient
      */
     public function One($id, $field = "*")
     {
-        if ($this->_service_remote) {
-            return $this->Proxy()->Single($field, $id);
-        } else {
-            return $this->Service()->Single($field, $id);
-        }
+        return $this->service_call("Single", [
+            $field,
+            $id
+        ]);
     }
 
     /**
@@ -136,23 +133,34 @@ class BoClient
     {
         if ($this->_cachetime > 0) {
             $_cacheexpire = $this->checkCacheExpire();
-            $_keyname = md5(get_class($this) . $_field . $id);
+            $_keyname = md5(var_export($this->_cacheasync).get_class($this) . $_field . $id);
             $_cacheval = Core::Cache($_keyname);
             if ($this->_cacheasync && ! $this->_callfrombg) {
-                $this->updateCacheAsync([
-                    'key' => $_keyname,
-                    "cachetime" => $this->_cachetime,
-                    "obj" => serialize($this),
-                    "method" => "Single",
-                    'arg' => serialize([
-                        $id,
-                        $_field
-                    ]),
-                    'rpckey' => CACHE_DEPENDCY_KEY,
-                    'cachedependcy' => $this->_cachedependcy != null ? 'on' : 'off'
-                ]);
+                $_listdata = Core::Cache(AYC_CACHE_NAME);
+                if (is_array($_listdata) && isset($_listdata[$_keyname])) {} else {
+                    if (is_array($_listdata)) {
+                        $_listdata[] = $_keyname;
+                    } else {
+                        $_listdata = [
+                            $_keyname
+                        ];
+                    }
+                    Core::Cache(AYC_CACHE_NAME,$_listdata,0);
+                    $this->updateCacheAsync([
+                        'key' => $_keyname,
+                        "cachetime" => $this->_cachetime,
+                        "obj" => $this,
+                        "method" => "Single",
+                        'arg' => [
+                            $id,
+                            $_field
+                        ],
+                        'rpckey' => CACHE_DEPENDCY_KEY,
+                        'cachedependcy' => $this->_cachedependcy != null ? 'on' : 'off'
+                    ]);
+                }
             }
-            if ($_cacheval == null || $_cacheexpire) {
+            if ($_cacheval == null || $_cacheexpire||$this->_callfrombg) {
                 $_data = $this->One($id, $_field);
                 if ($_data != null && ! $_data['err']) {
                     $this->cacheMasterUpdate();
@@ -183,11 +191,145 @@ class BoClient
      */
     public function Delete($id)
     {
-        if ($this->_service_remote) {
-            return $this->Proxy()->Delete($id);
-        } else {
-            return $this->Service()->Delete($id);
+        return $this->service_call("Delete", [
+            $id
+        ]);
+    }
+    
+    private function regayschache($_key,$_method,$_arg){
+        
+    }
+    private function service_call($method, $arguments)
+    {
+        $_ret = [
+            "err" => false,
+            "data" => ""
+        ];
+        $method = str_replace("___", "", $method);
+        
+        if (! $this->_callfrombg) {
+            
+            $_servicename = str_replace("App\\" . DOMIAN_VALUE . "\\Client\\Client_", "", get_class($this));
+            // 调用模式
+            static $_config_arr = [];
+            if (file_exists(APP_DIR . "Config.php")) {
+                include APP_DIR . "Config.php";
+            }
+            // $_runservicename = SERVICE_DOMIAN_VALUE . "/" . $_servicename . "/" . str_replace("___", "", $method);
+            $_runservicename = DOMIAN_VALUE . "_" . $_servicename . "_" . str_replace("___", "", $method);
+            // die($_runservicename);// $_runservicename = $this->_domian . "_" . $this->_servicename . "_" . $method;
+            $_cachekey = "calllimit_" . md5($_runservicename);
+            // echo ($_runservicename);
+            if (isset($_config_arr['Globle']["service"])) {
+                $_service_conf = $_config_arr['Globle']["service"];
+                if (isset($_service_conf[$_runservicename])) {
+                    if (isset($_service_conf[$_runservicename]['limit'])) {
+                        if (isset($_service_conf[$_runservicename]['type']) && $_service_conf[$_runservicename]['type'] == "session") {
+                            $_cachekey .= SESS_ID;
+                        }
+                        if (isset($_service_conf[$_runservicename]['para'])) {
+                            if (isset($arguments[$_service_conf[$_runservicename]['para']])) {
+                                $_cachekey .= var_export($arguments[$_service_conf[$_runservicename]['para']], true);
+                            }
+                        }
+                        if (isset($_service_conf[$_runservicename]['type']) && $_service_conf[$_runservicename]['type'] != "queue") {
+                            $_cachedata = Core::Cache($_cachekey);
+                            if (is_numeric($_cachedata) && $_cachedata > 0) {
+                                if (time() - $_cachedata < $_service_conf[$_runservicename]['limit']) {
+                                    return array(
+                                        "err" => true,
+                                        "data" => "服务器忙,请稍后再试"
+                                    );
+                                }
+                            }
+                            Core::Cache($_cachekey, time(), 180);
+                        }
+                    }
+                }
+                if (isset($_service_conf[$_runservicename]['type']) && $_service_conf[$_runservicename]['type'] == "queue") {
+                    $_queue = Core::LoadClass("Lib\\QUEUE\\" . QUEUE_HANDLER_NAME);
+                    if ($_queue) {
+                        $_obj = serialize($this);
+                        $_reqid = StringUtil::guid();
+                        $_ret = $_queue->enqueue("service" . $_runservicename, [
+                            "reqid" => $_reqid,
+                            'reqtime' => time(),
+                            'reqmethod' => $method,
+                            'reqargs' => $arguments,
+                            "obj" => $_obj
+                        ]);
+                        return array(
+                            "err" => false,
+                            "data" => $_reqid
+                        );
+                    } else {
+                        return array(
+                            "err" => true,
+                            "data" => "queue init err"
+                        );
+                    }
+                }
+                if (isset($_service_conf[$_runservicename]['type']) && $_service_conf[$_runservicename]['type'] == "lock") {
+                    $_lock = Core::LoadClass("Lib\\Lock\\" . LOCK_HANDLER_NAME, $_cachekey);
+                    if ($_lock) {
+                        try {
+                            $_begintime = microtime(true);
+                            while (! $_lock->lock()) {
+                                usleep(LOCK_WAIT_TIME * 1000000);
+                                Bfw::Debug("LOCK WAIT:" . LOCK_WAIT_TIME . "s");
+                                if (microtime(true) - $_begintime >= LOCK_TIMEOUT) {
+                                    goto client_pass;
+                                }
+                            }
+                            // usleep(10000000);
+                            if ($this->_service_remote) {
+                                $_ret = call_user_func_array([
+                                    $this->Proxy(),
+                                    $method
+                                ], $arguments);
+                            } else {
+                                $_ret = call_user_func_array([
+                                    $this->Service(),
+                                    $method
+                                ], $arguments);
+                            }
+                            $_lock->unlock();
+                            return $_ret;
+                            client_pass:
+                            return array(
+                                "err" => true,
+                                "data" => "服务器很忙,请稍后再试"
+                            );
+                        } catch (\Exception $e) {
+                            $_lock->unlock();
+                            Bfw::LogToFile("lock exception:" . $e->getMessage());
+                            return array(
+                                "err" => true,
+                                "data" => "服务器太忙,请稍后再试"
+                            );
+                        }
+                    } else {
+                        return array(
+                            "err" => true,
+                            "data" => "服务器忙不过来,请稍后再试"
+                        );
+                    }
+                }
+            }
         }
+        
+        if ($this->_service_remote) {
+            $_ret = call_user_func_array([
+                $this->Proxy(),
+                $method
+            ], $arguments);
+        } else {
+            $_ret = call_user_func_array([
+                $this->Service(),
+                $method
+            ], $arguments);
+        }
+        return $_ret;
     }
 
     /**
@@ -211,20 +353,23 @@ class BoClient
      */
     public function ListData($field, $wherestr = null, $wherearr = null, $pagesize = null, $page = 0, $orderby, $needcount)
     {
-        if ($this->_service_remote) {
-            return $this->Proxy()->ListData($field, $wherestr, $wherearr, $pagesize, $page, $orderby, $needcount);
-        } else {
-            return $this->Service()->ListData($field, $wherestr, $wherearr, $pagesize, $page, $orderby, $needcount);
-        }
+        return $this->service_call("ListData", [
+            $field,
+            $wherestr,
+            $wherearr,
+            $pagesize,
+            $page,
+            $orderby,
+            $needcount
+        ]);
     }
 
     public function Count($wherestr = null, $wherearr = null)
     {
-        if ($this->_service_remote) {
-            return $this->Proxy()->Count($wherestr, $wherearr);
-        } else {
-            return $this->Service()->Count($wherestr, $wherearr);
-        }
+        return $this->service_call("Count", [
+            $wherestr,
+            $wherearr
+        ]);
     }
 
     /**
@@ -318,25 +463,39 @@ class BoClient
     {
         if ($this->_cachetime > 0) {
             $_cacheexpire = $this->checkCacheExpire();
-            $_keyname = md5(get_class($this) . $this->_wherestr . serialize($this->_wherearr));
+            $_keyname = md5(var_export($this->_cacheasync).get_class($this) . $this->_wherestr . serialize($this->_wherearr));
             $_cacheval = Core::Cache($_keyname);
             if ($this->_cacheasync && ! $this->_callfrombg) {
-                $this->updateCacheAsync([
-                    'key' => $_keyname,
-                    "cachetime" => $this->_cachetime,
-                    "obj" => serialize($this),
-                    "method" => "Total",
-                    'arg' => serialize([]),
-                    'rpckey' => CACHE_DEPENDCY_KEY,
-                    'cachedependcy' => $this->_cachedependcy != null ? 'on' : 'off'
-                ]);
+                $_listdata = Core::Cache(AYC_CACHE_NAME);
+                if (is_array($_listdata) && isset($_listdata[$_keyname])) {
+                    
+                } else {
+                    if (is_array($_listdata)) {
+                        $_listdata[] = $_keyname;
+                    } else {
+                        $_listdata = [
+                            $_keyname
+                        ];
+                    }
+                    Core::Cache(AYC_CACHE_NAME,$_listdata,0);
+                    $this->updateCacheAsync([
+                        'key' => $_keyname,
+                        "cachetime" => $this->_cachetime,
+                        "obj" => $this,
+                        "method" => "Total",
+                        'arg' => [],
+                        'rpckey' => CACHE_DEPENDCY_KEY,
+                        'cachedependcy' => $this->_cachedependcy != null ? 'on' : 'off'
+                    ]);
+                }
             }
-            if ($_cacheval == null || $_cacheexpire) {
+            if ($_cacheval == null || $_cacheexpire||$this->_callfrombg) {
                 $_data = $this->Count($this->_wherestr, $this->_wherearr);
                 if ($_data != null && ! $_data['err']) {
                     $this->cacheMasterUpdate();
                     if ($this->_cacheasync) {
                         Core::Cache($_keyname, $_data, 0);
+                          Core::Cache($_keyname . "expire", 1, $this->_cachetime);
                     } else {
                         Core::Cache($_keyname, $_data, $this->_cachetime);
                     }
@@ -378,27 +537,39 @@ class BoClient
     {
         if ($this->_cachetime > 0) {
             $_cacheexpire = $this->checkCacheExpire();
-            $_keyname = md5(get_class($this) . $this->_field . $this->_wherestr . serialize($this->_wherearr) . $this->_pagesize . $this->_page . $this->_orderstr . serialize($_withtotal));
+            $_keyname = md5(var_export($this->_cacheasync,true).get_class($this) . $this->_field . $this->_wherestr . serialize($this->_wherearr) . $this->_pagesize . $this->_page . $this->_orderstr . serialize($_withtotal));
             $_cacheval = Core::Cache($_keyname);
             if ($this->_cacheasync && ! $this->_callfrombg) {
-                $this->updateCacheAsync([
-                    'key' => $_keyname,
-                    "cachetime" => $this->_cachetime,
-                    "obj" => serialize($this),
-                    "method" => "Select",
-                    'arg' => serialize([
-                        $_withtotal
-                    ]),
-                    'rpckey' => CACHE_DEPENDCY_KEY,
-                    'cachedependcy' => $this->_cachedependcy != null ? 'on' : 'off'
-                ]);
+                $_listdata = Core::Cache(AYC_CACHE_NAME);
+                if (is_array($_listdata) && isset($_listdata[$_keyname])) {} else {
+                    if (is_array($_listdata)) {
+                        $_listdata[] = $_keyname;
+                    } else {
+                        $_listdata = [
+                            $_keyname
+                        ];
+                    }
+                    Core::Cache(AYC_CACHE_NAME,$_listdata,0);
+                    $this->updateCacheAsync([
+                        'key' => $_keyname,
+                        "cachetime" => $this->_cachetime,
+                        "obj" => $this,
+                        "method" => "Select",
+                        'arg' => [
+                            $_withtotal
+                        ],
+                        'rpckey' => CACHE_DEPENDCY_KEY,
+                        'cachedependcy' => $this->_cachedependcy != null ? 'on' : 'off'
+                    ]);
+                }
             }
-            if ($_cacheval == null || $_cacheexpire) {
+            if ($_cacheval == null || $_cacheexpire||$this->_callfrombg) {
                 $_data = $this->ListData($this->_field, $this->_wherestr, $this->_wherearr, $this->_pagesize, $this->_page, $this->_orderstr, $_withtotal);
                 if ($_data != null && ! $_data['err']) {
                     $this->cacheMasterUpdate();
                     if ($this->_cacheasync) {
                         Core::Cache($_keyname, $_data, 0);
+                         Core::Cache($_keyname . "expire", 1, $this->_cachetime);
                     } else {
                         Core::Cache($_keyname, $_data, $this->_cachetime);
                     }
@@ -534,15 +705,15 @@ class BoClient
         $_data = Core::Cache($_key);
         if (empty($_data)) {
             $_url = SERVICE_REG_CENTER_URL . "?dom=" . DOMIAN_VALUE . "&act=get&cont=service&sername=" . $_servicename . "&notifyurl=" . urlencode(SERVICE_NOTIFY_URL);
-      
+            
             $_data = HttpUtil::HttpGet($_url);
             if ($_data['err']) {
                 throw new HttpException('get service list http err,' . $_data['data']);
             } else {
                 
                 $_json_data = json_decode($_data['data'], true);
-                if(empty($_json_data)){
-                    throw new HttpException('get service list http err,empty data' );
+                if (empty($_json_data)) {
+                    throw new HttpException('get service list http err,empty data');
                 }
                 Core::Cache($_key, $_json_data, 0);
                 return $_json_data;
@@ -554,56 +725,19 @@ class BoClient
 
     private function updateCacheAsync($_data)
     {
-        HttpUtil::AsynPost(SERVER_NAME, SERVER_PORT, $_SERVER['SCRIPT_NAME'] . "?updatecache=1", $_data, 2);
-    }
-
-    private function callMethod($method, $arguments)
-    {
-        $_servicename = str_replace("App\\" . DOMIAN_VALUE . "\\Client\\Client_", "", get_class($this));
-        $_service_mode_arr = Bfw::Config("Client", "mode", "System");
-        $_servicename = SERVICE_DOMIAN_VALUE . "/" . $_servicename . "/" . str_replace("___", "", $method);
-        if (isset($_service_mode_arr[$_servicename]) && $_service_mode_arr[$_servicename] === "Queue") {
-            $_lock = Core::LoadClass("Lib\\Lock\\" . LOCK_HANDLE_NAME, "C_" . $_servicename . "_" . $method . "_" . SERVICE_DOMIAN_VALUE);
-            if ($_lock) {
-                try {
-                    do {
-                        Bfw::Debug("lock wait");
-                        usleep(LOCK_WAIT_TIME);
-                    } while (! $_lock->lock());
-                    if ($this->_service_remote) {
-                        return call_user_func_array(array(
-                            $this->Proxy(),
-                            str_replace("___", "", $method)
-                        ), $arguments);
-                    } else {
-                        return call_user_func_array(array(
-                            $this->Service(),
-                            str_replace("___", "", $method)
-                        ), $arguments);
-                    }
-                    usleep(LOCK_WAIT_TIME);
-                    $_lock->unlock();
-                } catch (\Exception $e) {
-                    $_lock->unlock();
-                    Bfw::LogToFile("C_lock exception:" . $e->getMessage());
-                    return Bfw::RetMsg(true, "lock exception " . LOCK_HANDLE_NAME . ":" . $e->getMessage());
-                }
-            } else {
-                return Bfw::RetMsg(true, "init " . LOCK_HANDLE_NAME . " lock err");
-            }
-        } else {
-            if ($this->_service_remote) {
-                return call_user_func_array(array(
-                    $this->Proxy(),
-                    str_replace("___", "", $method)
-                ), $arguments);
-            } else {
-                return call_user_func_array(array(
-                    $this->Service(),
-                    str_replace("___", "", $method)
-                ), $arguments);
-            }
-        }
+        // 此处改为消息队列处理
+        // 异步缓存，先注册，然后交给一个定时器处理
+        // 异步任务 先发送到消息队列，然后查询处理结果
+      //  $_key = $_data['key'];
+    //    if (Core::Cache($_key . "expire") < time()) {
+            Core::Cache("asy_".$_data['key'],$_data,0);
+           // $_queue = Core::LoadClass("Lib\\QUEUE\\" . QUEUE_HANDLER_NAME);
+            //if ($_queue) {
+              //  $_ret = $_queue->enqueue("cache", $_data);
+          //  }
+       // }
+        
+        // HttpUtil::AsynPost(SERVER_NAME, SERVER_PORT, $_SERVER['SCRIPT_NAME'] . "?updatecache=1", $_data, 2);
     }
 
     public function RunBg($_istrue = true)
@@ -615,25 +749,39 @@ class BoClient
     {
         if ($this->_cachetime > 0) {
             $_cacheexpire = $this->checkCacheExpire();
-            $_keyname = md5(get_class($this) . $method . serialize($arguments));
+            $_keyname = md5(var_export($this->_cacheasync).get_class($this) . $method . serialize($arguments));
             $_cacheval = Core::Cache($_keyname);
+            
             if ($this->_cacheasync && ! $this->_callfrombg) {
-                $this->updateCacheAsync([
-                    'key' => $_keyname,
-                    "cachetime" => $this->_cachetime,
-                    "obj" => serialize($this),
-                    "method" => $method,
-                    'arg' => serialize($arguments),
-                    'rpckey' => CACHE_DEPENDCY_KEY,
-                    'cachedependcy' => $this->_cachedependcy != null ? 'on' : 'off'
-                ]);
+                $_listdata = Core::Cache(AYC_CACHE_NAME);
+                if (is_array($_listdata) && isset($_listdata[$_keyname])) {} else {
+                    if (is_array($_listdata)) {
+                        $_listdata[] = $_keyname;
+                    } else {
+                        $_listdata = [
+                            $_keyname
+                        ];
+                    }
+                    Core::Cache(AYC_CACHE_NAME, $_listdata,0);
+                    $this->updateCacheAsync([
+                        'key' => $_keyname,
+                        "cachetime" => $this->_cachetime,
+                        "obj" => $this,
+                        "method" => $method,
+                        'arg' => $arguments,
+                        'rpckey' => CACHE_DEPENDCY_KEY,
+                        'cachedependcy' => $this->_cachedependcy != null ? 'on' : 'off'
+                    ]);
+                }
             }
-            if ($_cacheval == null || $_cacheexpire) {
-                $_data = $this->callMethod($method, $arguments);
+            
+            if ($_cacheval == null || $_cacheexpire||$this->_callfrombg) {
+                $_data = $this->service_call($method, $arguments);
                 if ($_data != null && ! $_data['err']) {
                     $this->cacheMasterUpdate();
                     if ($this->_cacheasync) {
                         Core::Cache($_keyname, $_data, 0);
+                        Core::Cache($_keyname . "expire", 1, $this->_cachetime);
                     } else {
                         Core::Cache($_keyname, $_data, $this->_cachetime);
                     }
@@ -644,7 +792,7 @@ class BoClient
                 return $_cacheval;
             }
         } else {
-            return $this->callMethod($method, $arguments);
+            return $this->service_call($method, $arguments);
         }
     }
 }

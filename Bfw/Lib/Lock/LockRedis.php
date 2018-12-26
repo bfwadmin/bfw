@@ -48,6 +48,7 @@ class LockRedis implements BoLockInterface
         $is_lock = $this->mem->setnx($this->_name, time() + $this->_timeout);
         // 不能获取锁
         if (! $is_lock) {
+            BoDebug::Info("redislock lock  fail" . $this->_name);
             // 判断锁是否过期
             $lock_time = $this->mem->get($this->_name);
             // 锁已过期，删除锁，重新获取
@@ -56,7 +57,7 @@ class LockRedis implements BoLockInterface
                 $is_lock = $this->mem->setnx($this->_name, time() + $this->_timeout);
             }
         }
-        BoDebug::Info("redislock lock  " . $this->_name . " " . $is_lock ? "yes" : "fail");
+        BoDebug::Info("redislock lock  " . $this->_name . " " .var_export($is_lock,true));
         return $is_lock ? true : false;
     }
 

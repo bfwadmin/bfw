@@ -95,11 +95,15 @@ class WangBo
      */
     protected function ActionFor($c, $a = null, $p = null)
     {
-        if (IS_AJAX_REQUEST) {
-            $this->Json(Bfw::RetMsg(false, "redirect:" . Bfw::ACLINK($c, $a, $p)));
-        } else {
-            header('Location: ' . Bfw::ACLINK($c, $a, $p));
-        }
+          if (strtolower(PHP_SAPI) === 'cli') {
+              echo "page redirect to ".Bfw::ACLINK($c, $a, $p);
+          }else{
+              if (IS_AJAX_REQUEST) {
+                  $this->Json(Bfw::RetMsg(false, "redirect:" . Bfw::ACLINK($c, $a, $p)));
+              } else {
+                  header('Location: ' . Bfw::ACLINK($c, $a, $p));
+              }
+          }
     }
 
     /**

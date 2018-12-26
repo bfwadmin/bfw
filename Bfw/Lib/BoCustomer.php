@@ -1,7 +1,6 @@
 <?php
 namespace Lib;
 
-
 use Lib\Exception\CoreException;
 use Lib\Util\UrlUtil;
 use Lib\Util\ArrayUtil;
@@ -67,7 +66,7 @@ class BoCustomer extends Wangbo
                             }
                         }
                     }
-                    if (ROUTETYPE == 1||ROUTETYPE == 0) {
+                    if (ROUTETYPE == 1 || ROUTETYPE == 0) {
                         $_key_arr = array_merge($_GET, $_POST);
                         if (isset($_key_arr[$param->getName()])) {
                             $_para[] = $_key_arr[$param->getName()];
@@ -89,23 +88,7 @@ class BoCustomer extends Wangbo
     public function work($_controler, $_action, $_domian)
     {
         // 异步cache
-        if (isset($_GET['updatecache'])) {
-            $_obj = unserialize($_POST['obj']);
-            $_keyname = $_POST['key'];
-            $_cachetime = $_POST['cachetime'];
-            $_method = $_POST['method'];
-            $_arg = unserialize($_POST['arg']);
-            $_key = $_POST['rpckey'];
-            $_cachedependcy = $_POST['cachedependcy'];
-            if ($_key == CACHE_DEPENDCY_KEY) {
-                $_obj->RunBg();
-                call_user_func_array([
-                    $_obj,
-                    $_method
-                ], $_arg);
-            }
-            exit();
-        }
+        if (isset($_GET['updatecache'])) {}
         
         // 服务端删除
         if (isset($_GET['notify'])) {
@@ -114,38 +97,113 @@ class BoCustomer extends Wangbo
                 $_url = SERVICE_REG_CENTER_URL . "?dom=" . $_GET['domname'] . "&act=get&cont=service&sername=" . $_GET['sername'] . "&notifyurl=" . urlencode(SERVICE_NOTIFY_URL);
                 $_data = HttpUtil::HttpGet($_url);
                 if ($_data['err']) {
-                 //   throw new HttpException('get service list http err,' . $_data['data']);
+                    // throw new HttpException('get service list http err,' . $_data['data']);
                 } else {
                     $_json_data = json_decode($_data['data'], true);
-                    if(empty($_json_data)){
-                        //throw new HttpException('get service list http err,empty data' );
+                    if (empty($_json_data)) {
+                        // throw new HttpException('get service list http err,empty data' );
                     }
                     Core::Cache($_key, $_json_data, 0);
-                   // return $_json_data;
+                    // return $_json_data;
                 }
-               // $_coreins = Core::LoadClass("Lib\\Core");
-               // $_coreins->Cache($_key, "");
+                // $_coreins = Core::LoadClass("Lib\\Core");
+                // $_coreins->Cache($_key, "");
                 exit();
             }
         }
-
+        
         if (defined("ALLOW_DOMIAN")) {
-            if (ALLOW_DOMIAN!="*"&&strpos(strtolower(ALLOW_DOMIAN), strtolower(DOMIAN_VALUE)) === false) {
+            if (ALLOW_DOMIAN != "*" && strpos(strtolower(ALLOW_DOMIAN), strtolower(DOMIAN_VALUE)) === false) {
                 header('HTTP/1.1 404 Not Found');
                 header("status: 404 Not Found");
+                exit();
+            }
+        }
+        // client异步执行task
+        global $argv;
+        
+        if (strtolower(PHP_SAPI) === 'cli' && isset($argv[4])) {
+            if ($argv[4] == "cache") {
+                $_queuename = "cache";
+                echo "listen task on " . $_queuename . "\r\n";
+                do {
+                    $_cachelist = Core::Cache(AYC_CACHE_NAME);
+                   // echo $_cachelist;
+                    if (is_array($_cachelist)) {
+                        foreach ($_cachelist as $item) {
+                            // echo $item;
+                            
+                            $_expire = Core::Cache($item . "expire");
+                            echo "expire".$_expire;
+                            if ($_expire=="") {
+                                $_data = Core::Cache("asy_" . $item);
+                                // $_data = BoQueue::Dequeue($_queuename);
+                                if ($_data != "") {
+                                    if (isset($_data['key']) && isset($_data['cachetime']) && isset($_data['method']) && isset($_data['arg'])) {
+                                        echo "update cache task " . $_data['key'] . "\r\n";
+                      
+                                        $_obj = $_data['obj'];
+                                        $_obj->RunBg();
+                                        call_user_func_array([
+                                            $_obj,
+                                            $_data['method']
+                                        ], $_data['arg']);
+                   
+                                    } else {
+                                        echo "fromat wrong\r\n";
+                                    }
+                                } else {
+                                    echo "no data\r\n";
+                                }
+                            }else{
+                                echo "no expired\r\n";
+                            }
+                        }
+                    } else {
+                        echo "no task\r\n";
+                    }
+                    
+                    usleep(CACHE_UPDATE_INTVAL_TIME * 1000000);
+                } while (true);
+                exit();
+            }
+            if ($argv[4] == "queue") {
+                $_queuename = "service" . $_domian . "_" . $_controler . "_" . $_action;
+                echo "listen task on " . $_queuename;
+                do {
+                    $_data = BoQueue::Dequeue($_queuename);
+                    if ($_data != "") {
+                        if (isset($_data['reqid']) && isset($_data['obj']) && isset($_data['reqmethod']) && isset($_data['reqargs'])) {
+                            echo "get task" . $_data['reqid'] . "\r\n";
+                            $_obj = unserialize($_data['obj']);
+                            $_obj->RunBg();
+                            $_runret = call_user_func_array([
+                                $_obj,
+                                $_data['reqmethod']
+                            ], $_data['reqargs']);
+                            BoQueue::Ack();
+                            // 执行完输出结果
+                            Core::Cache($_data['reqid'], $_runret);
+                            echo "task done\r\n";
+                        }
+                    } else {
+                        echo "no_task\r\n";
+                    }
+                    usleep(QUEUE_INTVAL_TIME * 1000000);
+                } while (true);
                 exit();
             }
         }
         
         // 消费端执行
         if ($this->ValidateStr($_controler) && $this->ValidateStr($_action) && $this->ValidateStr($_domian) && strtolower($_domian) != "system") {
+            
             if (! URL_CASE_SENS) {
                 $_domian = ucfirst($_domian);
                 $_controler = ucfirst($_controler);
                 $_action = ucfirst($_action);
             }
             $_ackey = $_domian . "_" . $_controler . "_" . $_action;
-            
             if (FILTER_CONT) {
                 $_allowcont_arr = Bfw::Config("Controler", "allow", "System");
                 if (! in_array($_domian . "_" . $_controler, $_allowcont_arr)) {

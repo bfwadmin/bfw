@@ -9,16 +9,15 @@ $_config_arr['Globle'] = [
     "defaultcont" => "",
     "runmode" => "C",
     "service" => [
-        "Cms_Order_Down" => [
+        "WxAdm_Order_Down" => [
             "type" => "queue",
             "para" => 0,
             "limit" => 3
         ],
-        "Cms_Order_Close" => [
+        "WxAdm1_Power_GetPowerDetailByGroupId" => [
             "type" => "queue",
-            "para" => 1,
-            "limit" => 3,
-            "queueserver" => "ddd"
+            "para" => 0,
+            "limit" => 10
         ]
     ],
     "host_runmode" => [

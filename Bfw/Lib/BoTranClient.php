@@ -64,6 +64,7 @@ class BoTranClient
                         $this->_selectedindex = Bfw::Routeroll($_weight);
                     }
                 }
+            
                 // $this->_selectedindex = $_getindex;
                 $_server_arr = $this->_url_arr[$this->_selectedindex];
                 if (isset($_server_arr['serviceurl'])) {
@@ -123,7 +124,8 @@ class BoTranClient
             $postdata = "key=" . urlencode($this->_servicekey) . "&domianname=" . urlencode($this->_domian) . "&servicename=" . urlencode($this->_servicename) . "&methodname=" . urlencode($method) . "&arg=" . urlencode(json_encode($_args));
         }
         curl_setopt($ch, CURLOPT_ENCODING, "gzip");
-        // echo $postdata;
+       // die($postdata);
+      //  echo $this->_servicename.$method."start to post data to " . $this->_serviceurl;
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata); // POST数据
         $_begin_time = microtime(true);
         if (WEB_DEBUG) {
@@ -131,7 +133,7 @@ class BoTranClient
         }
         
         $response = curl_exec($ch);
-        // echo $response;
+       // echo $response;
         
         // $response = trim($response, "\xEF\xBB\xBF");
         if (WEB_DEBUG) {
@@ -153,7 +155,7 @@ class BoTranClient
         // if ($this->_servicelang == "php") {
         $ret = Core::LoadClass('Lib\\RPC\\' . RPC_WAY)->unpack($response);
         // } else {
-        // echo $response;
+        //echo $response;
         // $ret = json_decode($response, true);
         // }
         
@@ -183,81 +185,9 @@ class BoTranClient
 
     public function __call($method, $arguments)
     {
+      //  var_dump($arguments);
         $this->FindRoute($method);
         $_oldindex = $this->_selectedindex;
-        // 调用模式
-        static $_config_arr = [];
-        if (file_exists(APP_DIR . "Config.php")) {
-            include APP_DIR . "Config.php";
-        }
-        // $_service_mode_arr = Bfw::ConfigGet("Globel", "Config");
-        $_runservicename = $this->_domian . "_" . $this->_servicename . "_" . $method;
-        $_cachekey = "calllimit_" . md5($_runservicename);
-        if (isset($_config_arr['Globle']["service"])) {
-            $_service_conf=$_config_arr['Globle']["service"];
-            if (isset($_service_conf[$_runservicename])) {
-                if (isset($_service_conf[$_runservicename]['limit'])) {
-                    
-                    if (isset($_service_conf[$_runservicename]['type']) && $_service_conf[$_runservicename]['type'] == "session") {
-                        $_cachekey .= SESS_ID;
-                    }
-                    if (isset($_service_conf[$_runservicename]['para'])) {
-                        if (isset($arguments[$_service_conf[$_runservicename]['para']])) {
-                            $_cachekey .= var_export($arguments[$_service_conf[$_runservicename]['para']], true);
-                        }
-                    }
-                    if (isset($_service_conf[$_runservicename]['type']) && $_service_conf[$_runservicename]['type'] != "queue") {
-                        $_cachedata = Core::Cache($_cachekey);
-                        if (is_numeric($_cachedata) && $_cachedata > 0) {
-                            if (time() - $_cachedata < $_service_conf[$_runservicename]['limit']) {
-                                return array(
-                                    "err" => true,
-                                    "data" => "服务器忙,请稍后再试"
-                                );
-                            }
-                        }
-                        Core::Cache($_cachekey, time(), 180);
-                    }
-                }
-            }
-            
-            if (isset($_service_conf[$_runservicename]['type']) && $_service_conf[$_runservicename]['type'] == "queue") {
-                $_lock = Core::LoadClass("Lib\\Lock\\" . LOCK_HANDLE_NAME, $_cachekey);
-                if ($_lock) {
-                    try {
-                        $_begintime = microtime(true);
-                        while (! $_lock->lock()) {
-                            usleep(LOCK_WAIT_TIME * 1000000);
-                            Bfw::Debug("LOCK WAIT:" . LOCK_WAIT_TIME . "s");
-                            if (microtime(true) - $_begintime >= LOCK_TIMEOUT) {
-                                goto client_pass;
-                            }
-                        }
-                        
-                        $_ret = $this->GoPost($method, $arguments, $_oldindex);
-                        $_lock->unlock();
-                        return $_ret;
-                        client_pass:
-                        return array(
-                            "err" => true,
-                            "data" => "服务器很忙,请稍后再试"
-                        );
-                    } catch (\Exception $e) {
-                        $_lock->unlock();
-                        Bfw::LogToFile("lock exception:" . $e->getMessage());
-                        return array(
-                            "err" => true,
-                            "data" => "服务器太忙,请稍后再试"
-                        );
-                    }
-                } else {
-                    return array(
-                        "err" => true,
-                        "data" => "服务器忙不过来,请稍后再试"
-                    );
-                }
-            }
-        }
         return $this->GoPost($method, $arguments, $_oldindex);
     }
 

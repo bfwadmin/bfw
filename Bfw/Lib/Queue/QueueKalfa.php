@@ -43,7 +43,7 @@ class QueueRedis implements BoQueueInterface
     {
         try {
             BoDebug::Info("queueredis enqueue ".$_key);
-            $this->_redis->LPUSH($_key, serialize($_val));
+            $this->_redis->LPUSH($_key, $_val);
         } catch (\Exception $e) {
             throw new QueueException($e->getMessage());
         }
@@ -53,14 +53,16 @@ class QueueRedis implements BoQueueInterface
     {
         try {
             BoDebug::Info("queueredis dequeue ".$_key);
-            return unserialize($this->_redis->LPOP($_key));
+            return $this->_redis->LPOP($_key);
         } catch (\Exception $e) {
             throw new QueueException($e->getMessage());
         }
     }
+
     public function ack()
     {
-        
+        BoDebug::Info("queueredis ack ");
+        //$this->_ac->ack($this->_frame);
     }
     public function __destruct()
     {
