@@ -25,7 +25,7 @@ class FileUtil
 
     /**
      * 创建目录
-     * 
+     *
      * @param string $path            
      * @return boolean
      */
@@ -98,32 +98,59 @@ class FileUtil
         }
         @closedir($dir);
     }
-    public static function replace_text($_src,$_search,$_repalce){
+
+    public static function replace_text($_src, $_search, $_repalce)
+    {
         $_dirdata = scandir($_src);
-        foreach ($_dirdata as $file){
+        foreach ($_dirdata as $file) {
             if (($file != '.') && ($file != '..')) {
                 if (is_dir($_src . DS . $file)) {
-                    self::replace_text($_src . DS . $file,$_search,$_repalce);
+                    self::replace_text($_src . DS . $file, $_search, $_repalce);
                 } else {
-                    $_data=file_get_contents($_src . DS . $file);
-                    $_data=str_replace($_search, $_repalce, $_data);
+                    $_data = file_get_contents($_src . DS . $file);
+                    $_data = str_replace($_search, $_repalce, $_data);
                     file_put_contents($_src . DS . $file, $_data);
                 }
             }
         }
-       
     }
-   public static  function copy_replace_text($_src, $_des,$_search,$_repalce){
+
+    public static function getfilebydir($_dir, $_base = "/")
+    {
+        $_data = [];
+        $_dirdata = scandir($_base.$_dir);
+        foreach ($_dirdata as $file) {
+            if (($file != '.') && ($file != '..')) {
+                if (is_dir($_base.$_dir . DS . $file)) {
+                    $_data[] = [
+                        "name" => $file,
+                        "type" => 1,
+                        "data" => self::getfilebydir( $file, $_base.$_dir.DS)
+                    ];
+                } else {
+                    $_data[] = [
+                        "name" => $file,
+                        "type" => 2,
+                        "data" => $_dir . DS . $file
+                    ];
+                }
+            }
+        }
+        return $_data;
+    }
+
+    public static function copy_replace_text($_src, $_des, $_search, $_repalce)
+    {
         $_dirdata = scandir($_src);
         self::CreatDir($_des);
-        foreach ($_dirdata as $file){
+        foreach ($_dirdata as $file) {
             if (($file != '.') && ($file != '..')) {
                 if (is_dir($_src . DS . $file)) {
-                    self::copy_replace_text($_src . DS . $file,$_des . DS . $file,$_search,$_repalce);
+                    self::copy_replace_text($_src . DS . $file, $_des . DS . $file, $_search, $_repalce);
                 } else {
                     copy($_src . DS . $file, $_des . DS . $file);
-                    $_data=file_get_contents($_des . DS . $file);
-                    $_data=str_replace($_search, $_repalce, $_data);
+                    $_data = file_get_contents($_des . DS . $file);
+                    $_data = str_replace($_search, $_repalce, $_data);
                     file_put_contents($_des . DS . $file, $_data);
                 }
             }

@@ -1,0 +1,721 @@
+var contex_menu = null;
+var dong_tree = null;
+var jing_tree = null;
+var project_name = "";
+var editing_file = "";
+var file_changed = false;
+var is_staticfile = false;
+var editor_arr = [];
+var _bfw_config = {
+	baseurl : "",
+	routetype : "",
+	jsbaseurl : "?webide=1&getstatic=/",
+	cssbaseurl : "?webide=1&getstatic=/"
+};
+
+contex_menu = {
+	'context2' : {
+		opennode : function(node) {
+			openfile(node.tag, project_name);
+		},
+		foldermenu : [ {
+			type : "Common",
+			text : '新建',
+			// icon : '/?getstatic=/folder.png',
+			action : function(node) {
+				ajax("?webide=1&getfiles=" + node.tag + "&parent="
+						+ project_name, function(data) {
+					editing_file = node.tag;
+					editor.setValue(data);
+				});
+			},
+		} ],
+		filemenu : [ {
+			type : "Common",
+			text : '删除',
+			// icon : '/?getstatic=/folder.png',
+			action : function(node) {
+
+			}
+		}, {
+			type : "Common",
+			text : '修改',
+			// icon : '/?getstatic=/folder.png',
+			action : function(node) {
+
+			}
+
+		} ]
+	},
+	'context1' : {
+		opennode : function(node) {
+			openfile(node.tag, project_name);
+		},
+		foldermenu : [
+				{
+					type : "Service",
+					text : '新建服务',
+					// icon : '/?getstatic=/folder.png',
+					action : function(node) {
+						ajax("?webide=1&getfiles=" + node.tag + "&parent="
+								+ project_name, function(data) {
+							editing_file = node.tag;
+							editor.setValue(data);
+						});
+					},
+				},
+				{
+					type : "Widget",
+					text : '新建widget',
+					// icon : '/?getstatic=/folder.png',
+					action : function(node) {
+						ajax("?webide=1&getfiles=" + node.tag + "&parent="
+								+ project_name, function(data) {
+							editing_file = node.tag;
+							editor.setValue(data);
+						});
+					},
+
+				},
+				{
+					type : "Points",
+					text : '新建切面',
+					// icon : '/?getstatic=/folder.png',
+					action : function(node) {
+						ajax("?webide=1&getfiles=" + node.tag + "&parent="
+								+ project_name, function(data) {
+							editing_file = node.tag;
+							editor.setValue(data);
+						});
+					},
+
+				},
+				{
+					type : "View",
+					text : '新建视图',
+					// icon : '/?getstatic=/folder.png',
+					action : function(node) {
+						ajax("?webide=1&getfiles=" + node.tag + "&parent="
+								+ project_name, function(data) {
+							editing_file = node.tag;
+							editor.setValue(data);
+						});
+					},
+
+				},
+				{
+					type : "Validate",
+					text : '新建验证器',
+					// icon : '/?getstatic=/folder.png',
+					action : function(node) {
+						ajax("?webide=1&getfiles=" + node.tag + "&parent="
+								+ project_name, function(data) {
+							editing_file = node.tag;
+							editor.setValue(data);
+						});
+					},
+
+				},
+				{
+					type : "Client",
+					text : '新建调用端',
+					// icon : '/?getstatic=/folder.png',
+					action : function(node) {
+						ajax("?webide=1&getfiles=" + node.tag + "&parent="
+								+ project_name, function(data) {
+							editing_file = node.tag;
+							editor.setValue(data);
+						});
+					},
+
+				},
+				{
+					type : "Config",
+					text : '新建配置项',
+					// icon : '/?getstatic=/folder.png',
+					action : function(node) {
+						ajax("?webide=1&getfiles=" + node.tag + "&parent="
+								+ project_name, function(data) {
+							editing_file = node.tag;
+							editor.setValue(data);
+						});
+					},
+
+				},
+				{
+					type : "Model",
+					text : '新建实体',
+					// icon : '/?getstatic=/folder.png',
+					action : function(node) {
+						ajax("?webide=1&getfiles=" + node.tag + "&parent="
+								+ project_name, function(data) {
+							editing_file = node.tag;
+							editor.setValue(data);
+						});
+					},
+
+				},
+				{
+					type : "Controler",
+					text : '新建控制器',
+					// icon : '/?getstatic=/folder.png',
+					action : function(node) {
+						var fname = prompt("请输入名称", "Home");
+						if (fname != null && fname != "" && namecheck(fname)) {
+							var url = "";
+							if (is_staticfile) {
+								url = "?webide=1&isstatic=1&createfiles="
+										+ fname + "&parent=" + project_name
+										+ "&pfolder=" + node.tag;
+							} else {
+								url = "?webide=1&createfiles=" + fname
+										+ "&parent=" + project_name
+										+ "&pfolder=" + node.tag;
+							}
+							ajax(url, function(data) {
+								var file = node.tag + "\\" + "Controler_"
+										+ fname + ".php";
+								var newnode = node.createChildNode("Controler_"
+										+ fname + ".php", false,
+										'/?webide=1&getstatic=/file.png', file,
+										'context1');
+								tree.selectNode(newnode);
+								openfile(file, project_name);
+								// refleshdir(project_name);
+							});
+						} else {
+							alert("请输入4-15位的英文字母命名");
+						}
+
+					},
+
+				}, {
+					type : "Common",
+					text : '改名',
+					// icon : '/?getstatic=/folder.png',
+					action : function(node) {
+
+					},
+				} ],
+		filemenu : [
+				{
+					type : "Controler",
+					text : '运行',
+					// icon : '/?getstatic=/folder.png',
+					action : function(node) {
+
+					},
+
+				},
+				{
+					type : "Common",
+					text : '改名',
+					// icon : '/?getstatic=/folder.png',
+					action : function(node) {
+
+					},
+				},
+				{
+					type : "Common",
+					text : '删除',
+					// icon : '/?getstatic=/folder.png',
+					action : function(node) {
+						if (window.confirm("您确定删除吗?")) {
+							var url = "";
+							if (is_staticfile) {
+								url = "?webide=1&isstatic=1&delfiles="
+										+ node.tag + "&parent=" + project_name;
+							} else {
+								url = "?webide=1&delfiles=" + node.tag
+										+ "&parent=" + project_name;
+							}
+							ajax(url, function(data) {
+								tree.removeNode(node);
+								editor.setValue("");
+								// refleshdir(project_name);
+							});
+						}
+					},
+				} ]
+	}
+};
+
+// var langTools = ace.require("ace/ext/language_tools");
+// // ace.require("ace/ext/language_tools");
+//
+// var myList = [
+// "$this->Alert('')",
+// "$this->Success('')",
+// ];
+// var myCompleter = {
+// identifierRegexps: [/[^\s]+/],
+// getCompletions: function(editor, session, pos, prefix, callback) {
+// console.info("myCompleter prefix:", prefix);
+// callback(
+// null,
+// myList.filter(entry=>{
+// return entry.includes(prefix);
+// }).map(entry=>{
+// return {
+// value: entry
+// };
+// })
+// );
+// }
+// };
+// langTools.addCompleter(myCompleter);
+// editor.on("change", function(e){
+// file_changed=true;
+// editor.execCommand("startAutocomplete");
+// })
+// editor.completers = [staticWordCompleter];
+
+function RunOnBeforeUnload() {
+	window.onbeforeunload = function() {
+		return '将丢失未保存的数据!';
+	}
+};
+function namecheck(str) {
+	var reg = /^[a-zA-Z]{4,15}$/;
+	if (!reg.test(str)) {
+		return false;
+	}
+	return true;
+};
+function getfilename(pathname) {
+	return pathname.substring(pathname.lastIndexOf("\\") + 1, pathname.length);// 后缀名
+}
+function reset() {
+	project_name = "";
+	editing_file = "";
+	file_changed = false;
+	is_staticfile = false;
+	editor_arr = [];
+}
+function openeditor(file, filedata) {
+
+	var ids = uniqid();
+	$("#file_tab ul").append(
+			"<li id='tab" + ids + "' class='file_selected' alt='" + file + "'>"
+					+ getfilename(file) + "<span class='tab_close' id='close"
+					+ ids + "'>×</span></li>");
+	$("#tab" + ids).click(function() {
+		$("#editor pre").hide();
+		$("#file_tab ul li").removeClass("file_selected");
+		for (var i = 0; i < editor_arr.length; i++) {
+			if ($(this).attr("id") == editor_arr[i].tabid) {
+				// editor_arr[i].editor.hide();
+				$(this).addClass("file_selected");
+				$("#" + editor_arr[i].editorid).show();
+				return;
+			}
+		}
+
+	});
+	$("#close" + ids).click(function() {
+		closefile($(this).parent('li').attr("alt"));
+	});
+	$("#tab" + ids).hover(function() {
+		if ($(this).attr("class") != "file_selected") {
+			$(this).addClass("tab_hoveon");
+		}
+		$(this).children("span").show();
+	}, function() {
+		if ($(this).attr("class") != "file_selected") {
+			$(this).removeClass("tab_hoveon");
+		}
+		$(this).children("span").hide();
+	});
+	var stuff = getstuff(file);
+	var allowext = [ '.php', '.js', '.css', '.html', '.java', '.log' ];
+	var editorid = "edi" + ids;
+	if (allowext.indexOf(stuff) >= 0) {
+
+		$("#editor").append("<pre id='" + editorid + "' ></pre>");
+		var editor = ace.edit(editorid);
+		editor.$blockScrolling = Infinity;
+		editor.setTheme("ace/theme/chaos");
+		// editor.session.setMode("ace/mode/php");
+		editor.setFontSize(18);
+		editor.commands.addCommand({
+			name : "showKeyboardShortcuts",
+			bindKey : {
+				win : "Ctrl-Alt-h",
+				mac : "Command-Alt-h"
+			},
+			exec : function(editor) {
+				ace.config.loadModule("ace/ext/keybinding_menu", function(
+						module) {
+					module.init(editor);
+					// editor.showKeyboardShortcuts()
+				})
+			}
+		});
+		editor.commands.addCommand({
+			name : "savefileShortcuts",
+			bindKey : {
+				win : "Ctrl-s",
+				mac : "Command-s"
+			},
+			exec : function(editor) {
+				if (editor_arr.length > 0) {
+					for (var i = 0; i < editor_arr.length; i++) {
+						if (editor == editor_arr[i].editor) {
+							savefile(editor_arr[i].file);
+							break;
+						}
+					}
+				}
+
+			}
+		});
+		editor.execCommand("savefileShortcuts");
+		editor.execCommand("showKeyboardShortcuts");
+		editor.setOptions({
+			enableBasicAutocompletion : true,
+			enableSnippets : true,
+			enableLiveAutocompletion : true
+		});
+		editor.on("change", function(e) {
+			if (editor_arr.length > 0) {
+				for (var i = 0; i < editor_arr.length; i++) {
+					if (editor == editor_arr[i].editor) {
+						editor_arr[i].filechanged = true;
+						break;
+					}
+				}
+			}
+
+		})
+		if (stuff == ".php") {
+			editor.session.setMode("ace/mode/php");
+		} else if (stuff == ".css") {
+			editor.session.setMode("ace/mode/css");
+		} else if (stuff == ".js") {
+			editor.session.setMode("ace/mode/javascript");
+		} else if (stuff == ".html") {
+			editor.session.setMode("ace/mode/html");
+		} else {
+			editor.session.setMode("ace/mode/php");
+		}
+		editor.setValue(filedata);
+	} else if (stuff == '.png' || stuff == '.jpeg' || stuff == '.jpg'
+			|| stuff == '.gif') {
+		$("#editor").append(
+				"<pre   id='" + editorid + "' ><img  class='img_show'  src='"
+						+ filedata + "' /></pre>");
+	} else if (getfilename(file) == 'welcome.bfw') {
+		$("#editor")
+				.append(
+						"<pre  id='"
+								+ editorid
+								+ "' ><div class='wellcome_show' >全球首款支持webide的开发及运行框架，</br>支持单机，伪集群，集群，SOA部署，</br>支持code first，db first，template first开发模式，支持java php net多种流行语言，</br>云端保存，多处开发，支持企业云部署，一个账号，随时随地打开浏览器即可开发应用，丰富的在线插件及文档，</br>社群问题回答，模板涵盖电商、企业官网、在线教育、企业erp，oa等热门系统，</br>支持在线模板交易，让优秀的程序员收获自己的财富</div></pre>");
+	} else {
+
+	}
+
+	editor_arr.push({
+		"file" : file,
+		"editor" : editor,
+		"editorid" : editorid,
+		"tabid" : "tab" + ids,
+		"filechanged" : false,
+		"type" : is_staticfile ? 2 : 1
+	});
+}
+function closefile(f) {
+	if (editor_arr.length > 0) {
+		for (var i = 0; i < editor_arr.length; i++) {
+			if (f == editor_arr[i].file) {
+				editor_arr[i].editor = null;
+				$("#" + editor_arr[i].editorid).remove();
+				$("#" + editor_arr[i].tabid).remove();
+				editor_arr.splice(i, 1);
+				break;
+			}
+		}
+
+		if (editor_arr.length > 0) {
+			showeditor(editor_arr[editor_arr.length - 1].file);
+		}
+	}
+}
+function getpro(){
+	var pro_html="<li  class='pro_item'  data='.'>新建项目</li>";
+	ajax("?getpro=1&webide=1", function(data) {
+		var obj = eval('(' + data + ')');
+		for (var i = 0; i < obj.length; i++) {
+			if(obj[i]!="."&&obj[i]!=".."){
+				pro_html+="	<li  class='pro_item'  data='"+obj[i]+"'>"+obj[i]+" </li>";
+			}
+		}
+		$("#latest_pro").html(pro_html);
+	},"get","");
+}
+function openfile(f, p) {
+	var stuff = getstuff(f);
+	var allowext = [ '.php', '.js', '.css', '.html', '.java', '.log' ,".png",".jpeg",".jpg",".gif",".bfw"];
+	if (allowext.indexOf(stuff) >= 0) {
+		var file = p + "\\" + f;
+		if (showeditor(file) == 1) {
+			return;
+		}
+
+		if (stuff == ".png" || stuff == ".jpeg" || stuff == ".jpg"
+				|| stuff == ".gif") {
+			openeditor(file, "?isstatic=1&webide=1&getfiles=" + f + "&parent=" + p);
+		} else {
+			if (is_staticfile) {
+				ajax("?webide=1&isstatic=1&getfiles=" + f + "&parent=" + p,
+						function(data) {
+							openeditor(file, data);
+						});
+			} else {
+				ajax("?webide=1&getfiles=" + f + "&parent=" + p, function(data) {
+					openeditor(file, data);
+				});
+			}
+		}
+	}else{
+		$.Bfw.toastshow("未知文件格式，无法打开");
+	}
+};
+function showeditor(file) {
+	editing_file = file;
+	$("#editor pre").hide();
+	$("#file_tab ul li").removeClass("file_selected");
+	if (editor_arr.length > 0) {
+		for (var i = 0; i < editor_arr.length; i++) {
+			if (file == editor_arr[i].file) {
+				$("#" + editor_arr[i].tabid).addClass("file_selected");
+				$("#" + editor_arr[i].editorid).show();
+				return 1;
+			}
+		}
+	}
+	return 2;
+}
+function uniqid(randomLength) {
+	return Number(Math.random().toString().substr(3, randomLength) + Date.now())
+			.toString(36);
+}
+function getstuff(filename) {
+	return filename.substring(filename.lastIndexOf("."), filename.length)
+			.toLowerCase();// 后缀名
+}
+function initdongdir(url) {
+	var tree_id = "dong_tree";
+	var cont = "context1";
+
+	ajax(url, function(data) {
+		dong_tree = createTree(tree_id, 'black', contex_menu);
+		var obj = eval('(' + data + ')');
+		for (var i = 0; i < obj.length; i++) {
+			var objt = eval(obj[i]);
+			if (objt.type == 1) {
+				node1 = dong_tree.createNode(objt.name, false,
+						'/?webide=1&getstatic=/folder.png', null, objt.name,
+						cont);
+				for (var j = 0; j < objt.data.length; j++) {
+					var objk = eval(objt.data[j]);
+
+					if (objk.type == 1) {
+						node2 = node1.createChildNode(objk.name, false,
+								'/?webide=1&getstatic=/folder.png', objk.name,
+								cont);
+						for (var q = 0; q < objk.data.length; q++) {
+							var objq = eval(objk.data[q]);
+							node3 = node2.createChildNode(objq.name, false,
+									'/?webide=1&getstatic=/file.png', objt.name
+											+ "/" + objq.data, cont);
+						}
+					} else {
+						node2 = node1.createChildNode(objk.name, false,
+								'/?webide=1&getstatic=/file.png', objk.data,
+								cont);
+					}
+				}
+
+			} else {
+				node1 = tree
+						.createNode(objt.name, false,
+								'/?webide=1&getstatic=/file.png', null,
+								objt.data, cont);
+			}
+		}
+
+		dong_tree.drawTree();
+	}, "get", "");
+}
+function initjingdir(url) {
+
+	var tree_id = "jing_tree";
+	var cont = "context2";
+	ajax(url, function(data) {
+		jing_tree = createTree("jing_tree", 'black', contex_menu);
+		var obj = eval('(' + data + ')');
+		for (var i = 0; i < obj.length; i++) {
+			var objt = eval(obj[i]);
+			if (objt.type == 1) {
+				node1 = jing_tree.createNode(objt.name, false,
+						'/?webide=1&getstatic=/folder.png', null, objt.name,
+						cont);
+				for (var j = 0; j < objt.data.length; j++) {
+					var objk = eval(objt.data[j]);
+
+					if (objk.type == 1) {
+						node2 = node1.createChildNode(objk.name, false,
+								'/?webide=1&getstatic=/folder.png', objk.name,
+								cont);
+						for (var q = 0; q < objk.data.length; q++) {
+							var objq = eval(objk.data[q]);
+							node3 = node2.createChildNode(objq.name, false,
+									'/?webide=1&getstatic=/file.png', objt.name
+											+ "/" + objq.data, cont);
+						}
+					} else {
+						node2 = node1.createChildNode(objk.name, false,
+								'/?webide=1&getstatic=/file.png', objk.data,
+								cont);
+					}
+				}
+
+			} else {
+				node1 = tree
+						.createNode(objt.name, false,
+								'/?webide=1&getstatic=/file.png', null,
+								objt.data, cont);
+			}
+		}
+
+		jing_tree.drawTree();
+	}, "get", "");
+}
+function refleshdir(p) {
+	project_name = p;
+	document.getElementById("project_name").innerHTML = p;
+	initdongdir("?webide=1&getappdir=" + p);
+	initjingdir("?webide=1&isstatic=1&getappdir=" + p);
+	$("#editorpannel").show();
+
+	// editor.setValue("");
+	// file_changed = false;
+
+};
+function savefile(filename) {
+	if (editor_arr.length > 0) {
+		for (var i = 0; i < editor_arr.length; i++) {
+			if (filename == editor_arr[i].file) {
+				var url = "";
+				if (editor_arr[i].type == 1) {
+					url = "?webide=1&savefiles=" + filename;
+				} else {
+					url = "?webide=1&isstatic=1&savefiles=" + filename
+				}
+				ajax(url, function(data) {
+					if (data == "ok") {
+						editor_arr[i].filechanged = false;
+						$.Bfw.toastshow("保存成功");
+					}
+				}, "post", "data=" + editor_arr[i].editor.getValue());
+				break;
+			}
+		}
+	}
+};
+function proreset() {
+	project_name = "";
+	editing_file = "";
+	is_staticfile = false;
+	if (editor_arr.length > 0) {
+		for (var i = 0; i < editor_arr.length; i++) {
+
+			editor_arr[i].editor = null;
+			$("#" + editor_arr[i].editorid).remove();
+			$("#" + editor_arr[i].tabid).remove();
+			// editor_arr.splice(i, 1);
+
+		}
+	}
+	editor_arr = [];
+}
+function hideediter() {
+	if (editor_arr.length > 0) {
+		for (var i = 0; i < editor_arr.length; i++) {
+			if (editor_arr[i].filechanged) {
+				if (confirm("文件未保存，是否先保存再关闭项目？")) {
+					savefile(editor_arr[i].file);
+				}
+			}
+		}
+	}
+	$("#editorpannel").hide();
+	proreset();
+};
+function openpro(p) {
+	if (p == ".") {
+		$("#newprodia").show();
+	} else {
+		refleshdir(p);
+		openfile("\welcome.bfw", p);
+	}
+};
+function ajax(url, fnSucc, method, data) {
+	if (window.XMLHttpRequest) {
+		var oAjax = new XMLHttpRequest();
+	} else {
+		var oAjax = new ActiveXObject("Microsoft.XMLHTTP");// IE6浏览器创建ajax对象
+	}
+	if (method == "post") {
+		oAjax.open("POST", url, true);// 把要读取的参数的传过来。
+		oAjax.setRequestHeader("Content-type",
+				"application/x-www-form-urlencoded");
+	} else {
+		oAjax.open("GET", url, true);// 把要读取的参数的传过来。
+	}
+	oAjax.setRequestHeader("bfwajax", "v<?=VERSION?>"); // 可以定义请求头带给后端
+	if (method == "post") {
+		oAjax.send(data);
+	} else {
+		oAjax.send();
+	}
+
+	oAjax.onreadystatechange = function() {
+		if (oAjax.readyState == 4) {
+			if (oAjax.status == 200) {
+				fnSucc(oAjax.responseText);// 成功的时候调用这个方法
+			} else {
+				if (fnfiled) {
+					fnField(oAjax.status);
+				}
+			}
+		}
+	};
+};
+
+$(function() {
+	getpro();
+	$(".pro_item").live("click",function() {
+		openpro($(this).attr("data"));
+	});
+	$("#php_tree_tab").click(function(e) {
+		is_staticfile = false;
+		$("#php_tree_tab").addClass("dir_s_tab");
+		$("#php_tree_tab").removeClass("dir_tab");
+		$("#static_tree_tab").removeClass("dir_s_tab");
+		$("#static_tree_tab").addClass("dir_tab");
+		$("#dong_tree").show();
+		$("#jing_tree").hide();
+	});
+	$("#static_tree_tab").click(function(e) {
+		is_staticfile = true;
+		$("#php_tree_tab").addClass("dir_tab");
+		$("#php_tree_tab").removeClass("dir_s_tab");
+		$("#static_tree_tab").addClass("dir_s_tab");
+		$("#static_tree_tab").removeClass("dir_tab");
+		$("#dong_tree").hide();
+		$("#jing_tree").show();
+	});
+});
+
+// setInterval("autosave()",2000);

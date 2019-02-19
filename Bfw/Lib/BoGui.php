@@ -1,6 +1,8 @@
 <?php
 namespace Lib;
 
+use Lib\Util\FileUtil;
+
 class BoGui
 {
 
@@ -11,22 +13,22 @@ class BoGui
         $this->_mode = $_mode;
     }
 
-    private function uploadapp($_name,$_to_temp=false)
+    private function uploadapp($_name, $_to_temp = false)
     {
         set_time_limit(0); // 无时间限制
         $_ba = new BoApp();
-        if ($_ba->upload($_name,$_to_temp)) {
+        if ($_ba->upload($_name, $_to_temp)) {
             echo "ok";
         } else {
             echo "fali";
         }
     }
 
-    private function getapp($_name, $localname = "", $_dbinfo,$_from_temp=false)
+    private function getapp($_name, $localname = "", $_dbinfo, $_from_temp = false)
     {
         set_time_limit(0); // 无时间限制
         $_ba = new BoApp();
-        if ($_ba->download($_name, $localname, $_dbinfo,$_from_temp)) {
+        if ($_ba->download($_name, $localname, $_dbinfo, $_from_temp)) {
             echo "ok";
         } else {
             echo "fali";
@@ -38,7 +40,7 @@ class BoGui
         $_ba = new BoApp();
         $_ret = $_ba->login($_uname, $_pwd);
         if ($_ret) {
-            Core::Cache("app_server_uid", $_ret,0);
+            BoCache::Cache("app_server_uid", $_ret, 0);
             echo "login success";
         } else {
             echo "fali";
@@ -50,7 +52,7 @@ class BoGui
         $_ba = new BoApp();
         $_ret = $_ba->register($_uname, $_pwd);
         if ($_ret) {
-            Core::Cache("app_server_uid", $_ret, 0);
+            BoCache::Cache("app_server_uid", $_ret, 0);
             echo "register success";
         } else {
             echo "fali";
@@ -71,6 +73,98 @@ class BoGui
 
     public function Run()
     {
+        if (isset($_GET['getfiles'])) {
+            if(isset($_GET['isstatic'])){
+                echo file_get_contents(APP_BASE . DS . STATIC_NAME  . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['getfiles']));
+            }else{
+                echo file_get_contents(APP_DIR . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['getfiles']));
+            }
+          
+            exit();
+        }
+        if (isset($_GET['delfiles'])) {
+            if(isset($_GET['isstatic'])){
+                @unlink(APP_BASE . DS . STATIC_NAME   . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['delfiles']));
+            }else{
+                @unlink(APP_DIR . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['delfiles']));
+            }
+           
+            exit();
+        }
+        if (isset($_GET['createfolder'])) {
+            if(isset($_GET['isstatic'])){
+                FileUtil::CreatDir(APP_BASE . DS . STATIC_NAME.DS.$_GET['parent'].DS.$_GET['createfolder']);
+            }
+            exit();
+        }
+        if (isset($_GET['getpro'])) {
+            $dirArr = scandir(APP_DIR);
+           
+            echo json_encode($dirArr);
+            exit();
+        }
+        if (isset($_GET['renamefolder'])) {
+            if(isset($_GET['isstatic'])){
+                //FileUtil::CreatDir(APP_BASE . DS . STATIC_NAME.DS.$_GET['parent'].DS.$_GET['createfolder']);
+            }
+            exit();
+        }
+        if (isset($_GET['renamefile'])) {
+            if(isset($_GET['isstatic'])){
+                //FileUtil::CreatDir(APP_BASE . DS . STATIC_NAME.DS.$_GET['parent'].DS.$_GET['createfolder']);
+            }
+            exit();
+        }
+        if (isset($_GET['createfiles'])) {
+            if(isset($_GET['isstatic'])){
+                file_put_contents(APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['pfolder']) . DS . $_GET['createfiles'] , "");
+            }else{
+                if ($_GET['pfolder'] == "Controler") {
+                    file_put_contents(APP_DIR . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['pfolder']) . DS . "Controler_" . $_GET['createfiles'] . ".php", str_replace("CONTNAME", $_GET['createfiles'], str_replace("DOM", $_GET['parent'], file_get_contents(APP_ROOT . DS . "CodeT" . DS . "Controler.php"))));
+                }
+            }
+         
+            exit();
+        }
+        if (isset($_GET['savefiles'])) {
+            if(isset($_GET['isstatic'])){
+               if (file_put_contents(APP_BASE . DS . STATIC_NAME.DS  . str_replace("./", "", $_GET['savefiles']), $_POST["data"])) {
+                    echo "ok";
+                }
+            }else{
+                if (file_put_contents(APP_DIR  . str_replace("./", "", $_GET['savefiles']), $_POST["data"])) {
+                    echo "ok";
+               }
+            }
+           
+            exit();
+        }
+        if (isset($_GET['getappdir'])) {
+            $_file = str_replace("\\", '', str_replace("/", '', $_GET['getappdir']));
+            if(isset($_GET['isstatic'])){
+                echo json_encode(FileUtil::getfilebydir($_file, APP_BASE . DS . STATIC_NAME . DS));
+            }else{
+                echo json_encode(FileUtil::getfilebydir($_file, APP_DIR . DS));
+            }
+            exit();
+        }
+        if (isset($_GET['getstatic'])) {
+            $_file = str_replace("\\", '', str_replace("/", '', $_GET['getstatic']));
+            if (substr($_file, strlen($_file) - 4) == ".css") {
+                header('Content-type: text/css');
+                echo file_get_contents(APP_ROOT . DS . "Lib" . DS . "View/v1/static/css/" . $_file);
+            }
+            if (substr($_file, strlen($_file) - 3) == ".js") {
+                header('Content-type: text/javascript');
+                echo file_get_contents(APP_ROOT . DS . "Lib" . DS . "View/v1/static/js/" . $_file);
+            }
+            if (substr($_file, strlen($_file) - 4) == ".png" || substr($_file, strlen($_file) - 4) == ".jpg") {
+                header('Content-Type: image/jpeg');
+                echo file_get_contents(APP_ROOT . DS . "Lib" . DS . "View/v1/static/images/" . $_file);
+            }
+            exit();
+        }
+        
         if (isset($_GET['login'])) {
             if (isset($_GET['login'])) {
                 $loginpara = explode("|", $_GET['login']);
@@ -94,9 +188,9 @@ class BoGui
             }
         }
         if (isset($_GET['uploadapp'])) {
-            $_uid = Core::Cache("app_server_uid");
+            $_uid = BoCache::Cache("app_server_uid");
             if ($_uid != "") {
-                $this->uploadapp($_GET['uploadapp'],isset($_GET['totemp'])?true:false);
+                $this->uploadapp($_GET['uploadapp'], isset($_GET['totemp']) ? true : false);
             } else {
                 echo "login first";
             }
@@ -105,16 +199,15 @@ class BoGui
         if (isset($_GET['initapp'])) {
             if (isset($_GET['dbinfo'])) {
                 $dbpara = explode("|", $_GET['dbinfo']);
-                if(isset($_GET['tempid'])){
-                    $this->getapp($_GET['tempid'], $_GET['initapp'], $dbpara,true);
-                }else{
+                if (isset($_GET['tempid'])) {
+                    $this->getapp($_GET['tempid'], $_GET['initapp'], $dbpara, true);
+                } else {
                     if ($this->initapp($_GET['initapp'], $dbpara)) {
                         echo "ok";
                     } else {
                         echo "fail";
                     }
                 }
-               
             } else {
                 echo "dbconfig wrong";
             }
@@ -135,13 +228,13 @@ class BoGui
             }
             exit();
         }
-        if (isset($_GET['getapp']) ) {
-            $_uid = Core::Cache("app_server_uid");
+        if (isset($_GET['getapp'])) {
+            $_uid = BoCache::Cache("app_server_uid");
             if ($_uid != "") {
                 if (isset($_GET['dbinfo'])) {
                     $dbpara = explode("|", $_GET['dbinfo']);
                     if (count($dbpara) == 4) {
-                        $this->getapp($_GET['getapp'],  isset($_GET['appname'])?$_GET['appname']:$_GET['getapp'], $dbpara,isset($_GET['appname'])?true:false);
+                        $this->getapp($_GET['getapp'], isset($_GET['appname']) ? $_GET['appname'] : $_GET['getapp'], $dbpara, isset($_GET['appname']) ? true : false);
                     } else {
                         echo "dbconf wrong";
                     }
@@ -155,18 +248,11 @@ class BoGui
         $_bocodeins = Core::LoadClass("Lib\\BoCheck");
         if ($_bocodeins::CheckDir()) {
             if ($this->_mode == "console") {
-                Core::V("console", "System", "v1");
+                BoRes::View("console", "System", "v1");
                 exit();
             }
-            $dirArr = scandir(APP_DIR);
-            foreach ($dirArr as $key => $item) {
-                if ($item == "." || $item == "..") {
-                    unset($dirArr[$key]);
-                }
-            }
-            Core::V("webide", "System", "v1", [
-                "app_list_data" => $dirArr
-            ]);
+        
+            BoRes::View("webide", "System", "v1");
             exit();
         }
     }

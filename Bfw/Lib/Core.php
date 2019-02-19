@@ -23,31 +23,7 @@ class Core
     {
         Registry::getInstance()->set($key, $val);
     }
-    
-    // 显示视图
-    // Core::V("视图名称", 域,控制器名称，数据)
-    public static function V($viewname, $domain, $contval = CONTROL_VALUE, $_data = null)
-    {
-        $viewpath = APP_ROOT . DS .'App' .DS .$domain .DS. "View" . DS . $contval . DS . $viewname . ".php";
-        if($domain=='System'){
-			$viewpath = APP_ROOT . DS .'Lib' .DS. "View" . DS . $contval . DS . $viewname . ".php";
-		}
-        if (file_exists($viewpath)) {
-            $_in_data_obj = null;
-            if ($_data != null&& is_array($_data)) {
-                $_in_data_obj = &$_data;
-            } else {
-                $_in_data_obj = &Registry::getInstance()->getAll();
-            }
-            if (is_array($_in_data_obj))
-                extract($_in_data_obj, EXTR_PREFIX_SAME, 'data');
-            else
-                $data = $_in_data_obj;
-            include $viewpath;
-        } else {
-            throw new CoreException(Bfw::Config("Sys", "webapp","System")['view_not_found'] . $viewname);
-        }
-    }
+
     // 获取全局变量
     // Core::G("变量名");
     public static function G($key)
@@ -83,7 +59,7 @@ class Core
                 return new $class($para);
             }
         } else {
-            throw new CoreException(Bfw::Config("Sys", "webapp","System")['class_not_found'] . $class);
+            throw new CoreException(BoConfig::Config("Sys", "webapp","System")['class_not_found'] . $class);
         }
     }
     
@@ -96,44 +72,9 @@ class Core
             include_once $classpath;
             // return new $class ();
         } else {
-            throw new CoreException(Bfw::Config("Sys", "webapp","System")['class_not_found'] . $class);
+            throw new CoreException(BoConfig::Config("Sys", "webapp","System")['class_not_found'] . $class);
         }
     }
 
-    /**
-     * 缓存
-     *
-     * @param string $_key            
-     * @param string $_val            
-     * @param int $_lifetime            
-     */
-    public static function Cache($_key, $_val = null, $_lifetime = 180)
-    {
-        $_cache_instance = "Lib\\Cache\\" . CACHE_HANDLER_NAME;
-        Bfw::import($_cache_instance);
-        if (is_null($_val)) {
-            return $_cache_instance::getInstance()->getkey($_key);
-        } else {
-            if($_val==""){
-                return $_cache_instance::getInstance()->del($_key);
-            }else{
-                return $_cache_instance::getInstance()->setkey($_key, $_val, $_lifetime);
-            }
-            
-        }
-    }
-
-    /**
-     * 删除key
-     *
-     * @param string $_key            
-     */
-    public static function DelC($_key)
-    {
-        $_cache_instance = "Lib\\Cache\\" . CACHE_HANDLER_NAME;
-        Bfw::import($_cache_instance);
-        
-        return $_cache_instance::getInstance()->del($_key);
-    }
 }
 ?>

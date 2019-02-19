@@ -48,6 +48,7 @@ class QueueRedis implements BoQueueInterface
             throw new QueueException($e->getMessage());
         }
     }
+    
 
     public function dequeue($_key)
     {

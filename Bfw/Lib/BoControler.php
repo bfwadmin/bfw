@@ -3,7 +3,6 @@ namespace Lib;
 
 use Lib\Util\StringUtil;
 use Lib\Exception\CoreException;
-use Lib\Exception\FormException;
 
 /**
  *
@@ -161,7 +160,7 @@ class BoControler extends WangBo
         $_paradata = array();
         $_ret = array();
         if (ROUTETYPE == 2) {
-            $_paradata = Bfw::GetParaByUrl();
+            $_paradata = BoRoute::GetParaByUrl();
             $_paradata = array_merge($_POST, $_GET, $_paradata);
         } else {
             $_paradata = array_merge($_POST, $_GET);
@@ -232,26 +231,7 @@ class BoControler extends WangBo
      */
     protected function COOKIE($i, $_needentity = false)
     {
-        $rtn = "";
-        if (isset($_COOKIE[$i])) {
-            if (is_array($_COOKIE[$i])) {
-                $rtn = array();
-                foreach ($_COOKIE[$i] as $_temp) {
-                    if ($_needentity) {
-                        $rtn[] = htmlentities(trim($_temp));
-                    } else {
-                        $rtn[] = trim($_temp);
-                    }
-                }
-            } else {
-                if ($_needentity) {
-                    $rtn = htmlentities(trim($_COOKIE[$i]));
-                } else {
-                    $rtn = trim($_COOKIE[$i]);
-                }
-            }
-        }
-        return $rtn;
+        return BoReq::GetCookie($i, $_needentity);
     }
 
     /**
@@ -267,15 +247,7 @@ class BoControler extends WangBo
      */
     protected function GET($i, $_needentity = false)
     {
-        $rtn = "";
-        if (isset($_GET[$i])) {
-            if ($_needentity) {
-                $rtn = htmlentities(trim($_GET[$i]));
-            } else {
-                $rtn = trim($_GET[$i]);
-            }
-        }
-        return $rtn;
+        return BoReq::GetVal($i, $_needentity);
     }
 
     /**
@@ -291,26 +263,7 @@ class BoControler extends WangBo
      */
     protected function POST($i, $_needentity = false)
     {
-        $rtn = "";
-        if (isset($_POST[$i])) {
-            if (is_array($_POST[$i])) {
-                $rtn = array();
-                foreach ($_POST[$i] as $_temp) {
-                    if ($_needentity) {
-                        $rtn[] = htmlentities(trim($_temp));
-                    } else {
-                        $rtn[] = trim($_temp);
-                    }
-                }
-            } else {
-                if ($_needentity) {
-                    $rtn = htmlentities(trim($_POST[$i]));
-                } else {
-                    $rtn = trim($_POST[$i]);
-                }
-            }
-        }
-        return $rtn;
+        return BoReq::PostVal($i, $_needentity);
     }
 
     /**
@@ -325,32 +278,7 @@ class BoControler extends WangBo
      */
     protected function IsPost($_tokenable = false, $_tokenonced = false)
     {
-        if (isset($_SERVER['REQUEST_METHOD'])) {
-            if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
-                if ($_tokenable) {
-                    $_formtoken = $this->POST(FORM_TOKEN_NAME);
-                    if ($_formtoken == "") {
-                        throw new FormException(Bfw::Config("Sys", "form", "System")['token_empty']);
-                        return false;
-                    }
-                    if (defined("SESS_ID")) {
-                        $_cacheval = $this->GetCache("formtoken_" . SESS_ID);
-                        if ($_cacheval != $_formtoken) {
-                            throw new FormException(Bfw::Config("Sys", "form", "System")['token_wrong']);
-                            return false;
-                        }
-                        if ($_tokenonced) {
-                            $this->ClearCache("formtoken_" . SESS_ID);
-                        }
-                    }
-                }
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
+        return BoReq::IsPost($_tokenable, $_tokenonced);
     }
 
     protected function InitSmarty()
@@ -405,7 +333,7 @@ class BoControler extends WangBo
                 $this->isMobile() ? $viewname = $viewname . "_m" : "";
             }
             $this->InitSmarty();
-            $this->_smarty->display(APP_ROOT .DS.'App'. DS . DOMIAN_VALUE .DS . "View" .  DS . CONTROL_VALUE . DS . $viewname . ".tpl");
+            $this->_smarty->display(APP_ROOT . DS . 'App' . DS . DOMIAN_VALUE . DS . "View" . DS . CONTROL_VALUE . DS . $viewname . ".tpl");
         } else {
             if ($viewname == null) {
                 $viewname = ACTION_VALUE;
@@ -414,19 +342,19 @@ class BoControler extends WangBo
                 $this->isMobile() ? $viewname = $viewname . "_m" : "";
             }
             if ($_adddata != "") {
-                @file_put_contents(APP_ROOT . DS .'App'.DS . DOMIAN_VALUE.DS. "View"  . DS . CONTROL_VALUE .DS. $viewname . ".php", $_adddata);
+                @file_put_contents(APP_ROOT . DS . 'App' . DS . DOMIAN_VALUE . DS . "View" . DS . CONTROL_VALUE . DS . $viewname . ".php", $_adddata);
             }
             if ($this->_cachepagetime > 0) {
                 ob_start();
-                Core::V($viewname, DOMIAN_VALUE, CONTROL_VALUE);
-                Core::Cache("cont_view_cache_" . CONTROL_VALUE . ACTION_VALUE . DOMIAN_VALUE, ob_get_contents(), $this->_cachepagetime);
+                BoRes::View($viewname, DOMIAN_VALUE, CONTROL_VALUE);
+                BoCache::Cache("cont_view_cache_" . CONTROL_VALUE . ACTION_VALUE . DOMIAN_VALUE, ob_get_contents(), $this->_cachepagetime);
             } else {
                 if ($_returndata) {
                     ob_start();
-                    Core::V($viewname, DOMIAN_VALUE, CONTROL_VALUE);
+                    BoRes::View($viewname, DOMIAN_VALUE, CONTROL_VALUE);
                     return ob_get_clean();
                 }
-                Core::V($viewname, DOMIAN_VALUE, CONTROL_VALUE);
+                BoRes::View($viewname, DOMIAN_VALUE, CONTROL_VALUE);
             }
         }
     }

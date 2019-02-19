@@ -30,7 +30,7 @@ class BoProvider
             $_server_array = array();
             foreach ($_serverfilelist as $_file) {
                 $_service_name = str_replace(".php", "", $_file);
-                Bfw::import("App." . $_domian . ".Service." . $_service_name);
+                Core::ImportClass("App." . $_domian . ".Service." . $_service_name);
                 $r = new \reflectionclass("App\\" . $_domian . "\\Service\\" . $_service_name);
                 $_cinstance = Core::LoadClass("App\\" . $_domian . "\\Service\\" . $_service_name);
                 $_seckey = $_cinstance->getkey();
@@ -77,7 +77,7 @@ class BoProvider
         if ($_cinstance) {
             if ($_cinstance->getkey() == $_POST['key']) {
                 if (method_exists($_cinstance, $_action)) {
-                    $_service_mode_arr = Bfw::Config("Service", "config", "System");
+                    $_service_mode_arr = BoConfig::Config("Service", "config", "System");
                     $_runservicename = $_domian . "_" . $_controler . "_" . $_action;
                     // if (isset($_service_mode_arr[$_runservicename])) {
                     if (isset($_service_mode_arr[$_runservicename]['para'])) {
@@ -90,7 +90,7 @@ class BoProvider
                                 $_begintime = microtime(true);
                                 while (! $_lock->lock()) {
                                     usleep(LOCK_WAIT_TIME * 1000000);
-                                    Bfw::Debug("LOCK WAIT:" . LOCK_WAIT_TIME . "s");
+                                    BoDebug::Info("LOCK WAIT:" . LOCK_WAIT_TIME . "s");
                                     if (microtime(true) - $_begintime >= LOCK_TIMEOUT) {
                                         goto service_pass;
                                     }
@@ -110,7 +110,7 @@ class BoProvider
                                 }
                                 
                                 service_pass:
-                                Bfw::Debug("LOCK TIMEOUT:" . LOCK_TIMEOUT . "s");
+                                 BoDebug::Info("LOCK TIMEOUT:" . LOCK_TIMEOUT . "s");
                                 if (WEB_DEBUG) {
                                     $total = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"]; // 计算差值
                                     return $_sretmsg(true, "timeout", Bfw::DebugEcho($total));
@@ -144,13 +144,13 @@ class BoProvider
                     ), $arg_data);
                     if (WEB_DEBUG) {
                         $total = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"]; // 计算差值
-                        return $_sretmsg(false, $ret, Bfw::DebugEcho($total));
+                        return $_sretmsg(false, $ret, BoDebug::DebugEcho($total));
                     } else {
                         return $_sretmsg(false, $ret);
                     }
                 }
             } else {
-                throw new CoreException(Bfw::Config("Sys", "webapp", "System")['key_wrong']);
+                throw new CoreException(BoConfig::Config("Sys", "webapp", "System")['key_wrong']);
             }
         }
     }

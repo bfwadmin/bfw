@@ -1,6 +1,5 @@
 <?php
 namespace Lib;
-use Lib\Bfw;
 use Lib\Util\ArrayUtil;
 class BoValidate
 {
@@ -14,7 +13,7 @@ class BoValidate
         if (! isset($this->_input_array)) {
             return array(
                 "err" => true,
-                "data" => Bfw::Config("Sys", "validate","System")['input_array_empty']
+                "data" => BoConfig::Config("Sys", "validate","System")['input_array_empty']
             );
         }
        return  ArrayUtil::Validate($this->_input_array, $this->_validate_array, $this);

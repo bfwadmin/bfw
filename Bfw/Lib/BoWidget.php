@@ -1,7 +1,6 @@
 <?php
 namespace Lib;
 
-use Lib\Core;
 
 class BoWidget
 {
@@ -27,7 +26,7 @@ class BoWidget
 
     protected function RenderIt($_viewname, $_domian = DOMIAN_VALUE)
     {
-        Core::V($_viewname, $_domian, "Widget", $this->_data);
+        BoRes::View($_viewname, $_domian, "Widget", $this->_data);
     }
 }
 

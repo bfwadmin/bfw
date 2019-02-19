@@ -138,7 +138,7 @@ class BoModel
         if ($this->_isview && $this->_cpsql != "") {
             $this->_tablename = " (" . $this->GetTableNameByTag($this->_cpsql) . " ) ";
         } else {
-            $_conf = Bfw::ConfigGet("Config", "App");
+            $_conf = BoConfig::ConfigGet("Config", "App");
             if (isset($_conf['dbmap'])) {
                 $this->_model_table_map = $_conf['dbmap'];
             }

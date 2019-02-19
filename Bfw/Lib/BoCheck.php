@@ -26,7 +26,7 @@ class BoCheck
         if (empty($_unpass)) {
             return true;
         } else {
-            Core::V("dircheck", "System", "v1", [
+            BoRes::View("dircheck", "System", "v1", [
                 "dir_check_arr" => $_unpass
             ]);
             return false;

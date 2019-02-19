@@ -17,7 +17,7 @@ class BoDb extends WangBo
     public function Backup($_domian, $_filename)
     {
         set_time_limit(0); // 无时间限制
-        $_dbconf = Bfw::Config("Db", "localconfig", $_domian);
+        $_dbconf = BoConfig::Config("Db", "localconfig", $_domian);
         if (isset($_dbconf['dbtype']) && strtolower($_dbconf['dbtype']) != "dbmysql") {
             echo "仅支持mysql数据库";
             return;

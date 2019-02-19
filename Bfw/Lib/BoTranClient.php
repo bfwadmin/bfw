@@ -2,7 +2,6 @@
 namespace Lib;
 
 use Lib\Bfw;
-use Lib\BoReqStatusEnum;
 use Lib\Util\HttpUtil;
 
 class BoTranClient
@@ -23,17 +22,24 @@ class BoTranClient
     private $_selectedindex = - 1;
 
     private $_serviceid = "";
+    
+    private  static $_instance;
 
-    public function __construct($urlarr, $_domian, $_servicename)
-    {
+    public function Init($urlarr, $_domian, $_servicename){
         $this->_url_arr = $urlarr;
         $this->_domian = $_domian;
         $this->_servicename = $_servicename;
         $this->_servicelang = "";
         $this->_servicekey = "";
         $this->_serviceurl = "";
+        return $this;
     }
-
+    public static function getInstance(){
+        if (! (self::$_instance instanceof self)) {
+            self::$_instance = new self();
+        }
+        return self::$_instance;
+    }
     private function FindRoute($method)
     {
         $_urs = [];
@@ -64,7 +70,7 @@ class BoTranClient
                         $this->_selectedindex = Bfw::Routeroll($_weight);
                     }
                 }
-            
+                
                 // $this->_selectedindex = $_getindex;
                 $_server_arr = $this->_url_arr[$this->_selectedindex];
                 if (isset($_server_arr['serviceurl'])) {
@@ -124,27 +130,27 @@ class BoTranClient
             $postdata = "key=" . urlencode($this->_servicekey) . "&domianname=" . urlencode($this->_domian) . "&servicename=" . urlencode($this->_servicename) . "&methodname=" . urlencode($method) . "&arg=" . urlencode(json_encode($_args));
         }
         curl_setopt($ch, CURLOPT_ENCODING, "gzip");
-       // die($postdata);
-      //  echo $this->_servicename.$method."start to post data to " . $this->_serviceurl;
+        //echo($postdata);
+        // echo $this->_servicename.$method."start to post data to " . $this->_serviceurl;
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata); // POST数据
         $_begin_time = microtime(true);
         if (WEB_DEBUG) {
-            Bfw::Debug("[$this->_servicename][$method]start to post data to " . $this->_serviceurl);
+            BoDebug::Info("[$this->_servicename][$method]start to post data to " . $this->_serviceurl);
         }
         
         $response = curl_exec($ch);
-       // echo $response;
+        //echo $response;
         
         // $response = trim($response, "\xEF\xBB\xBF");
         if (WEB_DEBUG) {
             $_finish_time = microtime(true);
-            Bfw::Debug("[$this->_servicename][$method]finish post,spend:" . ($_finish_time - $_begin_time) . "s");
+            BoDebug::Info("[$this->_servicename][$method]finish post,spend:" . ($_finish_time - $_begin_time) . "s");
         }
         if (curl_errno($ch)) {
             $_errmsg = curl_error($ch);
             curl_close($ch);
             
-            Bfw::SLogR(BoReqStatusEnum::BFW_S_FAIL, "url:{$this->_serviceurl},postdata:{$postdata},err:{$_errmsg}", $this->_serviceid);
+            // Bfw::SLogR(BoReqStatusEnum::BFW_S_FAIL, "url:{$this->_serviceurl},postdata:{$postdata},err:{$_errmsg}", $this->_serviceid);
             return array(
                 "bo_err" => true,
                 "bo_data" => "[$this->_servicename][$method]" . $_errmsg
@@ -155,37 +161,37 @@ class BoTranClient
         // if ($this->_servicelang == "php") {
         $ret = Core::LoadClass('Lib\\RPC\\' . RPC_WAY)->unpack($response);
         // } else {
-        //echo $response;
+        // echo $response;
         // $ret = json_decode($response, true);
         // }
-        
         if (! is_array($ret)) {
-            Bfw::SLogR(BoReqStatusEnum::BFW_S_PRO, "url:{$this->_serviceurl},postdata:{$postdata},response:{$response}", $this->_serviceid);
+            // Bfw::SLogR(BoReqStatusEnum::BFW_S_PRO, "url:{$this->_serviceurl},postdata:{$postdata},response:{$response}", $this->_serviceid);
             return array(
                 "bo_err" => true,
                 "bo_data" => "server protocol wrong"
             );
         }
         if ($ret['bo_err'] === true) {
-            Bfw::SLogR(BoReqStatusEnum::BFW_S_ERR, "url:{$this->_serviceurl},postdata:{$postdata},response:{$response}", $this->_serviceid);
+            // Bfw::SLogR(BoReqStatusEnum::BFW_S_ERR, "url:{$this->_serviceurl},postdata:{$postdata},response:{$response}", $this->_serviceid);
             return array(
                 "bo_err" => true,
                 "bo_data" => $ret['bo_data']
             );
         }
         if (WEB_DEBUG) {
-            if (is_array($ret['bo_trace'])) {
-                Bfw::Debug("get debug info from server:{$this->_serviceurl}" . Bfw::DebugHtml($ret['bo_trace']['import_file'], $ret['bo_trace']['debug_info'], $ret['bo_trace']['spend_time'], $ret['bo_trace']['log_toserver'], $ret['bo_trace']['totalmem'], "servicedebug"));
+            if (strtolower(PHP_SAPI) === 'cli') {} else {
+                if (is_array($ret['bo_trace'])) {
+                    BoDebug::Info("get debug info from server:{$this->_serviceurl}" . BoDebug::DebugHtml($ret['bo_trace']['import_file'], $ret['bo_trace']['debug_info'], $ret['bo_trace']['spend_time'], $ret['bo_trace']['log_toserver'], $ret['bo_trace']['totalmem'], "servicedebug"));
+                }
             }
         }
-        Bfw::SLogR(BoReqStatusEnum::BFW_S_SUC, "url:{$this->_serviceurl},postdata:{$postdata},r esponse:{$response}", $this->_serviceid);
-        
+        // Bfw::SLogR(BoReqStatusEnum::BFW_S_SUC, "url:{$this->_serviceurl},postdata:{$postdata},r esponse:{$response}", $this->_serviceid);
         return $ret;
     }
 
     public function __call($method, $arguments)
     {
-      //  var_dump($arguments);
+        // var_dump($arguments);
         $this->FindRoute($method);
         $_oldindex = $this->_selectedindex;
         return $this->GoPost($method, $arguments, $_oldindex);
@@ -203,7 +209,7 @@ class BoTranClient
                     $_url = SERVICE_REG_CENTER_URL . "?cont=service&dom=bfw&act=report&serviceid=" . $this->_serviceid;
                     HttpUtil::HttpGet($_url);
                 }
-                Bfw::Debug("master server err [{$_ret['bo_data']}],post to backup server");
+                BoDebug::Info("master server err [{$_ret['bo_data']}],post to backup server");
                 $_ret = $this->PostData($_method, $_arguments);
             }
         }

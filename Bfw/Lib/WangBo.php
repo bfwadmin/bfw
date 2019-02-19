@@ -6,12 +6,11 @@ class WangBo
 
     /**
      * 锁定
-     * 
+     *
      * @param string $_key            
      */
     protected function Lock($_key)
     {
-    	
         $_lock_instance = "Lib\\lock\\" . LOCK_HANDLER_NAME;
         Bfw::import($_lock_instance);
         return $_lock_instance::getInstance($_key)->lock();
@@ -19,7 +18,7 @@ class WangBo
 
     /**
      * 解除锁
-     * 
+     *
      * @param string $_key            
      */
     protected function UnLock($_key)
@@ -38,7 +37,7 @@ class WangBo
      */
     protected function Session($_key, $_val = "", $_expire = 0)
     {
-        return Bfw::Session($_key, $_val, $_expire);
+        return BoSess::Session($_key, $_val, $_expire);
     }
 
     /**
@@ -49,9 +48,7 @@ class WangBo
      */
     protected function ClearCache($key)
     {
-        $_cache_instance = "Lib\\Cache\\" . CACHE_HANDLER_NAME;
-        Bfw::import($_cache_instance);
-        return $_cache_instance::getInstance()->del($key);
+        return BoCache::DelC($_key);
     }
 
     /**
@@ -64,9 +61,7 @@ class WangBo
      */
     protected function SetCache($key, $val, $second = 1800)
     {
-        $_cache_instance = "Lib\\Cache\\" . CACHE_HANDLER_NAME;
-        Bfw::import($_cache_instance);
-        return $_cache_instance::getInstance()->setkey($key, $val, $second);
+        return BoCache::Cache($key, $val, $second);
     }
 
     /**
@@ -77,9 +72,7 @@ class WangBo
      */
     protected function GetCache($key)
     {
-        $_cache_instance = "Lib\\Cache\\" . CACHE_HANDLER_NAME;
-        Bfw::import($_cache_instance);
-        return $_cache_instance::getInstance()->getkey($key);
+        return BoCache::Cache($key);
     }
 
     /**
@@ -95,15 +88,15 @@ class WangBo
      */
     protected function ActionFor($c, $a = null, $p = null)
     {
-          if (strtolower(PHP_SAPI) === 'cli') {
-              echo "page redirect to ".Bfw::ACLINK($c, $a, $p);
-          }else{
-              if (IS_AJAX_REQUEST) {
-                  $this->Json(Bfw::RetMsg(false, "redirect:" . Bfw::ACLINK($c, $a, $p)));
-              } else {
-                  header('Location: ' . Bfw::ACLINK($c, $a, $p));
-              }
-          }
+        if (strtolower(PHP_SAPI) === 'cli') {
+            echo "page redirect to " . Bfw::ACLINK($c, $a, $p);
+        } else {
+            if (IS_AJAX_REQUEST) {
+                $this->Json(Bfw::RetMsg(false, "redirect:" . Bfw::ACLINK($c, $a, $p)));
+            } else {
+                header('Location: ' . Bfw::ACLINK($c, $a, $p));
+            }
+        }
     }
 
     /**
@@ -129,7 +122,7 @@ class WangBo
      */
     protected function DestorySess($_key = null)
     {
-        return Bfw::DestorySess($_key);
+        return BoSess::DestorySess($_key);
     }
 
     /**
@@ -141,7 +134,7 @@ class WangBo
      */
     protected function OutCharset($str)
     {
-        header("Content-Type: text/html;charset=" . $str);
+        BoRes::OutCharset($str);
     }
 
     /**
@@ -151,12 +144,7 @@ class WangBo
      */
     protected function Expire($_seconds = 3600)
     {
-        if ($_seconds > 0) {
-            $ts = gmdate("D, d M Y H:i:s", time() + $_seconds) . " GMT";
-            header("Expires: $ts");
-            header("Pragma: cache");
-            header("Cache-Control: max-age=$_seconds");
-        }
+        BoRes::Expire($_seconds);
     }
 
     /**
@@ -230,28 +218,28 @@ class WangBo
             $this->Json(Bfw::RetMsg(false, $str));
         } else {
             Core::S("but_msg", $str);
-            Core::V($this->isMobile() ? "success_m" : "success", "System", "v1");
+            BoRes::View($this->isMobile() ? "success_m" : "success", "System", "v1");
         }
     }
 
     /**
      * 判断是否微信内访问
-     * 
+     *
      * @return boolean
      */
     protected function IsWeixin()
     {
-        return Bfw::IsWexin();
+        return BoReq::IsWexin();
     }
 
     /**
      * 是否移动端访问
-     * 
+     *
      * @return number
      */
     protected function isMobile()
     {
-        return Bfw::IsWexin();
+        return BoReq::IsWexin();
     }
 
     /**
@@ -283,7 +271,7 @@ class WangBo
             } else {
                 Core::S("but_val", $but);
                 Core::S("but_msg", $msg);
-                Core::V($this->isMobile() ? "msgbox_m" : "msgbox", "System", "v1");
+                BoRes::View($this->isMobile() ? "msgbox_m" : "msgbox", "System", "v1");
             }
         }
     }
@@ -344,7 +332,7 @@ class WangBo
         } else {
             
             Core::S("but_msg", $str);
-            Core::V($this->isMobile() ? "error_m" : "error", "System", "v1");
+            BoRes::View($this->isMobile() ? "error_m" : "error", "System", "v1");
         }
         // die();
     }
@@ -356,27 +344,7 @@ class WangBo
      */
     protected function HttpStatus($_httpcode)
     {
-        switch ($_httpcode) {
-            case 404:
-                header("HTTP/1.0 404 Not Found");
-                break;
-            case 200:
-                header('HTTP/1.1 200 OK');
-                break;
-            case 304:
-                header('HTTP/1.1 304 Not Modified');
-                break;
-            case 403:
-                header('HTTP/1.1 403 Forbidden');
-                break;
-            case 401:
-                header('HTTP/1.1 401 Unauthorized');
-                header('WWW-Authenticate: Basic realm="login"');
-                break;
-            case 500:
-                header('HTTP/1.1 500 Internal Server Error');
-                break;
-        }
+        BoRes::HttpStatus($_httpcode);
     }
 }
 ?>

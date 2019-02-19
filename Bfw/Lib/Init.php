@@ -16,6 +16,10 @@ use Lib\Exception\SessionException;
 use Lib\Exception\LogException;
 use Lib\Util\UrlUtil;
 use Lib\BoRoute;
+use Lib\BoDebug;
+use Lib\BoConfig;
+use Lib\BoRes;
+use Lib\BoQueue;
 if (strtolower(PHP_SAPI) != "cli") {
     ob_start();
 }
@@ -34,7 +38,7 @@ try {
     define("HTTP_METHOD", isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '');
     define('HTTP_REFERER', isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : ''); // 来源页
     define("IP", UrlUtil::getip()); // 当前ip
-    define("AYC_CACHE_NAME", "ayccachelist"); // 当前ip
+    define("AYC_CACHE_NAME", "ayscachelist"); // 当前ip
     define("URL", UrlUtil::geturl()); // 当前url
     define("IS_AJAX_REQUEST", isset($_SERVER['HTTP_X_REQUESTED_WITH']) || isset($_SERVER['HTTP_BFWAJAX']) ? true : false); // 判断是否是ajax请求
     define("SERVER_NAME", isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : ""); // 服务器域名
@@ -47,6 +51,7 @@ try {
     if (file_exists(APP_DIR . "Config.php")) {
         include APP_DIR . "Config.php";
     }
+    defineinit("STATIC_NAME", $_config_arr['Globle'], 'static_name', "static"); // 运行模式 S server C client M moniter
     defineinit("PAGE_SUFFIX", $_config_arr['Globle'], 'page_suffix', ""); // 后缀 routetype=2可用
     defineinit("SERVICE_M_USER", $_config_arr['Globle'], 'service_m_user', "admin"); // 服务监督中心管理账号
     defineinit("SERVICE_M_PWD", $_config_arr['Globle'], 'service_m_pwd', "admin"); // 服务监督中心管理密码
@@ -58,6 +63,9 @@ try {
     defineinit("DOMIAN_NAME", $_config_arr['Globle'], 'domian_name', "dom"); // 域名称
     defineinit("ACTION_NAME", $_config_arr['Globle'], 'action_name', "act"); // 动作器名称
     defineinit("ROUTER_NAME", $_config_arr['Globle'], 'router_name', "r"); // 路由参数名称
+    defineinit("SUCCESS_PAGE", $_config_arr['Globle'], 'success_page', "/Lib/View/v1/success.php"); // 成功页面
+    defineinit("MSGBOX_PAGE", $_config_arr['Globle'], 'msgbox_page', "/Lib/View/v1/msgbox.php"); // 提醒页面
+    defineinit("ERROR_PAGE", $_config_arr['Globle'], 'error_page', "/Lib/View/v1/error.php"); // 错误页面
     
     $_defaultdom = "";
     $_defaultcont = "";
@@ -399,7 +407,7 @@ if (RUN_MODE == "S") {
         if (strtolower(PHP_SAPI) != "cli") {
             if (WEB_DEBUG && DEBUG_IP == IP) {
                 if (is_array($_exception)) {
-                    Core::V("deverror", "System", "v1", [
+                    BoRes::View("deverror", "System", "v1", [
                         'errmsg' => $_exception['errmsg'],
                         "errline" => $_exception['errline'],
                         "errfile" => $_exception['errfile'],
@@ -409,15 +417,15 @@ if (RUN_MODE == "S") {
                 $total = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"]; // 计算差值
                 if (IS_AJAX_REQUEST) {
                     if (WEB_DEBUG_AJAX) {
-                        Bfw::DebugEcho($total);
+                        BoDebug::DebugEcho($total);
                     }
                 } else {
-                    Bfw::DebugEcho($total);
+                    BoDebug::DebugEcho($total);
                 }
             } else {
                 if (is_array($_exception)) {
-                    Bfw::LogR($_exception['errmsg'] . "行:" . $_exception['errline'] . "文件:" . $_exception['errfile'] . "跟踪:" . $_exception['trace'], 'INIT_ERR', BoErrEnum::BFW_WARN);
-                    Core::V("error", "System", "v1", [
+                    BoDebug::LogR($_exception['errmsg'] . "行:" . $_exception['errline'] . "文件:" . $_exception['errfile'] . "跟踪:" . $_exception['trace'], 'INIT_ERR', BoErrEnum::BFW_WARN);
+                    BoRes::View("error", "System", "v1", [
                         'but_msg' => $_exception['type'] . "_ERR"
                     ]);
                 }
@@ -428,6 +436,11 @@ if (RUN_MODE == "S") {
 
 if (strtolower(PHP_SAPI) != "cli") {
     ob_end_flush();
+}
+//发送异步消息
+$_cachedata=&Registry::getInstance()->get("cache_list_forsend");
+if(is_array($_cachedata)&&!empty($_cachedata)){
+    BoQueue::Enqueue("cache_list", $_cachedata);
 }
 
 function defineinit($_name, &$_conf, $_val, $_defval = "")
@@ -457,7 +470,7 @@ function autoloadclient($class)
             // echo "download";
             // return autoloadclient($class);
         }
-        throw new Exception(Bfw::Config("Sys", "webapp", "System")['class_not_found'] . $class);
+        throw new Exception(BoConfig::Config("Sys", "webapp", "System")['class_not_found'] . $class);
     }
 }
 
@@ -465,14 +478,14 @@ function exception_handler($_exception)
 {
     if (strtolower(PHP_SAPI) != "cli") {
         if (WEB_DEBUG && DEBUG_IP == IP) {
-            Core::V("deverror", "System", "v1", [
+            BoRes::View("deverror", "System", "v1", [
                 'errmsg' => $_exception['errmsg'],
                 "errline" => $_exception['errline'],
                 "errfile" => $_exception['errfile'],
                 "trace" => $_exception['trace']
             ]);
         } else {
-            Bfw::LogR("PHP Warning: {$_exception->getMessage()}", "php", BoErrEnum::BFW_ERROR);
+            BoDebug::LogR("PHP Warning: {$_exception->getMessage()}", "php", BoErrEnum::BFW_ERROR);
         }
     } else {
         print $_exception;
@@ -485,14 +498,14 @@ function err_function()
     if ($_e) {
         if (strtolower(PHP_SAPI) != "cli") {
             if (WEB_DEBUG && DEBUG_IP == IP) {
-                Core::V("deverror", "System", "v1", [
+                BoRes::View("deverror", "System", "v1", [
                     'errmsg' => $_e['message'],
                     "errline" => $_e['line'],
                     "errfile" => $_e['file'],
                     "trace" => $_e['type']
                 ]);
             } else {
-                Bfw::LogR("PHP Warning: {$_e['message']}, {$_e['message']}, {$_e['message']}", "php", BoErrEnum::BFW_ERROR);
+                BoDebug::LogR("PHP Warning: {$_e['message']}, {$_e['message']}, {$_e['message']}", "php", BoErrEnum::BFW_ERROR);
             }
         } else {
             print_r($_e);
@@ -504,21 +517,21 @@ function BoErrorHandler($errno, $errstr, $errfile, $errline)
 {
     // die($errstr.$errno.$errfile.$errline);
     if (WEB_DEBUG && DEBUG_IP == IP) {
-        Bfw::Debug("err:" . $errstr . ",file:" . $errfile . ",line:" . $errline);
+        BoDebug::Info("err:" . $errstr . ",file:" . $errfile . ",line:" . $errline);
     }
     if (E_WARNING === $errno) {
-        Bfw::LogR("PHP Warning: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_WARN);
+        BoDebug::LogR("PHP Warning: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_WARN);
         return true;
     }
     if (E_ERROR === $errno) {
-        Bfw::LogR("PHP Err: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_ERROR);
+        BoDebug::LogR("PHP Err: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_ERROR);
         return true;
     }
     if (E_NOTICE === $errno) {
-        Bfw::LogR("PHP Notic: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_INFO);
+        BoDebug::LogR("PHP Notic: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_INFO);
         return true;
     } else {
-        Bfw::LogR("Err: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_INFO);
+        BoDebug::LogR("Err: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_INFO);
         return true;
     }
     return false;

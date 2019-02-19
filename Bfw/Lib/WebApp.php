@@ -1,5 +1,6 @@
 <?php
 namespace Lib;
+use Lib\Util\FileUtil;
 // Bfw::import("App.Lang." . DOMIAN_VALUE . "." . LANG);
 class WebApp extends WangBo
 {
@@ -58,6 +59,7 @@ class WebApp extends WangBo
                 $_bocodeins->Generate($_domian, isset($_GET['t']) ? $_GET['t'] : '', isset($_GET['o']) ? true : false);
                 exit();
             }
+          
             if (WEB_DEBUG && isset($_GET['console'])) {
                 $_ins = Core::LoadClass("Lib\\BoGui", "console");
                 $_ins->Run();
@@ -76,7 +78,7 @@ class WebApp extends WangBo
                 exit();
             }
             if (CONTROL_VALUE == "" && ACTION_VALUE == "" && DOMIAN_VALUE == "") {
-                Core::V("hello", "System", "v1");
+                BoRes::View("hello", "System", "v1");
                 exit();
             }
             $_boins = Core::LoadClass("Lib\\BoCustomer");

@@ -1,0 +1,21 @@
+﻿@charset "utf-8";
+.bfwtoastdiv{
+   width:300px; 
+   height:40px; 
+   position:fixed; 
+   left:50%; 
+   top:50%; 
+   margin:-20px 0 0 -150px; 
+   background-color: black; 
+   padding:10px;
+   text-align: center; 
+   font-size: 16px; 
+   z-index:100; 
+   color:white;
+   border-radius:15px;
+   -moz-border-radius:15px; /* 老的 Firefox */
+   filter:alpha(opacity=80);  
+   -moz-opacity:0.8;  
+   -khtml-opacity: 0.8;  
+   opacity: 0.8;  
+}

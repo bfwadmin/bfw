@@ -42,7 +42,11 @@ class CacheRedis implements BoCacheInterface
     {
         if ($this->mem->set($key, serialize($val))) {
             BoDebug::Info("rediscache setkey " . $key);
-            return $this->mem->expire($key, $exprie);
+            if($exprie>0){
+                return $this->mem->expire($key, $exprie);
+            }else{
+                return true;
+            }
         }
         return false;
     }

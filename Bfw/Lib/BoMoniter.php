@@ -211,15 +211,15 @@ class BoMoniter
         if ($_controler == "service" && $_action == "index") {
             if (IS_AJAX_REQUEST) {
                 if ($_GET['username'] == SERVICE_M_USER && $_GET['password'] == SERVICE_M_PWD) {
-                    Core::Cache("bfwserviceauth" . SESS_ID, "ok", 1800);
+                    BoCache::Cache("bfwserviceauth" . SESS_ID, "ok", 1800);
                     die("ok");
                 } else {
                     die("账号错误");
                 }
             }
             
-            if (Core::Cache("bfwserviceauth" . SESS_ID) != "ok") {
-                Core::V("login", "System", "v1", [
+            if (BoCache::Cache("bfwserviceauth" . SESS_ID) != "ok") {
+                BoRes::View("login", "System", "v1", [
                     'refer' => URL
                 ]);
                 exit();
@@ -262,7 +262,7 @@ class BoMoniter
             $sql = "SELECT * FROM client order by dom desc";
             $_cdata = $this->_pdo->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
             // var_dump($_data);
-            Core::V("service", "System", "v1", [
+            BoRes::View("service", "System", "v1", [
                 'service_array' => $_data,
                 'client_array' => $_cdata
             ]);

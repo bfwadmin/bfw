@@ -34,7 +34,7 @@ class BoApp
 
     public function upload($_appname, $_to_temp = false)
     {
-        $_uid = Core::Cache("app_server_uid");
+        $_uid = BoCache::Cache("app_server_uid");
         $_out = [];
         if ($_to_temp) {
             // 标签替换
@@ -121,7 +121,7 @@ class BoApp
 
     public function download($_appname, $_localname, $_dbinfo, $_from_temp = false)
     {
-        $_uid = Core::Cache("app_server_uid");
+        $_uid = BoCache::Cache("app_server_uid");
         if ($_from_temp) {
             $_appdata = file_get_contents(APP_HOST_URL . "?apphandler=1&token=".$_uid."&t=1&f=" . $_appname . "back.zip");
             if ($_appdata == false) {
@@ -157,7 +157,7 @@ class BoApp
                 $_db_config["dbuser"] = $_dbinfo[2];
                 $_db_config["dbpwd"] = $_dbinfo[3];
                 $_db_config["dbname"] = $_localname . "_db";
-                Bfw::ConfigSet("Db", "localconfig", $_db_config, $_localname);
+                BoConfig::ConfigSet("Db", "localconfig", $_db_config, $_localname);
             }
             
             $_data = file_get_contents(RUNTIME_DIR . $_appname . ".sql");
@@ -193,7 +193,7 @@ class BoApp
             file_put_contents(RUNTIME_DIR . $_appname . ".sql", $_sqlcdata);
             $_sqlcdata = null;
             
-            $_db_config = Bfw::Config("Db", "localconfig", $_appname);
+            $_db_config = BoConfig::Config("Db", "localconfig", $_appname);
             $_dbname = $_db_config["dbname"];
             if (is_array($_db_config)) {
                 $_db_config["dbtype"] = "DbMysql";

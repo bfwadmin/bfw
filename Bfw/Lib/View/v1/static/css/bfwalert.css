@@ -1,0 +1,22 @@
+﻿@charset "utf-8";
+.bfwmaskdiv{
+   background-color: #ccc; 
+   filter:alpha(opacity=50);/*IE*/ 
+   opacity:0.5;/*FF*/ 
+   z-index:1; 
+   position:absolute;/*IE6*/ 
+}
+.bfwtitlediv{
+   width:300px; 
+   height:60px; 
+   position:fixed; 
+   left:50%; 
+   top:50%; 
+   margin:-30px 0 0 -150px; 
+   background-color: #FCF4EA; 
+   padding:15px;
+   text-align: center; 
+   font-size: 14px; 
+   z-index:99; 
+   
+}

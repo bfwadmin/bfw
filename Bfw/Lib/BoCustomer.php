@@ -124,45 +124,57 @@ class BoCustomer extends Wangbo
         
         if (strtolower(PHP_SAPI) === 'cli' && isset($argv[4])) {
             if ($argv[4] == "cache") {
-                $_queuename = "cache";
+                $_queuename = "cache_list";
                 echo "listen task on " . $_queuename . "\r\n";
                 do {
-                    $_cachelist = Core::Cache(AYC_CACHE_NAME);
-                   // echo $_cachelist;
+                    $_cachedata = BoQueue::Dequeue($_queuename);
+                    $_cachelist = BoCache::Cache(AYC_CACHE_NAME);
+                    if (is_array($_cachedata)) {
+                        echo "rec count ".count($_cachedata)."\r\n";
+                        if (is_array($_cachelist)) {
+                            $_cachelist = array_merge($_cachedata, $_cachelist);
+                        } else {
+                            $_cachelist = $_cachedata;
+                        }
+                    }
+                    BoCache::Cache(AYC_CACHE_NAME,$_cachelist);
+                    // echo $_cachelist;
+                    echo "merge count ".count($_cachelist)."\r\n";
+                    //usleep(CACHE_UPDATE_INTVAL_TIME * 1000000);
+                    //continue;
                     if (is_array($_cachelist)) {
-                        foreach ($_cachelist as $item) {
-                            // echo $item;
-                            
-                            $_expire = Core::Cache($item . "expire");
-                            echo "expire".$_expire;
-                            if ($_expire=="") {
-                                $_data = Core::Cache("asy_" . $item);
-                                // $_data = BoQueue::Dequeue($_queuename);
+                        foreach ($_cachelist as $item=>$_data) {
+                            $_expire = BoCache::Cache($item . "expire");
+                            echo "check key " . $item . " " . $_expire . " ";
+                            if ($_expire == "") {
+                               // $_data = BoCache::Cache("asy_" . $item);
                                 if ($_data != "") {
                                     if (isset($_data['key']) && isset($_data['cachetime']) && isset($_data['method']) && isset($_data['arg'])) {
-                                        echo "update cache task " . $_data['key'] . "\r\n";
-                      
+                                        echo "update cache task " . $_data['key'] . " mem:" . memory_get_usage() .$_data['method']."\r\n";
                                         $_obj = $_data['obj'];
                                         $_obj->RunBg();
-                                        call_user_func_array([
+                                         call_user_func_array([
                                             $_obj,
                                             $_data['method']
                                         ], $_data['arg']);
-                   
+                                        $_data = null;
+                                        $_obj = null;
                                     } else {
                                         echo "fromat wrong\r\n";
                                     }
                                 } else {
                                     echo "no data\r\n";
                                 }
-                            }else{
+                            } else {
                                 echo "no expired\r\n";
                             }
                         }
                     } else {
                         echo "no task\r\n";
                     }
-                    
+                    $_cachelist = null;
+                    $_cachedata = null;
+                   // die();
                     usleep(CACHE_UPDATE_INTVAL_TIME * 1000000);
                 } while (true);
                 exit();
@@ -183,8 +195,11 @@ class BoCustomer extends Wangbo
                             ], $_data['reqargs']);
                             BoQueue::Ack();
                             // 执行完输出结果
-                            Core::Cache($_data['reqid'], $_runret);
+                            BoCache::DelC($_data['oncekey']);
+                            BoCache::Cache($_data['reqid'], $_runret);
                             echo "task done\r\n";
+                            $_obj = null;
+                            $_data = null;
                         }
                     } else {
                         echo "no_task\r\n";
@@ -194,7 +209,6 @@ class BoCustomer extends Wangbo
                 exit();
             }
         }
-        
         // 消费端执行
         if ($this->ValidateStr($_controler) && $this->ValidateStr($_action) && $this->ValidateStr($_domian) && strtolower($_domian) != "system") {
             
@@ -242,20 +256,35 @@ class BoCustomer extends Wangbo
                 if ($_viewcachedata != null && $_viewcachedata != false) {
                     echo $_viewcachedata;
                 } else {
-                    Bfw::import("Lib.BoControler");
                     $_cinstance = Core::LoadClass("App\\{$_domian}\\Controler\\Controler_" . $_controler);
                     if ($_cinstance) {
                         $responseformat = "html";
                         $expire = 0;
                         if (isset($_cinstance->_config)) {
+                            if (isset($_cinstance->_config['rate']) && is_array($_cinstance->_config['rate'])) {
+                                if (count($_cinstance->_config['rate']) == 2) {
+                                    $_ckey = "controlerlimit" . $_controler . $_action . $_domian;
+                                    if ($_cinstance->_config['rate'][0] == "session") {
+                                        $_ckey = $_ckey . SESS_ID;
+                                    }
+                                    if ($_cinstance->_config['rate'][0] == "ip") {
+                                        $_ckey = $_ckey . IP;
+                                    }
+                                    $_lastvisittime = BoCache::Cache($_ckey);
+                                    if ($_lastvisittime != "" && time() - $_lastvisittime < 60 / $_cinstance->_config['rate'][1]) {
+                                        die(BoConfig::Config("Sys", "webapp", "System")['visit_limit']);
+                                    }
+                                    BoCache::Cache($_ckey, time(), 60);
+                                }
+                            }
                             if (isset($_cinstance->_config['allowip']) && is_array($_cinstance->_config['allowip'])) {
                                 if (! in_array(IP, $_cinstance->_config['allowip'])) {
-                                    throw new CoreException(Bfw::Config("Sys", "webapp", "System")['ip_disallow']);
+                                    throw new CoreException(BoConfig::Config("Sys", "webapp", "System")['ip_disallow']);
                                 }
                             }
                             if (isset($_cinstance->_config['runmode'])) {
                                 if (! in_array(strtolower(PHP_SAPI), $_cinstance->_config['runmode'])) {
-                                    throw new CoreException(PHP_SAPI . Bfw::Config("Sys", "webapp", "System")['run_mode_disallow']);
+                                    throw new CoreException(PHP_SAPI . BoConfig::Config("Sys", "webapp", "System")['run_mode_disallow']);
                                 }
                             }
                             if (isset($_cinstance->_config['auth']) && is_array($_cinstance->_config['auth']) && count($_cinstance->_config['auth']) == 2) {
@@ -263,14 +292,14 @@ class BoCustomer extends Wangbo
                                 if ($_cinstance->_config['auth']) {
                                     if (IS_AJAX_REQUEST) {
                                         if ($_GET["username"] == $_cinstance->_config['auth'][0] && $_GET["password"] == $_cinstance->_config['auth'][1]) {
-                                            Core::Cache($_sesskey, "ok", 1800);
+                                            BoCache::Cache($_sesskey, "ok", 1800);
                                             die("ok");
                                         } else {
-                                            die("账号错误");
+                                            die(BoConfig::Config("Sys", "webapp", "System")['user_pwd_wrong']);
                                         }
                                     }
-                                    if (Core::Cache($_sesskey) != "ok") {
-                                        Core::V("login", "System", "v1", [
+                                    if (BoCache::Cache($_sesskey) != "ok") {
+                                        BoRes::View("login", "System", "v1", [
                                             'refer' => URL
                                         ]);
                                         die();
@@ -281,7 +310,7 @@ class BoCustomer extends Wangbo
                             if (isset($_cinstance->_config['allowdevice']) && is_array($_cinstance->_config['allowdevice'])) {
                                 $_device = $this->isMobile() ? "mobile" : "pc";
                                 if (! in_array($_device, $_cinstance->_config['allowdevice'])) {
-                                    throw new CoreException(Bfw::Config("Sys", "webapp", "System")['device_disallow']);
+                                    throw new CoreException(BoConfig::Config("Sys", "webapp", "System")['device_disallow']);
                                 }
                             }
                             if (isset($_cinstance->_config['responseformat'])) {
@@ -317,7 +346,7 @@ class BoCustomer extends Wangbo
                                     break;
                             }
                         } else {
-                            throw new CoreException(Bfw::Config("Sys", "webapp", "System")['action_not_found'] . $_action);
+                            throw new CoreException(BoConfig::Config("Sys", "webapp", "System")['action_not_found'] . $_action);
                         }
                     }
                 }
@@ -342,7 +371,7 @@ class BoCustomer extends Wangbo
                 }
             }
         } else {
-            throw new CoreException(Bfw::Config("Sys", "webapp", "System")['con_act_format_wrong']);
+            throw new CoreException(BoConfig::Config("Sys", "webapp", "System")['con_act_format_wrong']);
         }
     }
 }
