@@ -1,5 +1,5 @@
 <?php
-namespace App\Plugin\Pay;
+namespace Plugin\Pay;
 
 interface BoPayInterface
 {

@@ -1,5 +1,5 @@
 <?php
-namespace App\Plugin\Pay\Weipay;
+namespace Plugin\Pay\Weipay;
 
 use App\Plugin\Pay\BoPayInterface;
 use Lib\Bfw;

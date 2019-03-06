@@ -1,7 +1,7 @@
 <?php
 namespace App\DOM\Model;
 
-use Lib\Bfw;
+use Lib\BoConfig;
 use Lib\BoModel;
 
 /**
@@ -21,7 +21,7 @@ class Model_CONTNAME extends BoModel
 
     function __construct()
     {
-        $this->_connarray = Bfw::Config("Db", "localconfig");
+        $this->_connarray = BoConfig::Config("Db", "localconfig");
         parent::__construct();
     }
 

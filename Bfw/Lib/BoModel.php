@@ -576,8 +576,8 @@ class BoModel
         if (! empty($this->_orderstr)) {
             $_sql .= " order by " . $this->_orderstr;
         }
-        if (! empty($this->_page) && ! empty($this->_pagesize)) {
-            $_sql .= " limit " . $this->_page . "," . $this->_pagesize;
+        if ($this->_page>=0 &&$this->_pagesize>0) {
+            $_sql .= " limit " . $this->_page*$this->_pagesize . "," . $this->_pagesize;
         }
         return $this->ExecuteReader($this->GetTableNameByTag($_sql), $this->_wherearr);
     }

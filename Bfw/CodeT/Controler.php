@@ -28,6 +28,7 @@ class Controler_CONTNAME extends BoControler
         "allowip" => [
             '127.0.0.1'
         ],
+        "rate" => ["session/ip",10],//每分钟访问频率
         "auth" => [
             "admin",
             "123456"

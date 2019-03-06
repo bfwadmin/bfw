@@ -1,8 +1,8 @@
 <?php
 
-namespace OSS\Result;
+namespace Plugin\OSS\Result;
 
-use OSS\Model\CnameConfig;
+use Plugin\OSS\Model\CnameConfig;
 
 class GetCnameResult extends Result
 {

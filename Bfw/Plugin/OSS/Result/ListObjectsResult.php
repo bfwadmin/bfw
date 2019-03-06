@@ -1,11 +1,11 @@
 <?php
 
-namespace OSS\Result;
+namespace Plugin\OSS\Result;
 
-use OSS\Core\OssUtil;
-use OSS\Model\ObjectInfo;
-use OSS\Model\ObjectListInfo;
-use OSS\Model\PrefixInfo;
+use Plugin\OSS\Core\OssUtil;
+use Plugin\OSS\Model\ObjectInfo;
+use Plugin\OSS\Model\ObjectListInfo;
+use Plugin\OSS\Model\PrefixInfo;
 
 /**
  * Class ListObjectsResult

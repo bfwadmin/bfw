@@ -1,5 +1,5 @@
 <?php
-namespace App\Plugin;
+namespace Plugin;
 
 use Lib\Bfw;
 

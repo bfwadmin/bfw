@@ -1,5 +1,5 @@
 <?php
-
+namespace Plugin;
 /*
  * PHP QR Code encoder
  *

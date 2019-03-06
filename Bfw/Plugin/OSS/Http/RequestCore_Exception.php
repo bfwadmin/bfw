@@ -1,6 +1,6 @@
 <?php
 
-namespace OSS\Http;
+namespace Plugin\OSS\Http;
 
 class RequestCore_Exception extends \Exception
 {

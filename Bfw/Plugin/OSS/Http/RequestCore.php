@@ -1,5 +1,5 @@
 <?php
-namespace OSS\Http;
+namespace Plugin\OSS\Http;
 
 
 /**

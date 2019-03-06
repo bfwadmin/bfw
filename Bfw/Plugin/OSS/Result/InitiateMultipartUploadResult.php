@@ -1,8 +1,8 @@
 <?php
 
-namespace OSS\Result;
+namespace Plugin\OSS\Result;
 
-use OSS\Core\OssException;
+use Plugin\OSS\Core\OssException;
 
 
 /**

@@ -1,9 +1,9 @@
 <?php
 
-namespace OSS\Result;
+namespace Plugin\OSS\Result;
 
-use OSS\Core\OssException;
-use OSS\Tests\OssExceptionTest;
+use Plugin\OSS\Core\OssException;
+use Plugin\OSS\Tests\OssExceptionTest;
 
 /**
  * Class AclResult getBucketAcl接口返回结果类，封装了

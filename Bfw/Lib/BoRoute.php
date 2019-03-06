@@ -54,9 +54,8 @@ class BoRoute
                    }
                }
             }
-           
             if (PAGE_SUFFIX != "") {
-                $_pathurl=rtrim($_pathurl,PAGE_SUFFIX);
+                $_pathurl=str_replace(PAGE_SUFFIX,"",$_pathurl);
             }
             $_patharr = explode("/", ltrim($_pathurl, "/"));
             $_para_start=3;

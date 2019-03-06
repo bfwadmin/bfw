@@ -1,6 +1,6 @@
 <?php
 
-namespace OSS\Core;
+namespace Plugin\OSS\Core;
 
 /**
  * Class OssException

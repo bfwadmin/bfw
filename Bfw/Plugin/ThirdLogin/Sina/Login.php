@@ -1,6 +1,6 @@
 <?php
-namespace App\Plugin\ThirdLogin\Sina;
-use App\Plugin\ThirdLogin\BoThirdLoginInterface;
+namespace Plugin\ThirdLogin\Sina;
+use Plugin\ThirdLogin\BoThirdLoginInterface;
 class Login implements BoThirdLoginInterface
 {
 

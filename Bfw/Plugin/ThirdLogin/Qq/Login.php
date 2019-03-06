@@ -1,6 +1,6 @@
 <?php
-namespace App\Plugin\ThirdLogin\Qq;
-use App\Plugin\ThirdLogin\BoThirdLoginInterface;
+namespace Plugin\ThirdLogin\Qq;
+use Plugin\ThirdLogin\BoThirdLoginInterface;
 class Login implements BoThirdLoginInterface
 {
     

@@ -1,9 +1,9 @@
 <?php
 
-namespace OSS\Result;
+namespace Plugin\OSS\Result;
 
 
-use OSS\Model\RefererConfig;
+use Plugin\OSS\Model\RefererConfig;
 
 /**
  * Class GetRefererResult

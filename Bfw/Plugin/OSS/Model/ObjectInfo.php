@@ -1,6 +1,6 @@
 <?php
 
-namespace OSS\Model;
+namespace Plugin\OSS\Model;
 
 /**
  *

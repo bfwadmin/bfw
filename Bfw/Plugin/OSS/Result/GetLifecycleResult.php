@@ -1,9 +1,9 @@
 <?php
 
-namespace OSS\Result;
+namespace Plugin\OSS\Result;
 
 
-use OSS\Model\LifecycleConfig;
+use Plugin\OSS\Model\LifecycleConfig;
 
 /**
  * Class GetLifecycleResult

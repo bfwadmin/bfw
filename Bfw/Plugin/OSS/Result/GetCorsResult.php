@@ -1,8 +1,8 @@
 <?php
 
-namespace OSS\Result;
+namespace Plugin\OSS\Result;
 
-use OSS\Model\CorsConfig;
+use Plugin\OSS\Model\CorsConfig;
 
 class GetCorsResult extends Result
 {

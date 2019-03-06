@@ -1,6 +1,6 @@
 <?php
-namespace App\Plugin\ThirdLogin\Weixin;
-use App\Plugin\ThirdLogin\BoThirdLoginInterface;
+namespace Plugin\ThirdLogin\Weixin;
+use Plugin\ThirdLogin\BoThirdLoginInterface;
 class Login implements BoThirdLoginInterface
 {
 

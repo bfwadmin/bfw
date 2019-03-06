@@ -1,12 +1,22 @@
 <?php
 namespace Lib\Util;
 
+use Lib\Bfw;
+
 class UrlUtil
 {
 
+    public static function buildacturl(&$data, $cont, $act, $para, $idname = "id")
+    {
+        for ($i = 0; $i < count($data); $i ++) {
+            $data[$i]['acturl'] = Bfw::ACLINK($cont, $act, $para . $data[$i][$idname]);
+        }
+        return $data;
+    }
+
     /**
      * 添加url
-     * 
+     *
      * @param string $_key            
      * @param string $_val            
      * @param string $_url            

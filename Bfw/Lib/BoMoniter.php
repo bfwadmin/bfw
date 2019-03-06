@@ -210,7 +210,7 @@ class BoMoniter
         // 服务web查看
         if ($_controler == "service" && $_action == "index") {
             if (IS_AJAX_REQUEST) {
-                if ($_GET['username'] == SERVICE_M_USER && $_GET['password'] == SERVICE_M_PWD) {
+                if ($_POST['username'] == SERVICE_M_USER && $_POST['password'] == SERVICE_M_PWD) {
                     BoCache::Cache("bfwserviceauth" . SESS_ID, "ok", 1800);
                     die("ok");
                 } else {

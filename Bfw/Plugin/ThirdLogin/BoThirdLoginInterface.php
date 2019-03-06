@@ -1,5 +1,5 @@
 <?php
-namespace App\Plugin\ThirdLogin;
+namespace Plugin\ThirdLogin;
 
 interface BoThirdLoginInterface
 {

@@ -167,7 +167,7 @@ try {
     }
     // 系统定义常量
     defineinit("TIMEZONE", $_config_arr['App'], 'timezone', "PRC"); // 時區
-    defineinit("WEB_DEBUG", $_config_arr['App'], 'web_debug', true); // 调试模式
+    defineinit("WEB_DEBUG", $_config_arr['App'], 'web_debug', false); // 调试模式
     defineinit("DEBUG_IP", $_config_arr['App'], 'debug_ip', "127.0.0.1"); // 可以调试的机器
     defineinit("WEB_DEBUG_AJAX", $_config_arr['App'], 'web_debug_ajax', false); // 调试模式
     defineinit("AUTO_CON", $_config_arr['App'], 'auto_con', false); // 是否自动填充control到数据库
@@ -329,7 +329,7 @@ try {
         defineinit("SESSION_MYSQL_TB", $_config_arr['App'], 'session_mysql_tb', "bfw_sessions"); // memcache 端口
     }
     defineinit("SESSION_COOKIE_EXPIRE", $_config_arr['App'], 'session_cookie_expire', 3600 * 10); // 过期时间
-    defineinit("SESSION_ID_NAME", $_config_arr['App'], 'session_id_name', "ARTID"); // sessionid
+    defineinit("SESSION_ID_NAME", $_config_arr['App'], 'session_id_name', "BFWID"); // sessionid
     
     defineinit("USER_ID", $_config_arr['App'], 'user_id', "uid"); // session用户id
     defineinit("ROLE_ID", $_config_arr['App'], 'role_id', "kindid"); // session角色id

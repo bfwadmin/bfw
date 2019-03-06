@@ -1,9 +1,9 @@
 <?php
 
-namespace OSS\Model;
+namespace Plugin\OSS\Model;
 
 
-use OSS\Core\OssException;
+use Plugin\OSS\Core\OssException;
 
 /**
  * Class CorsConfig

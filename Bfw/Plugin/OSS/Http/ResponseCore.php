@@ -1,6 +1,6 @@
 <?php
 
-namespace OSS\Http;
+namespace Plugin\OSS\Http;
 
 /**
  * Container for all response-related methods.

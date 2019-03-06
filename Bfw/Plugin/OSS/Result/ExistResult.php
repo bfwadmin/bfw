@@ -1,6 +1,6 @@
 <?php
 
-namespace OSS\Result;
+namespace Plugin\OSS\Result;
 
 /**
  * Class ExistResult 检查bucket和object是否存在的返回结果，

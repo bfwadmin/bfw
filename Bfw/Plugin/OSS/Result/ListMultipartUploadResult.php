@@ -1,10 +1,10 @@
 <?php
 
-namespace OSS\Result;
+namespace Plugin\OSS\Result;
 
-use OSS\Core\OssUtil;
-use OSS\Model\ListMultipartUploadInfo;
-use OSS\Model\UploadInfo;
+use Plugin\OSS\Core\OssUtil;
+use Plugin\OSS\Model\ListMultipartUploadInfo;
+use Plugin\OSS\Model\UploadInfo;
 
 
 /**

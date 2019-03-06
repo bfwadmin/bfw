@@ -1,9 +1,9 @@
 <?php
 
-namespace OSS\Result;
+namespace Plugin\OSS\Result;
 
-use OSS\Model\ListPartsInfo;
-use OSS\Model\PartInfo;
+use Plugin\OSS\Model\ListPartsInfo;
+use Plugin\OSS\Model\PartInfo;
 
 
 /**

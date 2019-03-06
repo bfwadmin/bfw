@@ -1,4 +1,5 @@
 <?php
+namespace Plugin;
 class PaiFunPay {
 	private $appid = 1;
 	private $secrkey = "dfdfdDd1231!@";

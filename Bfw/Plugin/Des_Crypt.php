@@ -1,4 +1,5 @@
 <?php
+namespace  Plugin;
 class Des_Crypt {
 	private $key="!@#%176f";
 	function __construct($key) {

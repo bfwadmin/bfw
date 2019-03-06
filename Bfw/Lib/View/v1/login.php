@@ -227,38 +227,41 @@
 					 url=url+"?username="+u+"&password="+p;
 				}
 			}
-			ajax(url,function(str){if(str=="ok"){location.href=oldurl;}else{alert(str);}});
+			ajax(url, function(str){if(str=="ok"){location.href=oldurl;}else{alert(str);}}, "post", "username="+u+"&password="+p) ;
+		
 		}
-		function ajax(url,fnSucc){
-			if(window.XMLHttpRequest)
-			{
+		function ajax(url, fnSucc, method, data) {
+			if (window.XMLHttpRequest) {
 				var oAjax = new XMLHttpRequest();
+			} else {
+				var oAjax = new ActiveXObject("Microsoft.XMLHTTP");// IE6浏览器创建ajax对象
 			}
-			else
-			{
-				var oAjax = new ActiveXObject("Microsoft.XMLHTTP");//IE6浏览器创建ajax对象
+			if (method == "post") {
+				oAjax.open("POST", url, true);// 把要读取的参数的传过来。
+				oAjax.setRequestHeader("Content-type",
+						"application/x-www-form-urlencoded");
+			} else {
+				oAjax.open("GET", url, true);// 把要读取的参数的传过来。
 			}
-			oAjax.open("GET",url,true);//把要读取的参数的传过来。
-			oAjax.setRequestHeader("bfwajax","v<?=VERSION?>"); // 可以定义请求头带给后端
-			oAjax.send();
-			oAjax.onreadystatechange=function()
-			{
-				if(oAjax.readyState==4)
-				{
-					if(oAjax.status==200)
-					{
-						fnSucc(oAjax.responseText);//成功的时候调用这个方法
-					}
-					else
-					{
-						if(fnfiled)
-						{
+			oAjax.setRequestHeader("bfwajax", "v<?=VERSION?>"); // 可以定义请求头带给后端
+			if (method == "post") {
+				oAjax.send(data);
+			} else {
+				oAjax.send();
+			}
+
+			oAjax.onreadystatechange = function() {
+				if (oAjax.readyState == 4) {
+					if (oAjax.status == 200) {
+						fnSucc(oAjax.responseText);// 成功的时候调用这个方法
+					} else {
+						if (fnfiled) {
 							fnField(oAjax.status);
 						}
 					}
 				}
 			};
-		}
+		};
 	</script>
 </head>
 <body>

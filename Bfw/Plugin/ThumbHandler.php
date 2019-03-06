@@ -1,5 +1,5 @@
 <?php
-
+namespace Plugin;
 // $t=new ThumbHandler();
 // $t->setSrcImg("upload/test.jpg");
 // $t->setCutType(1);//这一句就OK了

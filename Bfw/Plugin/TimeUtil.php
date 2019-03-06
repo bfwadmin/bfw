@@ -1,5 +1,5 @@
 <?php
-
+namespace Plugin;
 class TimeUtil
 {
 

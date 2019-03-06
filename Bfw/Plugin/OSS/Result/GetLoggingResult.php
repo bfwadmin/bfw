@@ -1,8 +1,8 @@
 <?php
 
-namespace OSS\Result;
+namespace Plugin\OSS\Result;
 
-use OSS\Model\LoggingConfig;
+use Plugin\OSS\Model\LoggingConfig;
 
 
 /**

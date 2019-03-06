@@ -1,60 +1,59 @@
 <?php
-use OSS\OssClient;
-
-function classLoader($class)
-{
-    $path = str_replace('\\', DIRECTORY_SEPARATOR, $class);
-    $file = __DIR__ . DIRECTORY_SEPARATOR . 'OSS' . DIRECTORY_SEPARATOR . $path . '.php';
-    if (file_exists($file)) {
-        require_once $file;
-    }
-}
-spl_autoload_register('classLoader');
+namespace Plugin;
 
 class AliyunOss
 {
 
-    protected $accessKeyId = "24mdGLCYaHZVkZIk";
+    protected $accessKeyId = "";
 
-    protected $accessKeySecret = "qQGjF3ixSGPWtL3vBRXtsleq13w5p9";
+    protected $accessKeySecret = "";
 
-    protected $endpoint = "oss-cn-shanghai.aliyuncs.com";
+    protected $endpoint = "";
 
     protected $ossClient;
 
     private static $_instance;
 
-    function __construct()
+    function __construct($accessKeyId,$accessKeySecret,$endpoint)
     {
+        $this->accessKeyId=$accessKeyId;
+        $this->accessKeySecret=$accessKeySecret;
+        $this->endpoint=$endpoint;
         try {
-            $this->ossClient = new OssClient($this->accessKeyId, $this->accessKeySecret, $this->endpoint);
-        } catch (OssException $e) {
+            $this->ossClient = new \Plugin\OSS\OssClient($this->accessKeyId, $this->accessKeySecret, $this->endpoint);
+        } catch (\Plugin\OSS\Core\OssException $e) {
             print $e->getMessage();
         }
     }
 
     /**
      * 获取单例
-     * 
+     *
      * @return Client_Account_moneyhistory
      */
-    public static function getInstance()
+    public static function getInstance($accessKeyId,$accessKeySecret,$endpoint)
     {
         if (! (self::$_instance instanceof self)) {
-            self::$_instance = new self();
+            self::$_instance = new self($accessKeyId,$accessKeySecret,$endpoint);
         }
         return self::$_instance;
     }
 
-   public  function putObject($bucket, $object, $content)
+    public function copyObject($from_bucket, $from_object, $to_bucket, $to_object)
     {
-        
-        // $bucket = "$bucket";
-        // $object = "fffff.jpg";
-        // $content = file_get_contents("test.jpg"); // 上传的文件内容
         try {
-           return  $this->ossClient->putObject($bucket, $object, $content);
-        } catch (OssException $e) {
+            return $this->ossClient->copyObject($from_bucket, $from_object, $to_bucket, $to_object);
+        } catch (\Plugin\OSS\Core\OssException $e) {
+            printf($e->getMessage() . "\n");
+            return false;
+        }
+    }
+
+    public function putObject($bucket, $object, $content)
+    {
+        try {
+            return $this->ossClient->putObject($bucket, $object, $content);
+        } catch (\Plugin\OSS\Core\OssException $e) {
             print $e->getMessage();
             return false;
         }

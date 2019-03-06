@@ -129,6 +129,7 @@ class DbMysql extends BoDb implements BoDbInterface
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
+           
             if (! empty($_data)) {
                 
                 $sql = "";

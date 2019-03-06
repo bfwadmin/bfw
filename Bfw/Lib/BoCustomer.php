@@ -291,7 +291,7 @@ class BoCustomer extends Wangbo
                                 $_sesskey = SESS_ID . "sess_page_App\\{$_domian}\\Controler\\Controler_" . $_controler;
                                 if ($_cinstance->_config['auth']) {
                                     if (IS_AJAX_REQUEST) {
-                                        if ($_GET["username"] == $_cinstance->_config['auth'][0] && $_GET["password"] == $_cinstance->_config['auth'][1]) {
+                                        if (BoReq::PostVal("username")== $_cinstance->_config['auth'][0] && BoReq::PostVal("password") == $_cinstance->_config['auth'][1]) {
                                             BoCache::Cache($_sesskey, "ok", 1800);
                                             die("ok");
                                         } else {

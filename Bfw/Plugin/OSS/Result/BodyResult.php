@@ -1,6 +1,6 @@
 <?php
 
-namespace OSS\Result;
+namespace Plugin\OSS\Result;
 
 
 /**

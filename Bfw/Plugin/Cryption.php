@@ -1,4 +1,5 @@
 <?php
+namespace Plugin;
 class Cryption {
 	//private $securekey, $iv;
 	private $securekey;

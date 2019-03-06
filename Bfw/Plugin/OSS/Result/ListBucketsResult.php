@@ -1,9 +1,9 @@
 <?php
 
-namespace OSS\Result;
+namespace Plugin\OSS\Result;
 
-use OSS\Model\BucketInfo;
-use OSS\Model\BucketListInfo;
+use Plugin\OSS\Model\BucketInfo;
+use Plugin\OSS\Model\BucketListInfo;
 
 /**
  * Class ListBucketsResult
