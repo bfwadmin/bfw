@@ -73,7 +73,7 @@
 	cursor: pointer;
 	padding: 5px;
 	margin: 5px 10px 5px 0;
-	background: #0266d7;
+	background: #4f4f4f;
 }
 .debug_btn_text{
 	text-align:center;
@@ -109,10 +109,12 @@
 		</h1>
 		<div class="debug_tab">
 			<span onclick="debug_show_info(0,1);">all</span><span
-				onclick="debug_show_info(1,'#debug_import_ul');" style="background: #28d766;">loadedfile</span><span
-				onclick="debug_show_info(1,'#debug_cache_ul');" style="background: #d78b4e;">cache</span><span
-				onclick="debug_show_info(1,'#debug_sql_ul');" style="background: #d70505;">sql</span><span
-				onclick="debug_show_info(1,'#debug_session_ul');" style="background: #8994d7;">session</span><span onclick="debug_show_info(1,'#debug_queue_ul');" >queue</span><span onclick="debug_show_info(1,'#debug_lock_ul');" >lock</span><span onclick="debug_show_info(1,'#debug_other_ul');" >info</span><span onclick="debug_show_info(1,'#debug_err_ul');" >err</span>
+				onclick="debug_show_info(1,'#debug_import_ul');" >loadedfile</span><span
+				onclick="debug_show_info(1,'#debug_cache_ul');" >cache</span><span
+				onclick="debug_show_info(1,'#debug_sql_ul');" >sql</span><span
+				onclick="debug_show_info(1,'#debug_session_ul');" >session</span>
+				<span  onclick="debug_show_info(1,'#debug_service_ul');" >service</span>
+				<span onclick="debug_show_info(1,'#debug_queue_ul');" >queue</span><span onclick="debug_show_info(1,'#debug_lock_ul');" >lock</span><span onclick="debug_show_info(1,'#debug_other_ul');" >info</span><span onclick="debug_show_info(1,'#debug_err_ul');" >err</span>
 		</div>
 	</div>
 
@@ -125,15 +127,19 @@ $queue_info = [];
 $lock_info = [];
 $err_info = [];
 $other_info=[];
+$service_info=[];
 if (! empty($debug_info)) {
     foreach ($debug_info as $_item) {
-        if (strpos($_item[1], "rediscache") !== false || strpos($_item[1], "filecache") !== false || strpos($_item[1], "memcache") !== false) {
+         if(strpos($_item[1], "post") !== false||strpos($_item[1], "serverinfo") !== false){
+            $service_info[]=$_item;
+        }else
+        if (strpos($_item[1], "cache") !== false) {
             $cache_info[] = $_item;
         }else
-        if (strpos($_item[1], "filesession") !== false || strpos($_item[1], "redissession") !== false || strpos($_item[1], "mysqlsession") !== false) {
+        if (strpos($_item[1], "session") !== false ) {
             $session_info[] = $_item;
         }else
-        if (strpos($_item[1], "FROM") !== false || strpos($_item[1], "UPDATE") !== false || strpos($_item[1], "INSERT") !== false) {
+        if (strpos(strtolower($_item[1]), "select") !== false || strpos(strtolower($_item[1]), "update") !== false || strpos(strtolower($_item[1]), "insert") !== false|| strpos(strtolower($_item[1]), "mysql") !== false) {
             $sql_info[] = $_item;
         }else
         if (strpos($_item[1], "queue") !== false) {
@@ -144,8 +150,9 @@ if (! empty($debug_info)) {
         }else
         if (strpos($_item[1], "err") !== false || strpos($_item[1], "notice") !== false) {
             $err_info[] = $_item;
-        }else{
-            $other_info=$_item;
+        }
+       else{
+            $other_info[]=$_item;
         }
         ?>
 <li><?=\Lib\Util\TimeUtil::udate ( "H:i:s.u", $_item [0] ) . ":  " . $_item [1]?>  </li>
@@ -212,8 +219,18 @@ if (! empty($err_info)) {
 </ul>
 	<ul id="debug_other_ul" class="debug_cont">
 <?php
+
 if (! empty($other_info)) {
     foreach ($other_info as $_item) {
+        ?>
+<li><?=\Lib\Util\TimeUtil::udate ( "H:i:s.u", $_item [0] ) . ":  " . $_item [1]?>  </li>
+<?php }}?>
+</ul>
+	<ul id="debug_service_ul" class="debug_cont">
+<?php
+
+if (! empty($service_info)) {
+    foreach ($service_info as $_item) {
         ?>
 <li><?=\Lib\Util\TimeUtil::udate ( "H:i:s.u", $_item [0] ) . ":  " . $_item [1]?>  </li>
 <?php }}?>
