@@ -143,6 +143,61 @@ class BoRes
                 break;
         }
     }
+
+    /**
+     * 控制器动作器链接
+     *
+     * @param string $c
+     *            控制器
+     * @param string $a
+     *            动作器
+     * @param string $p
+     *            参数
+     * @param string $d
+     *            域
+     * @return string
+     */
+    public static function Actlink($c, $a = null, $p = null, $d = null)
+    {
+        if ($a == null) {
+            $a = "Index";
+        }
+        if ($p == null) {
+            $p = "";
+        }
+        if ($d == null) {
+            $d = DOMIAN_VALUE;
+        }
+        if (ROUTETYPE == 1) {
+            return APPSELF . "?" . CONTROL_NAME . '=' . $c . '&' . ACTION_NAME . '=' . $a . '&' . DOMIAN_NAME . '=' . $d . '&' . $p;
+        }
+        if (ROUTETYPE == 0) {
+            return APPSELF . "?" . ROUTER_NAME . '=' . $d . '|' . $c . "|" . $a . '&' . $p;
+        }
+        if (ROUTETYPE == 2) {
+            $_url = str_replace('index.php', "", $_SERVER["SCRIPT_NAME"]);
+            if (defined("HOST_HIDE_DOM") && $d == HOST_HIDE_DOM) {
+                $_url = $_url . $c . '/' . $a;
+            } else {
+                $_url = $_url . $d . '/' . $c . '/' . $a;
+            }
+            if ($p != "") {
+                $_url = $_url . '/' . str_replace("&", "/", str_replace("=", "/", $p));
+            }
+            if (PAGE_SUFFIX != "") {
+                $_url = $_url . PAGE_SUFFIX;
+            }
+            return $_url;
+        }
+        if (ROUTETYPE == 3) {
+            if ($p != null && $p != "") {
+                return $c . "-" . $a . ".html?" . $p;
+            } else {
+                return $c . "-" . $a . ".html";
+            }
+        }
+        return APPSELF . "?" . CONTROL_NAME . '=' . $c . '&' . ACTION_NAME . '=' . $a . '&' . DOMIAN_NAME . '=' . DOMIAN_VALUE . '&' . $p;
+    }
 }
 
 ?>

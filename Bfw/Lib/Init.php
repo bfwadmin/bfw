@@ -336,6 +336,8 @@ try {
                                                                      // define("USER_ADDINFO", "uadd"); // session附加信息id
     defineinit("ADMINUSER_ID", $_config_arr['App'], 'adminuser_id', "adminuid"); // admin session用户id
     defineinit("ADMINROLE_ID", $_config_arr['App'], 'adminrole_id', "adminkindid"); // admin session角色id
+    
+    defineinit("APP_NAME", $_config_arr['App'], 'app_name', "BFW"); // admin session角色id
                                                                                     // token验证设置
     defineinit("FORM_TOKEN_NAME", $_config_arr['App'], 'form_token_name', "tokenhash"); // form标板token验证名
     defineinit("FORM_TOKEN_EXPIRE_TIME", $_config_arr['App'], 'form_token_expire_time', 180); // form token有效期

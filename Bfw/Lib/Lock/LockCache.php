@@ -1,6 +1,7 @@
 <?php
 namespace Lib\Lock;
 
+use Lib\BoDebug;
 class LockCache implements BoLockInterface
 {
     // 文件锁存放路径
@@ -26,15 +27,19 @@ class LockCache implements BoLockInterface
      * @param string $name
      *            cache key
      */
-    function __construct($name, $_timout =LOCK_TIMEOUT )
+    function __construct($name, $_timeout =LOCK_TIMEOUT )
     {
         $this->_timeout = $_timeout;
+        $this->_name = $name;
         // 判断是否存在eAccelerator,这里启用了eAccelerator之后可以进行内存锁提高效率
         $this->eAccelerator = function_exists("eaccelerator_lock");
         if (! $this->eAccelerator) {
             $this->path = CACHE_DIR . DS . "lock_" . md5($name);
+            BoDebug::Info("filelock " . $this->_name);
+        }else{
+            BoDebug::Info("eAcceleratorlock " . $this->_name);
         }
-        $this->name = $name;
+       
     }
 
     public static function getInstance($name, $path = CACHE_DIR)
@@ -62,9 +67,11 @@ class LockCache implements BoLockInterface
                 return false;
             }
             
-            
+            BoDebug::Info("filelock  lock" . $this->_name);
+            //此锁非阻塞模式在windows下不支持，会一直阻塞，建议在linux下运行
             return flock($this->fp, LOCK_EX|LOCK_NB);
         } else {
+            BoDebug::Info("eacceleratorlock  lock" . $this->_name);
             return eaccelerator_lock($this->name);
         }
     }
@@ -83,8 +90,10 @@ class LockCache implements BoLockInterface
                 clearstatcache();
             }
             // 进行关闭
+            BoDebug::Info("filelock  unlock" . $this->_name);
             fclose($this->fp);
         } else {
+            BoDebug::Info("eacceleratorlock  unlock" . $this->_name);
             return eaccelerator_unlock($this->name);
         }
     }

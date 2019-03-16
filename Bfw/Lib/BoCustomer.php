@@ -272,7 +272,16 @@ class BoCustomer extends Wangbo
                                     }
                                     $_lastvisittime = BoCache::Cache($_ckey);
                                     if ($_lastvisittime != "" && time() - $_lastvisittime < 60 / $_cinstance->_config['rate'][1]) {
-                                        die(BoConfig::Config("Sys", "webapp", "System")['visit_limit']);
+                                        $_errmsg=BoConfig::Config("Sys", "webapp", "System")['visit_limit'];
+                                        if(IS_AJAX_REQUEST){
+                                            echo json_encode(['err'=>true,data=>$_errmsg]);
+                                        }
+                                        else{
+                                            BoRes::View("error", "System", "v1", [
+                                                'but_msg' => $_errmsg
+                                            ]);
+                                        }
+                                        die();
                                     }
                                     BoCache::Cache($_ckey, time(), 60);
                                 }

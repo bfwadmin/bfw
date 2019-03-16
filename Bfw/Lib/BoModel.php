@@ -30,6 +30,7 @@ class BoModel
      */
     protected $_prikey = "id";
 
+    
     /**
      * 条件
      *
@@ -161,7 +162,19 @@ class BoModel
             }
         }
     }
-
+    /**
+     * 重置变量，防止单例问题
+     */
+    public function reset(){
+         $this->_joinarr=[];
+         $this->_wherearr=[];
+         $this->_unionarr=[];
+         $this->_wherestr="";
+         $this->_orderstr="";
+         $this->_fieldstr="*";
+         return $this;
+         
+    }
     public function ChangeDb($_table = "", $_prekey = "", $_isview = false, $_connarray = null, $_tablemap = false)
     {
         array_push($this->_oldisview, $this->_isview);

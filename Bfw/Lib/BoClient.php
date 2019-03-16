@@ -24,6 +24,8 @@ class BoClient
 
     private $_cacheasync = false;
 
+    private $_cachemasterkey = "";
+
     private $_cachedependcy = null;
 
     private $_cachemaster = false;
@@ -54,7 +56,7 @@ class BoClient
      */
     public function Insert($_data, $_returnid = false)
     {
-        return $this->service_call("Insert", [
+        return $this->client_call("Insert", [
             $_data,
             $_returnid
         ]);
@@ -77,7 +79,7 @@ class BoClient
                 $_data[val] = null;
             }
         }
-        return $this->service_call("Update", [
+        return $this->client_call("Update", [
             $_data
         ]);
     }
@@ -146,7 +148,7 @@ class BoClient
      */
     public function Delete($id)
     {
-        return $this->service_call("Delete", [
+        return $this->client_call("Delete", [
             $id
         ]);
     }
@@ -183,43 +185,43 @@ class BoClient
                                 $_cachekey .= var_export($arguments[$_service_conf[$_runservicename]['para']], true);
                             }
                         }
-                        //if (isset($_service_conf[$_runservicename]['type']) && $_service_conf[$_runservicename]['type'] != "queue") {
-                            $_cachedata = BoCache::Cache($_cachekey);//1分钟内最大访问次数
-                            if (is_numeric($_cachedata) && $_cachedata > 0) {
-                                if (time() - $_cachedata <60/$_service_conf[$_runservicename]['limit']) {
-                                    return array(
-                                        "err" => true,
-                                        "data" => "服务器忙,请稍后再试"
-                                    );
-                                }
+                        // if (isset($_service_conf[$_runservicename]['type']) && $_service_conf[$_runservicename]['type'] != "queue") {
+                        $_cachedata = BoCache::Cache($_cachekey); // 1分钟内最大访问次数
+                        if (is_numeric($_cachedata) && $_cachedata > 0) {
+                            if (time() - $_cachedata < 60 / $_service_conf[$_runservicename]['limit']) {
+                                return array(
+                                    "err" => true,
+                                    "data" => "服务器忙,请稍后再试"
+                                );
                             }
-                            BoCache::Cache($_cachekey, time(), 60);
-                        //}
+                        }
+                        BoCache::Cache($_cachekey, time(), 60);
+                        // }
                     }
                 }
                 if (isset($_service_conf[$_runservicename]['type']) && $_service_conf[$_runservicename]['type'] == "queue") {
                     $_queue = Core::LoadClass("Lib\\QUEUE\\" . QUEUE_HANDLER_NAME);
                     if ($_queue) {
                         $_reqid = StringUtil::guid();
-                        if(isset($_service_conf[$_runservicename]['once'])){
-                            $_cachekey.="once";
+                        if (isset($_service_conf[$_runservicename]['once'])) {
+                            $_cachekey .= "once";
                             if (isset($arguments[$_service_conf[$_runservicename]['para']])) {
-                                $_cachekey.=var_export($arguments[$_service_conf[$_runservicename]['para']], true);
+                                $_cachekey .= var_export($arguments[$_service_conf[$_runservicename]['para']], true);
                             }
-                            $_oncedata=BoCache::Cache($_cachekey);
-                            if(!empty($_oncedata)){
+                            $_oncedata = BoCache::Cache($_cachekey);
+                            if (! empty($_oncedata)) {
                                 return array(
                                     "err" => false,
                                     "data" => $_oncedata
                                 );
-                            }else{
-                                BoCache::Cache($_cachekey,$_reqid,0);
+                            } else {
+                                BoCache::Cache($_cachekey, $_reqid, 0);
                             }
                         }
                         $_obj = serialize($this);
                         $_ret = $_queue->enqueue("service" . $_runservicename, [
                             "reqid" => $_reqid,
-                            "oncekey"=>$_cachekey,
+                            "oncekey" => $_cachekey,
                             'reqtime' => time(),
                             'reqmethod' => $method,
                             'reqargs' => $arguments,
@@ -333,7 +335,7 @@ class BoClient
 
     public function Count($wherestr = null, $wherearr = null)
     {
-        return $this->service_call("Count", [
+        return $this->client_call("Count", [
             $wherestr,
             $wherearr
         ]);
@@ -362,13 +364,24 @@ class BoClient
                 } elseif ($this->_cachedependcy['type'] == 'service' && is_array($this->_cachedependcy['source'])) {
                     // BoCache::Cache(CACHE_DEPENDCY_PRE . $this->_cachedependcy, time(), 0);
                 } elseif ($this->_cachedependcy['type'] == 'cache') {
+                    // 依赖cache的操作结果，如果本身是cache 每次检查，如果是写入操作的话，就要等client操作完再清空缓存
+                    if (isset($this->_cachedependcy['method'])) {
+                        if ($this->_cachedependcy['method'] == "read") {
+                            // 如果是读
+                        }
+                        
+                        if ($this->_cachedependcy['method'] == "write") {
+                            // 如果是写
+                        }
+                    }
+                    
                     // BoCache::Cache(CACHE_DEPENDCY_PRE . $this->_cachedependcy, time(), 0);
                 }
             }
         }
     }
 
-    private function checkCacheExpire()
+    private function checkCacheExpire($_keyname)
     {
         $_cacheexpire = false;
         $_go = false;
@@ -383,16 +396,16 @@ class BoClient
                 $_go = true;
             }
         }
-        if ($_go) {
+        if (! $this->_cachemaster) {
             if (is_array($this->_cachedependcy) && isset($this->_cachedependcy['type']) && isset($this->_cachedependcy['source'])) {
                 if ($this->_cachedependcy['type'] == 'file') {
                     $_filefullname = APP_ROOT . DS . 'Data' . DS . $this->_cachedependcy['source'];
                     if (! file_exists($_filefullname)) {
-                        Bfw::LogR($_filefullname . Bfw::Config("Sys", "cache", 'System')['dependcy_not_found']);
+                        BoDebug::LogR($_filefullname . BoConfig::Config("Sys", "cache", 'System')['dependcy_not_found']);
                     } else {
                         $_filemtimeval = filemtime($_filefullname);
-                        if (BoCache::Cache(CACHE_DEPENDCY_PRE . $this->_cachedependcy['source'] . "_pre") != $_filemtimeval) {
-                            BoCache::Cache(CACHE_DEPENDCY_PRE . $this->_cachedependcy['source'] . "_pre", $_filemtimeval, 0);
+                        if (BoCache::Cache($_keyname . CACHE_DEPENDCY_PRE . $this->_cachedependcy['source'] . "_pre") != $_filemtimeval) {
+                            BoCache::Cache($_keyname . CACHE_DEPENDCY_PRE . $this->_cachedependcy['source'] . "_pre", $_filemtimeval, 0);
                             $_cacheexpire = true;
                         }
                     }
@@ -403,21 +416,30 @@ class BoClient
                     ), $this->_cachedependcy['source'][2]);
                     
                     if ($_ret['err']) {
-                        Bfw::LogR($this->_cachedependcy['source'][0] . $_ret['data']);
+                        BoDebug::LogR($this->_cachedependcy['source'][0] . $_ret['data']);
                     } else {
-                        if (BoCache::Cache(CACHE_DEPENDCY_PRE . md5(var_export($this->_cachedependcy['source'], true)) . "_pre") != $_ret['data']) {
-                            BoCache::Cache(CACHE_DEPENDCY_PRE . md5(var_export($this->_cachedependcy['source'], true)) . "_pre", $_ret['data'], 0);
+                        if (BoCache::Cache($_keyname . CACHE_DEPENDCY_PRE . md5(var_export($this->_cachedependcy['source'], true)) . "_pre") != $_ret['data']) {
+                            BoCache::Cache($_keyname . CACHE_DEPENDCY_PRE . md5(var_export($this->_cachedependcy['source'], true)) . "_pre", $_ret['data'], 0);
                             $_cacheexpire = true;
                         }
                     }
                 } elseif ($this->_cachedependcy['type'] == 'cache') {
-                    $_depencycacheval = BoCache::Cache(CACHE_DEPENDCY_PRE . $this->_cachedependcy['source']);
-                    if ($_depencycacheval == null) {
-                        Bfw::LogR($this->_cachedependcy['source'] . Bfw::Config("Sys", "cache", 'System')['dependcy_not_found']);
+                    if (! is_array($this->_cachedependcy['source'])) {
+                        $_sourcearr = explode(",", $this->_cachedependcy['source']);
                     } else {
-                        if (BoCache::Cache(CACHE_DEPENDCY_PRE . $this->_cachedependcy['source'] . "_pre") != $_depencycacheval) {
-                            BoCache::Cache(CACHE_DEPENDCY_PRE . $this->_cachedependcy['source'] . "_pre", $_depencycacheval, 0);
-                            $_cacheexpire = true;
+                        $_sourcearr = $this->_cachedependcy['source'];
+                    }
+                    foreach ($_sourcearr as $_source) {
+                        $_depencycacheval = BoCache::Cache(CACHE_DEPENDCY_PRE . $_source);
+                        if ($_depencycacheval == null) {
+                            BoCache::Cache(CACHE_DEPENDCY_PRE . $_source, time(), 0);
+                            // Bfw::LogR($this->_cachedependcy['source'] . BoConfig::Config("Sys", "cache", 'System')['dependcy_not_found']);
+                        } else {
+                            if (BoCache::Cache($_keyname . CACHE_DEPENDCY_PRE . $_source . "_pre") != $_depencycacheval) {
+                                BoCache::Cache($_keyname . CACHE_DEPENDCY_PRE . $_source . "_pre", $_depencycacheval, 0);
+                                $_cacheexpire = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -489,6 +511,13 @@ class BoClient
         $this->_cacheasync = $_async;
         $this->_cachedependcy = $_dependcy;
         $this->_cachemaster = $_ismaster;
+        return $this;
+    }
+
+    public function CacheMaster($key)
+    {
+        $this->_cachemasterkey = $key;
+        
         return $this;
     }
 
@@ -616,48 +645,128 @@ class BoClient
         $this->_callfrombg = $_istrue;
     }
 
+    private function checkcacheMaster($_cacheval, $_data)
+    {
+        if ($this->_cachemaster) {
+            if (is_array($this->_cachedependcy) && isset($this->_cachedependcy['type']) && isset($this->_cachedependcy['source']) && isset($this->_cachedependcy['method'])) {
+                if ($this->_cachedependcy['type'] == "cache") {
+                    if ($this->_cachedependcy['method'] == "read") {
+                        // 如果是读
+                        if ($_cacheval != $_data) {
+                            if (! is_array($this->_cachedependcy['source'])) {
+                                $_sourcearr = explode(",", $this->_cachedependcy['source']);
+                            } else {
+                                $_sourcearr = $this->_cachedependcy['source'];
+                            }
+                            
+                            foreach ($_sourcearr as $_source) {
+                                BoCache::Cache(CACHE_DEPENDCY_PRE . $_source, time(), 0);
+                            }
+                        }
+                    }
+                    if ($this->_cachedependcy['method'] == "write") {
+                        // 如果是写
+                        if (! is_array($this->_cachedependcy['source'])) {
+                            $_sourcearr = explode(",", $this->_cachedependcy['source']);
+                        } else {
+                            $_sourcearr = $this->_cachedependcy['source'];
+                        }
+                        foreach ($_sourcearr as $_source) {
+                            BoCache::Cache(CACHE_DEPENDCY_PRE . $_source, time(), 0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private function client_call($method, $arguments)
     {
         if ($this->_cachetime > 0) {
-            $_cacheexpire = $this->checkCacheExpire();
             $_keyname = md5(var_export($this->_cacheasync, true) . get_class($this) . $method . serialize($arguments));
+            $_cacheexpire = $this->checkCacheExpire($_keyname);
             $_cacheval = BoCache::Cache($_keyname);
-            if ($this->_cacheasync && ! $this->_callfrombg) {
-                $_listdata = &Registry::getInstance()->get("cache_list_forsend");
-                $_go = false;
-                if (is_array($_listdata)) {
-                    if (! isset($_listdata[$_keyname])) {
-                        $_go = true;
-                    }
-                } else {
-                    $_go = true;
-                }
-                if ($_go) {
-                    $_listdata[$_keyname] = [
-                        'key' => $_keyname,
-                        "cachetime" => $this->_cachetime,
-                        "obj" => $this,
-                        "method" => $method,
-                        'arg' => $arguments,
-                        'rpckey' => CACHE_DEPENDCY_KEY,
-                        'cachedependcy' => $this->_cachedependcy != null ? 'on' : 'off'
-                    ];
-                    Registry::getInstance()->set("cache_list_forsend", $_listdata);
-                }
-            }
+            // if ($this->_cacheasync && ! $this->_callfrombg) {
+            // $_listdata = &Registry::getInstance()->get("cache_list_forsend");
+            // $_go = false;
+            // if (is_array($_listdata)) {
+            // if (! isset($_listdata[$_keyname])) {
+            // $_go = true;
+            // }
+            // } else {
+            // $_go = true;
+            // }
+            // if ($_go) {
+            // $_listdata[$_keyname] = [
+            // 'key' => $_keyname,
+            // "cachetime" => $this->_cachetime,
+            // "obj" => $this,
+            // "method" => $method,
+            // 'arg' => $arguments,
+            // 'rpckey' => CACHE_DEPENDCY_KEY,
+            // 'cachedependcy' => $this->_cachedependcy != null ? 'on' : 'off'
+            // ];
+            // Registry::getInstance()->set("cache_list_forsend", $_listdata);
+            // }
+            // }
             if ($_cacheval == null || $_cacheexpire || $this->_callfrombg) {
-                $_data = $this->service_call($method, $arguments);
-                if ($_data != null && ! $_data['err']) {
-                    $this->cacheMasterUpdate();
-                    if ($this->_cacheasync) {
-                        BoCache::Cache($_keyname, $_data, 0);
-                        BoCache::Cache($_keyname . "expire", 1, $this->_cachetime);
-                    } else {
-                        BoCache::Cache($_keyname, $_data, $this->_cachetime);
+                $_lock = Core::LoadClass("Lib\\Lock\\" . LOCK_HANDLER_NAME, $_keyname);
+                $_data = null;
+                if ($_lock) {
+                    try {
+                        if ($_lock->lock()) {
+                            $_data = $this->service_call($method, $arguments);
+                            if ($_data != null && ! $_data['err']) {
+                                if ($this->_cacheasync) {
+                                    BoCache::Cache($_keyname, $_data, 0);
+                                    BoCache::Cache($_keyname . "expire", 1, $this->_cachetime);
+                                } else {
+                                    BoCache::Cache($_keyname, $_data, $this->_cachetime);
+                                }
+                                $this->checkcacheMaster($_cacheval, $_data);
+                            } else {
+                                if ($this->_cacheasync) {
+                                    $_data = $_cacheval;
+                                }
+                            }
+                            $_lock->unlock();
+                        }
+                    } catch (\Exception $e) {
+                        $_lock->unlock();
                     }
                 }
+                
                 return $_data;
             } else {
+                $_reqgo = false;
+                if ($this->_cacheasync) {
+                    if (BoCache::Cache($_keyname . "expire") == null) {
+                        $_reqgo = true;
+                    }
+                }
+                if ($this->_cachemaster || $_reqgo || $_cacheexpire) {
+                    $_lock = Core::LoadClass("Lib\\Lock\\" . LOCK_HANDLER_NAME, $_keyname);
+                    $_data = null;
+                    if ($_lock) {
+                        try {
+                            if ($_lock->lock()) {
+                                $_data = $this->service_call($method, $arguments);
+                                if ($_data != null && ! $_data['err']) {
+                                    if ($this->_cacheasync) {
+                                        BoCache::Cache($_keyname, $_data, 0);
+                                        BoCache::Cache($_keyname . "expire", 1, $this->_cachetime);
+                                    } else {
+                                        BoCache::Cache($_keyname, $_data, $this->_cachetime);
+                                    }
+                                }
+                                $this->checkcacheMaster($_cacheval, $_data);
+                                $_lock->unlock();
+                            }
+                        } catch (\Exception $e) {
+                            $_lock->unlock();
+                        }
+                    }
+                }
                 return $_cacheval;
             }
         } else {

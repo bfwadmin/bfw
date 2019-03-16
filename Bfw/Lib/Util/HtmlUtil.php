@@ -2,6 +2,8 @@
 namespace Lib\Util;
 
 use Lib\Bfw;
+use Lib\BoCache;
+use Lib\Core;
 
 class HtmlUtil
 {
@@ -113,6 +115,30 @@ class HtmlUtil
     public static function ImportJs($_path, $_option = null)
     {
         return '<script ' . self::ArrayToOption($_option) . ' type="text/javascript" src="' . str_replace("@weburl", STATIC_FILE_PATH, $_path) . '"></script>';
+    }
+
+    /**
+     * 提前加载js文件
+     *
+     * @param string $_path            
+     * @param array $_option            
+     * @return string
+     */
+    public static function PreJs($_path, $_option = null)
+    {
+        Core::S("pre_js_filelist", Core::G("pre_js_filelist") . '<script ' . self::ArrayToOption($_option) . ' type="text/javascript" src="' . str_replace("@weburl", STATIC_FILE_PATH . DOMIAN_VALUE, $_path) . '"></script>');
+    }
+
+    /**
+     * 提前 加载css
+     *
+     * @param string $_path            
+     * @param array $_option            
+     * @return string
+     */
+    public static function Precss($_path, $_option = null)
+    {
+        Core::S("pre_css_filelist", Core::G("pre_css_filelist") . '<link ' . self::ArrayToOption($_option) . ' href="' . str_replace("@weburl", STATIC_FILE_PATH . DOMIAN_VALUE, $_path) . '" rel="stylesheet" type="text/css" />');
     }
 
     /**

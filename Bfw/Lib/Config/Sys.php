@@ -1,5 +1,4 @@
 <?php
-// 店铺状态
 $_config_arr['Sys']['validate'] = [
     "input_array_empty" => "输入数组不能为空"
 ];
@@ -21,7 +20,7 @@ $_config_arr['Sys']['webapp'] = [
     "run_mode_disallow" => "运行模式不匹配",
     "controler_not_allow"=>"不允许访问此控制器",
     "ip_disallow"=>"该ip不允许访问",
-    "visit_limit"=>"访问太频繁了",
+    "visit_limit"=>"休息会儿，再操作",
     "device_disallow"=>'访问终端不匹配',
     "key_wrong"=>'秘钥不对',
     "user_pwd_wrong"=>"账号密码错误"
