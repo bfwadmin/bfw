@@ -210,8 +210,8 @@ p{
 			<span>接口调试</span> <span id="closebtn" onclick="closepanel();">×</span>
 		</div>
 		<select id="methodselect">
-			<option value="get">GET</option>
 			<option value="post">POST</option>
+			<option value="get">GET</option>
 		</select><input placeholder="http://api.example.com/get/id/1"
 			type="text" id="apiurl" /><input onclick="sendapiurl();" id="sendbtn"
 			type="button" value="发送" />

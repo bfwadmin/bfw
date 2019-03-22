@@ -17,6 +17,10 @@ class TimeUtil
         $milliseconds = round(($utimestamp - $timestamp) * 1000000);
         return date(preg_replace('`(?<!\\\\)u`', $milliseconds, $format), $timestamp);
     }
+    public static  function microtime(){
+        list($usec, $sec) = explode(" ", microtime());
+        return ((float)$usec + (float)$sec);
+    }
 }
 
 ?>

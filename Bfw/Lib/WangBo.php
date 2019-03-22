@@ -3,7 +3,6 @@ namespace Lib;
 
 class WangBo
 {
-
     /**
      * 锁定
      *

@@ -321,10 +321,10 @@ class HtmlUtil
             foreach ($arr as $key => $value) {
                 if (in_array($key, $val)) {
                     $string .= '<label><input type="checkbox" name="' . $name . '"
-				value="' . $key . '" checked=true ' . self::ArrayToOption($_option) . '/>' . $value . '</label>';
+				value="' . $key . '" checked=true ' . self::ArrayToOption($_option) . '/><span>' . $value . '</span></label>';
                 } else {
                     $string .= '<label><input type="checkbox" name="' . $name . '"
-				value="' . $key . '"  ' . self::ArrayToOption($_option) . ' />' . $value . '</label>';
+				value="' . $key . '"  ' . self::ArrayToOption($_option) . ' /><span>' . $value . '</span></label>';
                 }
             }
             return $string;

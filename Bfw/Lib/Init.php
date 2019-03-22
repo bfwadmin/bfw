@@ -418,7 +418,8 @@ if (RUN_MODE == "S") {
                 }
                 $total = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"]; // 计算差值
                 if (IS_AJAX_REQUEST) {
-                    if (WEB_DEBUG_AJAX) {
+                   if (WEB_DEBUG_AJAX) {
+                      // header("Content-type: text/html");
                         BoDebug::DebugEcho($total);
                     }
                 } else {
@@ -440,10 +441,10 @@ if (strtolower(PHP_SAPI) != "cli") {
     ob_end_flush();
 }
 //发送异步消息
-$_cachedata=&Registry::getInstance()->get("cache_list_forsend");
-if(is_array($_cachedata)&&!empty($_cachedata)){
-    BoQueue::Enqueue("cache_list", $_cachedata);
-}
+// $_cachedata=&Registry::getInstance()->get("cache_list_forsend");
+// if(is_array($_cachedata)&&!empty($_cachedata)){
+//     BoQueue::Enqueue("cache_list", $_cachedata);
+// }
 
 function defineinit($_name, &$_conf, $_val, $_defval = "")
 {

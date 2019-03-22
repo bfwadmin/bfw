@@ -28,19 +28,19 @@ class BoRoute
             $_routedata = &Registry::getInstance()->get("route_data");
             if (! is_null($_routedata)) {
                foreach ( $_routedata as $_iurl => $_furl){
-                   if (isset($_furl["method"])) {
-                       if (is_array($_furl["method"])) {
-                           if (! in_array(HTTP_METHOD, $_furl["method"])) {
-                               break;
-                           }
-                       } else {
-                           if (HTTP_METHOD != $_furl["method"]) {
-                               break;
-                           }
-                       }
-                   }
                    if(isset($_furl['url'])){
                        if (preg_match($_iurl, $_pathurl, $match)) {
+                           if (isset($_furl["method"])) {
+                               if (is_array($_furl["method"])) {
+                                   if (! in_array(HTTP_METHOD, $_furl["method"])) {
+                                       break;
+                                   }
+                               } else {
+                                   if (HTTP_METHOD != $_furl["method"]) {
+                                       break;
+                                   }
+                               }
+                           }
                            for ($i = 1; $i < count($match); $i ++) {
                                $_furl['url'] = str_replace("[{$i}]", $match[$i], $_furl['url']);
                            }

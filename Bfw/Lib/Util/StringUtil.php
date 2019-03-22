@@ -518,6 +518,28 @@ class StringUtil
     }
 
     /**
+     * 32位唯一码
+     *
+     * @return string
+     */
+    public static function UniqId()
+    {
+        return md5(uniqid(HOST_NAME . SERVER_PORT . APPSELF, true));
+        // return md5(uniqid("",true));
+    }
+
+    /**
+     * 时间id
+     * 16位
+     * 
+     * @return string
+     */
+    public static function TimeId()
+    {
+        return TimeUtil::microtime() . rand(10, 99);
+    }
+
+    /**
      * 生成订单id
      *
      * @return string
@@ -535,14 +557,13 @@ class StringUtil
     public static function guid()
     {
         if (function_exists('com_create_guid')) {
-            return com_create_guid();
+            return strtolower(str_replace("-", "", com_create_guid()));
         } else {
             mt_srand((double) microtime() * 10000); // optional for php 4.2.0 //
                                                     // and up.
-            $charid = strtoupper(md5(uniqid(rand(), true)));
-            $hyphen = chr(45); // "-"
-            $uuid = chr(123) . // "{"
-substr($charid, 0, 8) . $hyphen . substr($charid, 8, 4) . $hyphen . substr($charid, 12, 4) . $hyphen . substr($charid, 16, 4) . $hyphen . substr($charid, 20, 12) . chr(125); // "}"
+            $charid = strtolower(md5(uniqid(rand(), true)));
+            // $hyphen = chr(45); // "-"
+            $uuid = substr($charid, 0, 8) . substr($charid, 8, 4) . substr($charid, 12, 4) . substr($charid, 16, 4) . substr($charid, 20, 12); // "}"
             return $uuid;
         }
     }
@@ -687,13 +708,42 @@ substr($charid, 0, 8) . $hyphen . substr($charid, 8, 4) . $hyphen . substr($char
         $str = preg_replace("/<(\/?i?frame.*?)>/si", "", $str); // 过滤frame标签
         $str = preg_replace("/<(script.*?)>(.*?)<(\/script.*?)>/si", "", $str); // 过滤script标签
         $str = preg_replace("/<(\/?script.*?)>/si", "", $str); // 过滤script标签
-        $str = preg_replace("/javascript/si", "Javascript", $str); // 过滤script标签
-        $str = preg_replace("/vbscript/si", "Vbscript", $str); // 过滤script标签
-        $str = preg_replace("/on([a-z]+)\s*=/si", "On\\1=", $str); // 过滤script标签
+        $str = preg_replace("/javascript/si", "BfwJavascript", $str); // 过滤script标签
+        $str = preg_replace("/vbscript/si", "BfwVbscript", $str); // 过滤script标签
+        $str = preg_replace("/on([a-z]+)\s*=/si", "BfwOn\\1=", $str); // 过滤script标签
         return preg_replace("/&#/si", "&＃", $str); // 过滤script标签
                                                        // $str = preg_replace('/<[^>]*>/', '', $str);
                                                        // $str = str_replace("&nbsp;", "", $str);
                                                        // return preg_replace('/\s+/', '', $str);
+    }
+
+    function filterBadHtml($str)
+    {
+        $str = preg_replace("/<(\/?html.*?)>/si", "", $str); // 过滤html标签
+        $str = preg_replace("/<(\/?head.*?)>/si", "", $str); // 过滤head标签
+        $str = preg_replace("/<(\/?meta.*?)>/si", "", $str); // 过滤meta标签
+        $str = preg_replace("/<(\/?body.*?)>/si", "", $str); // 过滤body标签
+        $str = preg_replace("/<(\/?link.*?)>/si", "", $str); // 过滤link标签
+        $str = preg_replace("/<(\/?form.*?)>/si", "", $str); // 过滤form标签
+        $str = preg_replace("/cookie/si", "COOKIE", $str); // 过滤COOKIE标签
+        $str = preg_replace("/<(applet.*?)>(.*?)<(\/applet.*?)>/si", "", $str); // 过滤applet标签
+        $str = preg_replace("/<(\/?applet.*?)>/si", "", $str); // 过滤applet标签
+        $str = preg_replace("/<(style.*?)>(.*?)<(\/style.*?)>/si", "", $str); // 过滤style标签
+        $str = preg_replace("/<(\/?style.*?)>/si", "", $str); // 过滤style标签
+        $str = preg_replace("/<(title.*?)>(.*?)<(\/title.*?)>/si", "", $str); // 过滤title标签
+        $str = preg_replace("/<(\/?title.*?)>/si", "", $str); // 过滤title标签
+        $str = preg_replace("/<(object.*?)>(.*?)<(\/object.*?)>/si", "", $str); // 过滤object标签
+        $str = preg_replace("/<(\/?objec.*?)>/si", "", $str); // 过滤object标签
+        $str = preg_replace("/<(noframes.*?)>(.*?)<(\/noframes.*?)>/si", "", $str); // 过滤noframes标签
+        $str = preg_replace("/<(\/?noframes.*?)>/si", "", $str); // 过滤noframes标签
+        $str = preg_replace("/<(i?frame.*?)>(.*?)<(\/i?frame.*?)>/si", "", $str); // 过滤frame标签
+        $str = preg_replace("/<(\/?i?frame.*?)>/si", "", $str); // 过滤frame标签
+        $str = preg_replace("/<(script.*?)>(.*?)<(\/script.*?)>/si", "", $str); // 过滤script标签
+        $str = preg_replace("/<(\/?script.*?)>/si", "", $str); // 过滤script标签
+        $str = preg_replace("/javascript/si", "BfwJavascript", $str); // 过滤script标签
+        $str = preg_replace("/vbscript/si", "BfwVbscript", $str); // 过滤script标签
+        $str = preg_replace("/on([a-z]+)\s*=/si", "BfwOn\\1=", $str); // 过滤script标签
+        return $str;
     }
 
     /**

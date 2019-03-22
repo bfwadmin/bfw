@@ -1,5 +1,6 @@
 <?php
-import ( "Plugin.FileHelper" );
+namespace Plugin;
+use Lib\Util\FileUtil;
 class Upload {
 	public static function uploadfile($_filename = "file", $_filter = array("gif","jpeg","pjpeg","jpg","swf","png"), $_limitsize = 1024000, $_uploaddir = UPLOAD_DIR) {
 		$result = array ();
@@ -11,30 +12,30 @@ class Upload {
 					if ($_FILES [$_filename] ["size"] <= $_limitsize) {
 						$_datedir = str_replace ( "-", "", date ( "Y-m-d" ) );
 						$_daaedir = $_uploaddir."/".$_datedir;
-						$fileHelp = new FileHelper();
+						$fileHelp = new FileUtil();
 						if($fileHelp->CreatDir($_daaedir)){
 							$file_name = uniqid () . "." . self::getfileExt ( $_FILES [$_filename] ["name"] );
 							if (move_uploaded_file ( $_FILES [$_filename] ["tmp_name"], $_daaedir . "/" . $file_name )) {
 								$result ["err"] = false;
-								$result ["name"] = $_datedir."/".$file_name;
+								$result ["data"] = $_datedir."/".$file_name;
 								$result ["type"] = $fileExt;
 								$result ["size"] = $_FILES [$_filename] ["size"];
 								$result ["url"] = $_daaedir . "/" . $file_name ;
 							} else {
-								$result ['err'] = $_FILES [$_filename] ["error"] . "错误啦";
+								$result ['data'] = $_FILES [$_filename] ["error"] . "错误啦";
 							}
 						}else{
-							$result ['err'] = "目录创建失败";
+							$result ['data'] = "目录创建失败";
 						}
 												
 					} else {
-						$result ['err'] = "上传文件大小不能超过" . ($_limitsize / 1024) . "kb";
+						$result ['data'] = "上传文件大小不能超过" . ($_limitsize / 1024) . "kb";
 					}
 				} else {
-					$result ['err'] = "上传类型只支持" . implode ( ",", $_filter );
+					$result ['data'] = "上传类型只支持" . implode ( ",", $_filter );
 				}
 			} else {
-				$result ['err'] = "上传文件不能为空";
+				$result ['data'] = "上传文件不能为空";
 			}
 		return $result;
 	}
@@ -75,6 +76,7 @@ class Upload {
 				$img = curl_exec($ch);
 				// 4. 释放curl句柄
 				curl_close($ch);
+				$ch=null;
 				$ext="jpg";
 				if (imagecreatefromstring($img)) {
 					$filename = date ( "dMYHis" ) . "." . $ext;
@@ -85,25 +87,25 @@ class Upload {
 					if ($size < $_limitsize) {
 						$_datedir = str_replace ( "-", "", date ( "Y-m-d" ) );
 						$_daaedir = $_uploaddir."/".$_datedir;
-						$fileHelp = new FileHelper();
+						$fileHelp = new FileUtil();
 						if($fileHelp->CreatDir($_daaedir)){
 							$sLocalFile = $_daaedir . "/" . $filename;
 							file_put_contents ( $sLocalFile, $img );
 							$result ["err"] = false;
 							$result ['size'] = $size;
-							$result ["name"] =$_datedir."/".$filename;
+							$result ["data"] =$_datedir."/".$filename;
 							$result ["type"] = $ext;
 							
 						}else{
-							$result ['err'] = "目录创建失败";
+							$result ['data'] = "目录创建失败";
 						}
 						
 					} else {
-						$result ["err"] = "图片大小不能超过".($_limitsize / 1024) . "kb";
+						$result ["data"] = "图片大小不能超过".($_limitsize / 1024) . "kb";
 					}
 				} else {
 					//$result ["err"] = "下载类型只支持" . implode ( ",", $pictype );
-					$result ["err"] ="图片创建失败";
+					$result ["data"] ="图片创建失败";
 				}
 			/* } else {
 				$result ["err"] = "远程文件必须是图片类型，请检查路径";
@@ -129,24 +131,24 @@ class Upload {
 					if ($size <= $_limitsize) {
 						$_datedir = str_replace ( "-", "", date ( "Y-m-d" ) );
 						$_daaedir = $_uploaddir."/".$_datedir;
-						$fileHelp = new FileHelper();
+						$fileHelp = new FileUtil();
 						if($fileHelp->CreatDir($_daaedir)){
 							$filename = $_daaedir . "/" . $file_name; // 路径
 							if (file_put_contents ( $filename, $imgContent )) {
 									
 								$result ["err"] = false;
 								$result ['size'] = $size;
-								$result ["name"] = $_datedir."/".$file_name;
+								$result ["data"] = $_datedir."/".$file_name;
 								$result ["type"] = $sExt;
 							}
 						}
 						
 					} else {
-						$result ['err'] = "图片大小不能超过".($_limitsize / 1024) . "kb";
+						$result ['data'] = "图片大小不能超过".($_limitsize / 1024) . "kb";
 					}
 				}
 			} else {
-				$result ['err'] = "图片数据格式错误！";
+				$result ['data'] = "图片数据格式错误！";
 			}
 			return $result;
 		

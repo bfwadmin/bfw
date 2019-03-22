@@ -130,30 +130,30 @@ class BoCustomer extends Wangbo
                     $_cachedata = BoQueue::Dequeue($_queuename);
                     $_cachelist = BoCache::Cache(AYC_CACHE_NAME);
                     if (is_array($_cachedata)) {
-                        echo "rec count ".count($_cachedata)."\r\n";
+                        echo "rec count " . count($_cachedata) . "\r\n";
                         if (is_array($_cachelist)) {
                             $_cachelist = array_merge($_cachedata, $_cachelist);
                         } else {
                             $_cachelist = $_cachedata;
                         }
                     }
-                    BoCache::Cache(AYC_CACHE_NAME,$_cachelist);
+                    BoCache::Cache(AYC_CACHE_NAME, $_cachelist);
                     // echo $_cachelist;
-                    echo "merge count ".count($_cachelist)."\r\n";
-                    //usleep(CACHE_UPDATE_INTVAL_TIME * 1000000);
-                    //continue;
+                    echo "merge count " . count($_cachelist) . "\r\n";
+                    // usleep(CACHE_UPDATE_INTVAL_TIME * 1000000);
+                    // continue;
                     if (is_array($_cachelist)) {
-                        foreach ($_cachelist as $item=>$_data) {
+                        foreach ($_cachelist as $item => $_data) {
                             $_expire = BoCache::Cache($item . "expire");
                             echo "check key " . $item . " " . $_expire . " ";
                             if ($_expire == "") {
-                               // $_data = BoCache::Cache("asy_" . $item);
+                                // $_data = BoCache::Cache("asy_" . $item);
                                 if ($_data != "") {
                                     if (isset($_data['key']) && isset($_data['cachetime']) && isset($_data['method']) && isset($_data['arg'])) {
-                                        echo "update cache task " . $_data['key'] . " mem:" . memory_get_usage() .$_data['method']."\r\n";
+                                        echo "update cache task " . $_data['key'] . " mem:" . memory_get_usage() . $_data['method'] . "\r\n";
                                         $_obj = $_data['obj'];
                                         $_obj->RunBg();
-                                         call_user_func_array([
+                                        call_user_func_array([
                                             $_obj,
                                             $_data['method']
                                         ], $_data['arg']);
@@ -174,7 +174,7 @@ class BoCustomer extends Wangbo
                     }
                     $_cachelist = null;
                     $_cachedata = null;
-                   // die();
+                    // die();
                     usleep(CACHE_UPDATE_INTVAL_TIME * 1000000);
                 } while (true);
                 exit();
@@ -259,6 +259,7 @@ class BoCustomer extends Wangbo
                     $_cinstance = Core::LoadClass("App\\{$_domian}\\Controler\\Controler_" . $_controler);
                     if ($_cinstance) {
                         $responseformat = "html";
+                        $responsecharset = "UTF-8";
                         $expire = 0;
                         if (isset($_cinstance->_config)) {
                             if (isset($_cinstance->_config['rate']) && is_array($_cinstance->_config['rate'])) {
@@ -271,19 +272,29 @@ class BoCustomer extends Wangbo
                                         $_ckey = $_ckey . IP;
                                     }
                                     $_lastvisittime = BoCache::Cache($_ckey);
-                                    if ($_lastvisittime != "" && time() - $_lastvisittime < 60 / $_cinstance->_config['rate'][1]) {
-                                        $_errmsg=BoConfig::Config("Sys", "webapp", "System")['visit_limit'];
-                                        if(IS_AJAX_REQUEST){
-                                            echo json_encode(['err'=>true,data=>$_errmsg]);
-                                        }
-                                        else{
+                                    if ($_lastvisittime != "" &&  microtime(true) - floatval($_lastvisittime)< 60 / $_cinstance->_config['rate'][1]) {
+                                        $_errmsg = BoConfig::Config("Sys", "webapp", "System")['visit_limit'];
+                                        if (IS_AJAX_REQUEST) {
+                                            static $_config_arr = [];
+                                            if (file_exists(APP_DIR . DOMIAN_VALUE . DS . "Config" . DS . "Config.php")) {
+                                                include APP_DIR . DOMIAN_VALUE . DS . "Config" . DS . "Config.php";
+                                            }
+                                            if (isset($_config_arr['App']['limit_err_array'])) {
+                                                echo json_encode($_config_arr['App']['limit_err_array']);
+                                            } else {
+                                                echo json_encode([
+                                                    'err' => true,
+                                                    data => $_errmsg
+                                                ]);
+                                            }
+                                        } else {
                                             BoRes::View("error", "System", "v1", [
                                                 'but_msg' => $_errmsg
                                             ]);
                                         }
                                         die();
                                     }
-                                    BoCache::Cache($_ckey, time(), 60);
+                                    BoCache::Cache($_ckey, microtime(true), 60);
                                 }
                             }
                             if (isset($_cinstance->_config['allowip']) && is_array($_cinstance->_config['allowip'])) {
@@ -299,15 +310,15 @@ class BoCustomer extends Wangbo
                             if (isset($_cinstance->_config['auth']) && is_array($_cinstance->_config['auth']) && count($_cinstance->_config['auth']) == 2) {
                                 $_sesskey = SESS_ID . "sess_page_App\\{$_domian}\\Controler\\Controler_" . $_controler;
                                 if ($_cinstance->_config['auth']) {
-                                    if (IS_AJAX_REQUEST) {
-                                        if (BoReq::PostVal("username")== $_cinstance->_config['auth'][0] && BoReq::PostVal("password") == $_cinstance->_config['auth'][1]) {
-                                            BoCache::Cache($_sesskey, "ok", 1800);
-                                            die("ok");
-                                        } else {
-                                            die(BoConfig::Config("Sys", "webapp", "System")['user_pwd_wrong']);
-                                        }
-                                    }
                                     if (BoCache::Cache($_sesskey) != "ok") {
+                                        if (IS_AJAX_REQUEST) {
+                                            if (BoReq::PostVal("username") == $_cinstance->_config['auth'][0] && BoReq::PostVal("password") == $_cinstance->_config['auth'][1]) {
+                                                BoCache::Cache($_sesskey, "ok", 1800);
+                                                die("ok");
+                                            } else {
+                                                die(BoConfig::Config("Sys", "webapp", "System")['user_pwd_wrong']);
+                                            }
+                                        }
                                         BoRes::View("login", "System", "v1", [
                                             'refer' => URL
                                         ]);
@@ -330,6 +341,10 @@ class BoCustomer extends Wangbo
                                     $expire = $_cinstance->_config['expire'];
                                 }
                             }
+                            if (isset($_cinstance->_config['responsecharset'])) {
+                                 $responsecharset = $_cinstance->_config['responsecharset'];
+                            }
+                            
                         }
                         if ($expire > 0) {
                             $this->Expire($expire);
@@ -342,15 +357,15 @@ class BoCustomer extends Wangbo
                             
                             switch ($responseformat) {
                                 case "xml":
-                                    header("Content-type: text/xml");
+                                    header("Content-type: text/xml;charset={$responsecharset}");
                                     echo ArrayUtil::Toxml($ret);
                                     break;
                                 case "json":
-                                    header("Content-type: text/json");
+                                    header("Content-type: text/json;charset={$responsecharset}");
                                     echo json_encode($ret);
                                     break;
                                 default:
-                                    // header("Content-type: {$responseformat}");
+                                    header("Content-type: {$responseformat};charset={$responsecharset}");
                                     // echo $ret;
                                     break;
                             }

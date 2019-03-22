@@ -14,7 +14,7 @@ class Pay implements BoPayInterface
 
     public function __construct($_notify_url, $_return_url)
     {
-        $this->_alipay_config['partner'] = '2088121971130340';
+        $this->_alipay_config['partner'] = '2088431807260023';
         $this->_alipay_config['private_key_path'] = APP_ROOT . DS . 'Cert' . DS . 'rsa_private_key.pem';
         $this->_alipay_config['ali_public_key_path'] = APP_ROOT . DS . 'Cert' . DS . 'alipay_public_key.pem';
         $this->_alipay_config['sign_type'] = strtoupper('RSA');

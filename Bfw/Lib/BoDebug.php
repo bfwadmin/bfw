@@ -109,6 +109,7 @@ class BoDebug
             );
         }
         echo self::DebugHtml($_import_info, $_debug_info, $spendtime, LOG_TO_SERVER, memory_get_usage());
+        
     }
     
     /**
