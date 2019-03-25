@@ -530,13 +530,14 @@ class StringUtil
 
     /**
      * 时间id
-     * 16位
+     * 20位
      * 
      * @return string
      */
     public static function TimeId()
     {
-        return TimeUtil::microtime() . rand(10, 99);
+        list($usec, $sec) = explode(" ", microtime());
+        return $sec.str_replace("0.", "", $usec). rand(10, 99);
     }
 
     /**

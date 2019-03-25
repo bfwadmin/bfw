@@ -145,6 +145,9 @@ class BoModel
             }
             // $this->_tbpre = Bfw::Config("Db", "tbpre");
             $_m_n = str_replace("App\\" . DOMIAN_VALUE . "\\Model\\Model_", "", get_class($this));
+            if(isset( $_conf['tb_name_ci'])&&$_conf['tb_name_ci']==true){
+                $_m_n=strtolower($_m_n);
+            }
             if (isset($this->_model_table_map[$_m_n])) {
                 $this->_tablename = $this->_model_table_map[$_m_n];
             } else {
