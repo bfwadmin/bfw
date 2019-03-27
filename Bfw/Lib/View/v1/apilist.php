@@ -64,7 +64,24 @@ function sendapiurl(){
 	if(method==""||url==""){
          return;
 	}
-	ajax(url, function(str){document.getElementById("responsepannel").value=str;}, method, postpara) ;
+	ajax(url, function(str){
+        var index=str.indexOf('~_~_~_~_~_~');
+        if(index>=0){
+      	  document.getElementById("responsepannel").value=unescape(str.substring(0,index).replace(/\u/g, "%u"));
+       //	 document.getElementById("responsepannel").value=str.substring(index+11,str.length);
+      	  var strs=str.substring(index+11,str.length);
+          var obj = eval('(' + strs+ ')');
+          var output="";
+          output+="调试信息:spend time:"+obj.spendtime+"S,mem cost:"+obj.totalmem/1024/1024+"M"+"\n";
+        	for (var i = 0; i < obj.debug_info.length; i++) {
+      		  output+=obj.debug_info[0]+"\n";
+        	}
+          document.getElementById("responsedebugdata").value=output;
+      	  //document.getElementById("debug_info_area").innerHTML=str.substring(index,str.length-index);
+        }else{
+      	  document.getElementById("responsepannel").value=str;
+        }
+	}, method, postpara) ;
 }
 function ajax(url, fnSucc, method, data) {
 	if (window.XMLHttpRequest) {
@@ -221,7 +238,8 @@ p{
 				placeholder="post参数类似于username=wangbo&passwd=111111这种形式" />
 		</div>
 		<h4>返回结果</h4>
-		<textarea style="width: 100%; height: 200px;" id="responsepannel">
+		<textarea style="width: 100%; height:100px;" id="responsepannel"></textarea>
+	    <textarea style="width: 100%; height: 100px;" id="responsedebugdata"></textarea>
 </textarea>
 	</div>
 	
@@ -273,6 +291,7 @@ p{
         ?>
 		</div>
 				<?php } ?>
+				<div id="debug_info_area"></div>
 				 <div style="margin: 0; text-align:center; color:white;">Power by BFW<sup><?=VERSION?></sup>[SOA framework]</div>
 		</body>
 </html>

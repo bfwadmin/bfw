@@ -5,11 +5,14 @@ use Lib\Registry;
 
 class BoDebug
 {
+
     /**
      * 调试信息输出
-     * @param unknown $str
+     * 
+     * @param unknown $str            
      */
-    public static function Info($str){
+    public static function Info($str)
+    {
         if (defined("WEB_DEBUG")) {
             if (WEB_DEBUG) {
                 $_info = &Registry::getInstance()->get("debug_info");
@@ -21,7 +24,7 @@ class BoDebug
             }
         }
     }
-    
+
     /**
      * 计时开始
      *
@@ -46,7 +49,7 @@ class BoDebug
         Registry::getInstance()->set("debug_info", $_info);
         // LogR($_ts . ":" . $msg);
     }
-    
+
     /**
      * 计时结束
      *
@@ -63,7 +66,7 @@ class BoDebug
         $_te = microtime(true);
         $_ts = &Registry::getInstance()->get("bo_nowtime_" . $_tag);
         $_tm = &Registry::getInstance()->get("bo_nowmemo_" . $_tag);
-    
+        
         $_info = &Registry::getInstance()->get("debug_info");
         if ("" == $_ts) {
             $_info[] = array(
@@ -77,9 +80,21 @@ class BoDebug
             );
         }
         Registry::getInstance()->set("debug_info", $_info);
-    
+        
         // LogR($_te . ":" . $msg . ",耗时" . round($_te - $_ts, 3) . "s");
     }
+
+    public static function DebugJson($_import_info_arr, $_debug_info_arr, $_spendtime, $_log_toserver, $_totalmem, $_file = "debug")
+    {
+        return "~_~_~_~_~_~".json_encode([
+            'import_info' => $_import_info_arr,
+            "debug_info" => $_debug_info_arr,
+            "spendtime" => $_spendtime,
+            "islogserver" => $_log_toserver,
+            "totalmem" => $_totalmem
+        ]);
+    }
+
     public static function DebugHtml($_import_info_arr, $_debug_info_arr, $_spendtime, $_log_toserver, $_totalmem, $_file = "debug")
     {
         ob_start();
@@ -94,8 +109,8 @@ class BoDebug
         ob_start();
         return $_cont;
     }
-    
-    public static function DebugEcho($spendtime)
+
+    public static function DebugEcho($spendtime, $isajax = false)
     {
         $_import_info = &Registry::getInstance()->get("import_info");
         $_debug_info = &Registry::getInstance()->get("debug_info");
@@ -108,14 +123,17 @@ class BoDebug
                 "totalmem" => memory_get_usage()
             );
         }
-        echo self::DebugHtml($_import_info, $_debug_info, $spendtime, LOG_TO_SERVER, memory_get_usage());
-        
+        if ($isajax) {
+            echo self::DebugJson($_import_info, $_debug_info, $spendtime, LOG_TO_SERVER, memory_get_usage());
+        } else {
+            echo self::DebugHtml($_import_info, $_debug_info, $spendtime, LOG_TO_SERVER, memory_get_usage());
+        }
     }
-    
+
     /**
      * 日志记录
      *
-     * @param string $word
+     * @param string $word            
      * @param string $tag
      *            标签
      * @param string $level
@@ -133,7 +151,6 @@ class BoDebug
             echo $word;
         }
     }
-
 }
 
 ?>

@@ -1,9 +1,13 @@
 <?php
-use Lib\Bfw;
 use Lib\Core;
+use Lib\BoRes;
 use Lib\WebApp;
 use Lib\Registry;
 use Lib\BoErrEnum;
+use Lib\Util\UrlUtil;
+use Lib\BoRoute;
+use Lib\BoDebug;
+use Lib\BoConfig;
 use Lib\Exception\HttpException;
 use Lib\Exception\CoreException;
 use Lib\Exception\DbException;
@@ -14,12 +18,7 @@ use Lib\Exception\LockException;
 use Lib\Exception\QueueException;
 use Lib\Exception\SessionException;
 use Lib\Exception\LogException;
-use Lib\Util\UrlUtil;
-use Lib\BoRoute;
-use Lib\BoDebug;
-use Lib\BoConfig;
-use Lib\BoRes;
-use Lib\BoQueue;
+
 if (strtolower(PHP_SAPI) != "cli") {
     ob_start();
 }
@@ -419,8 +418,7 @@ if (RUN_MODE == "S") {
                 $total = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"]; // 计算差值
                 if (IS_AJAX_REQUEST) {
                    if (WEB_DEBUG_AJAX) {
-                      // header("Content-type: text/html");
-                        BoDebug::DebugEcho($total);
+                        BoDebug::DebugEcho($total,true);
                     }
                 } else {
                     BoDebug::DebugEcho($total);

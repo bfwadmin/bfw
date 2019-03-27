@@ -119,6 +119,7 @@ class FileUtil
     {
         $_data = [];
         $_dirdata = scandir($_base.$_dir);
+       // var_dump($_dirdata);
         foreach ($_dirdata as $file) {
             if (($file != '.') && ($file != '..')) {
                 if (is_dir($_base.$_dir . DS . $file)) {

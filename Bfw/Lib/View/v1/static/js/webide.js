@@ -6,6 +6,8 @@ var editing_file = "";
 var file_changed = false;
 var is_staticfile = false;
 var editor_arr = [];
+var reg = /^[a-zA-Z]{3,15}$/;
+var tempid="";
 var _bfw_config = {
 	baseurl : "",
 	routetype : "",
@@ -160,6 +162,8 @@ contex_menu = {
 					text : '新建控制器',
 					// icon : '/?getstatic=/folder.png',
 					action : function(node) {
+						popup($('#addcontroler'));
+						return;
 						var fname = prompt("请输入名称", "Home");
 						if (fname != null && fname != "" && namecheck(fname)) {
 							var url = "";
@@ -203,7 +207,13 @@ contex_menu = {
 					text : '运行',
 					// icon : '/?getstatic=/folder.png',
 					action : function(node) {
-
+						var url = "?webide=1&getcontrolact="
+							+ node.tag + "&parent=" + project_name;
+						ajax(url, function(data) {
+						//	$("#actionlist").html(data);
+							popup($('#runaction'));
+							// refleshdir(project_name);
+						});
 					},
 
 				},
@@ -650,16 +660,106 @@ function hideediter() {
 		}
 	}
 	$("#editorpannel").hide();
+	$(".popup_dia").hide();
 	proreset();
 };
+function dbconfshow(){
+	$("#mysqlhost").val(localStorage.getItem("host"));
+	$("#mysqlport").val(localStorage.getItem("port"));
+	$("#mysqlname").val(localStorage.getItem("user"));
+	$("#mysqlpwd").val(localStorage.getItem("pwd"));
+	popup($('#mysqlconf'));
+}
+function login(){
+	var username=$("#loginusername").val();
+	var pwd=$("#loginpwd").val();
+	if(username==""||pwd==""){
+		alert("用户名密码不能为空");
+		return;
+	}
+	ajax('/?webide=1&login='+username+"|"+pwd,function(str){alert(str)});  
+}
+function register(){
+	var username=$("#regusername").val();
+	var pwd=$("#regpwd").val();
+	if(username==""||pwd==""){
+		alert("用户名密码不能为空");
+		return;
+	}
+	ajax('/?webide=1&register='+username+"|"+pwd,function(str){alert(str)});  
+}
+function mysqlconf(){
+	if($("#mysqlhost").val()!=""){
+		 localStorage.setItem("host",$("#mysqlhost").val());
+	}
+	if($("#mysqlport").val()!=""){
+		 localStorage.setItem("port",$("#mysqlport").val());
+	}
+	if($("#mysqlname").val()!=""){
+		 localStorage.setItem("user",$("#mysqlname").val());
+	}
+	if($("#mysqlpwd").val()!=""){
+		 localStorage.setItem("pwd",$("#mysqlpwd").val());
+	}
+	alert("设置成功");
+}
 function openpro(p) {
 	if (p == ".") {
-		$("#newprodia").show();
+		popup($("#newprodia"));
 	} else {
 		refleshdir(p);
 		openfile("\welcome.bfw", p);
 	}
 };
+function popup(popupName){
+	var _scrollHeight = $(document).scrollTop(),//获取当前窗口距离页面顶部高度
+	_windowHeight = $(window).height(),//获取当前窗口高度
+	_windowWidth = $(window).width(),//获取当前窗口宽度
+	_popupHeight = popupName.height(),//获取弹出层高度
+	_popupWeight = popupName.width();//获取弹出层宽度
+	_posiTop = (_windowHeight - _popupHeight)/2 + _scrollHeight;
+	_posiLeft = (_windowWidth - _popupWeight)/2;
+	popupName.css({"left": _posiLeft + "px","top":_posiTop + "px","display":"block"});//设置position
+}
+function popclose(popupName){
+	$("#"+popupName).hide();
+}
+
+function creatpro(){
+    if(!reg.test($("#proname").val())){
+    	alert("项目名称必须为3-15个字母");
+    	return ;
+    }
+    if(!reg.test(tempid)){
+    	alert("请选择模板");
+    	return ;
+    }
+    var uname=localStorage.getItem("user");
+    var dhost=localStorage.getItem("host");
+    var dport=localStorage.getItem("port");
+    var dpwd=localStorage.getItem("pwd");
+    if(uname==null){
+    	uname="root";
+    	// localStorage.setItem(cmdarr[2],cmdarr[3]);
+    }
+    if(dhost==null){
+    	dhost="127.0.0.1";
+    	// localStorage.setItem(cmdarr[2],cmdarr[3]);
+    	//alert("请先设置数据库连接信息");
+    }
+    if(dport==null){
+    	dport=3306;
+    }
+    if(dpwd==null){
+    	dpwd="";
+    }
+    var dbinfo=dhost+"|"+dport+"|"+uname+"|"+dpwd;
+    if(tempid!="empty"){
+    	ajax('/?webide=1&initapp='+$("#proname").val()+"&tempid="+tempid+"&dbinfo="+dbinfo,function(str){if(str=="ok"){getpro();}else{alert(str)}},"get","");  
+    }else{
+    	ajax('/?webide=1&initapp='+$("#proname").val()+"&dbinfo="+dbinfo,function(str){if(str=="ok"){getpro();}else{alert(str)}},"get","");  
+    }
+}
 function ajax(url, fnSucc, method, data) {
 	if (window.XMLHttpRequest) {
 		var oAjax = new XMLHttpRequest();
@@ -694,7 +794,19 @@ function ajax(url, fnSucc, method, data) {
 };
 
 $(function() {
+	 if (window.navigator.userAgent.indexOf("Chrome") !== -1) {
+	   
+	 } else{
+		 alert("请用基于Chrome内核的浏览器打开");
+		 return ;
+	 }
 	getpro();
+	$("#loadding").hide();
+	$("#choose_temp li").live("click",function() {
+		$("#choose_temp li").removeClass("tempselected");
+		$(this).addClass("tempselected");
+		tempid=$(this).attr("tempid");
+	});
 	$(".pro_item").live("click",function() {
 		openpro($(this).attr("data"));
 	});

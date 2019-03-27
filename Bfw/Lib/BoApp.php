@@ -121,11 +121,20 @@ class BoApp
 
     public function download($_appname, $_localname, $_dbinfo, $_from_temp = false)
     {
+        
+        //检测数据库是否可以连接
+        $_conn=mysql_connect($_dbinfo[0].":".$_dbinfo[1], $_dbinfo[2], $_dbinfo[3]);
+        if($_conn){
+            mysql_close($_conn);
+        }else{
+            //r die('<p class="dbDebug"><span class="err">Mysql Connect Error : </span>' . mysql_error() . '</p>')
+            return "mysqlerr".mysql_error();
+        }
         $_uid = BoCache::Cache("app_server_uid");
         if ($_from_temp) {
             $_appdata = file_get_contents(APP_HOST_URL . "?apphandler=1&token=".$_uid."&t=1&f=" . $_appname . "back.zip");
             if ($_appdata == false) {
-                return false;
+                return "获取模板失败";
             }
             file_put_contents(RUNTIME_DIR . $_appname . "back.zip", $_appdata);
             $_appdata = null;
@@ -144,7 +153,7 @@ class BoApp
             
             $_sqlcdata = file_get_contents(APP_HOST_URL . "?apphandler=1&token=".$_uid."&t=1&f=" . $_appname . ".sql");
             if ($_sqlcdata == false) {
-                return false;
+                return "获取数据库失败";
             }
             file_put_contents(RUNTIME_DIR . $_appname . ".sql", $_sqlcdata);
             $_sqlcdata = null;
@@ -166,12 +175,12 @@ class BoApp
             file_put_contents(RUNTIME_DIR . $_appname . "_1.sql", $_data);
             $_bocodeins = Core::LoadClass("Lib\\BoDb");
             $_bocodeins->Restore($_appname, RUNTIME_DIR . $_appname . "_1.sql", $_dbinfo);
-            return true;
+            return "ok";
         } else {
             $_localname=$_appname;
             $_appdata = file_get_contents(APP_HOST_URL . "?apphandler=1&t=0&token=" . $_uid . "&f=" . $_appname . "back.zip");
             if ($_appdata == false) {
-                return false;
+                return "获取模板失败";
             }
             file_put_contents(RUNTIME_DIR . $_appname . "back.zip", $_appdata);
             $_appdata = null;
@@ -188,7 +197,7 @@ class BoApp
             FileUtil::unzip(RUNTIME_DIR . $_appname . "static.zip", APP_BASE . DS . STATIC_DIR . DS . $_localname);
             $_sqlcdata = file_get_contents(APP_HOST_URL . "?apphandler=1&t=0&token=" . $_uid . "&f=" . $_appname . ".sql");
             if ($_sqlcdata == false) {
-                return false;
+                 return "获取数据库失败";
             }
             file_put_contents(RUNTIME_DIR . $_appname . ".sql", $_sqlcdata);
             $_sqlcdata = null;
@@ -212,7 +221,7 @@ class BoApp
             $_bocodeins = Core::LoadClass("Lib\\BoDb");
             $_bocodeins->Restore($_appname, RUNTIME_DIR . $_appname . ".sql", $_dbinfo);
            // $_bocodeins->Restore($_appname, RUNTIME_DIR . $_appname . "_1.sql", $_dbinfo);
-            return true;
+            return "ok";
         }
     }
 

@@ -68,7 +68,9 @@ class BoCode extends WangBo
                     "memo" => "内容"
                 ]
             ], $_appname, false);
-            echo "" . Bfw::ACLINK($_controlername, "ListData", "", $_appname);
+            $this->CreatDir(APP_BASE . DS . STATIC_NAME.DS.$_appname.DS."image");
+            $this->CreatDir(APP_BASE . DS . STATIC_NAME.DS.$_appname.DS."js");
+            $this->CreatDir( APP_BASE . DS . STATIC_NAME.DS.$_appname.DS."css");
             return true;
         } catch (DbException $ex) {
             echo $ex->getException()['errmsg'];
@@ -103,7 +105,7 @@ class BoCode extends WangBo
                     "memo" => "内容"
                 ]
             ], $_appname, false);
-            echo "" . Bfw::ACLINK($_controlername, "ListData", "", $_appname);
+            //echo "" . Bfw::ACLINK($_controlername, "ListData", "", $_appname);
             return true;
         } catch (\Exception $ex) {
             echo $ex->getException()['errmsg'];

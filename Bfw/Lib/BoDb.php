@@ -1,8 +1,6 @@
 <?php
 namespace Lib;
 
-use Lib\Bfw;
-use Lib\Db\DbFactory;
 
 /**
  *
