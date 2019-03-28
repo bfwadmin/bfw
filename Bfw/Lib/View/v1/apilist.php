@@ -57,6 +57,9 @@ function apidebug(urlid,event){
 	document.getElementById("apidebugpanel").style.display="block";
 	
 }
+function changeuincode(){
+	  document.getElementById("responsepannel").value=unescape( document.getElementById("responsepannel").value.replace(/\\u/g, "%u"));
+}
 function sendapiurl(){
 	var method=document.getElementById("methodselect").value;
 	var url=document.getElementById("apiurl").value;
@@ -67,7 +70,7 @@ function sendapiurl(){
 	ajax(url, function(str){
         var index=str.indexOf('~_~_~_~_~_~');
         if(index>=0){
-      	  document.getElementById("responsepannel").value=unescape(str.substring(0,index).replace(/\u/g, "%u"));
+      	  document.getElementById("responsepannel").value=str.substring(0,index);
        //	 document.getElementById("responsepannel").value=str.substring(index+11,str.length);
       	  var strs=str.substring(index+11,str.length);
           var obj = eval('(' + strs+ ')');
@@ -141,6 +144,7 @@ p{
 #apidebugpanel select {
 	width: 20%;
 	padding: 10px;
+	height:40px;
 }
 
 #apidebugpanel input {
@@ -237,10 +241,9 @@ p{
 			<input type="text" id="postpara"
 				placeholder="post参数类似于username=wangbo&passwd=111111这种形式" />
 		</div>
-		<h4>返回结果</h4>
+		<h4>返回结果<span style="padding-left:20px;cursor:pointer;" onclick="changeuincode();">中文</span></h4>
 		<textarea style="width: 100%; height:100px;" id="responsepannel"></textarea>
 	    <textarea style="width: 100%; height: 100px;" id="responsedebugdata"></textarea>
-</textarea>
 	</div>
 	
 	<div id="mulu">
