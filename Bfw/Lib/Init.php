@@ -31,7 +31,7 @@ try {
     set_exception_handler("exception_handler");
     $env = getenv('RUNTIME_ENVIROMENT');
     if ($env) {
-        define("RUN_ENV", $env);//apache  SetEnv RUNTIME_ENVIROMENT DEV nginx fastcgi_param RUNTIME_ENVIROMENT 'DEV'
+        define("RUN_ENV", $env); // apache SetEnv RUNTIME_ENVIROMENT DEV nginx fastcgi_param RUNTIME_ENVIROMENT 'DEV'
     }
     // require_once APP_ROOT . DS . 'Lib' . DS . 'config.php';
     define("HTTP_METHOD", isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '');
@@ -47,9 +47,10 @@ try {
     define("VERSION", "11.0"); // 版本
     define("QUEUE_INTVAL_TIME", 1); // 异步任务等待时间秒
     static $_config_arr = [];
-    if (file_exists(APP_DIR . "Config.php")) {
-        include APP_DIR . "Config.php";
+    if (file_exists(APP_ROOT . DS . "App" . DS . "Config.php")) {
+        include APP_ROOT . DS . "App" . DS . "Config.php";
     }
+    defineinit("DEV_HOST_URL", $_config_arr['Globle'], 'dev_host_url', "http://bfwclouddeveloper/"); // 开发云端地址
     defineinit("STATIC_NAME", $_config_arr['Globle'], 'static_name', "static"); // 运行模式 S server C client M moniter
     defineinit("PAGE_SUFFIX", $_config_arr['Globle'], 'page_suffix', ""); // 后缀 routetype=2可用
     defineinit("SERVICE_M_USER", $_config_arr['Globle'], 'service_m_user', "admin"); // 服务监督中心管理账号
@@ -70,7 +71,11 @@ try {
     $_defaultcont = "";
     $_defaultact = "";
     if (isset($_config_arr['Globle']['host_runmode']) && isset($_config_arr['Globle']['host_runmode'][HOST_NAME])) {
-        defineinit("RUN_MODE", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'mode', "C"); // 运行模式 S server C client M moniter
+        defineinit("RUN_MODE", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'mode', "C"); // 运行模式 S server C client M moniter D developer
+        if (RUN_MODE == "D") {
+            defineinit("DEV_PLACE", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'devplace', "local"); // 开发地点 云端或本地 local cloud
+            defineinit("DEV_DEMO_URL", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'devdemourl', "http://a.exm.com/Cloud/"); // 开发地点 云端或本地 local cloud
+        }
         $_defaultdom = isset($_config_arr['Globle']['host_runmode'][HOST_NAME]['dom']) ? $_config_arr['Globle']['host_runmode'][HOST_NAME]['dom'] : "";
         $_defaultcont = isset($_config_arr['Globle']['host_runmode'][HOST_NAME]['cont']) ? $_config_arr['Globle']['host_runmode'][HOST_NAME]['cont'] : "";
         $_defaultact = isset($_config_arr['Globle']['host_runmode'][HOST_NAME]['act']) ? $_config_arr['Globle']['host_runmode'][HOST_NAME]['act'] : "";
@@ -99,7 +104,7 @@ try {
         $_defaultact
     ];
     if (strtolower(PHP_SAPI) === 'cli') {
-       // BoSocket::Start();
+        // BoSocket::Start();
         global $argv;
         $_intval[0] = isset($argv[1]) ? $argv[1] : $_intval[0];
         $_intval[1] = isset($argv[2]) ? $argv[2] : $_intval[1];
@@ -161,8 +166,8 @@ try {
     define("CONTROL_VALUE", $_intval[1]); // 控制器传值
     define("ACTION_VALUE", $_intval[2]); // 动作器传值
     define("DOMIAN_VALUE", $_intval[0]); // 域传值
-    if (file_exists(APP_DIR . DOMIAN_VALUE . DS . "Config" . DS . "Config.php")) {
-        include APP_DIR . DOMIAN_VALUE . DS . "Config" . DS . "Config.php";
+    if (file_exists(APP_ROOT . DS . "App" . DS . DOMIAN_VALUE . DS . "Config" . DS . "Config.php")) {
+        include APP_ROOT . DS . "App" . DS . DOMIAN_VALUE . DS . "Config" . DS . "Config.php";
     }
     // 系统定义常量
     defineinit("TIMEZONE", $_config_arr['App'], 'timezone', "PRC"); // 時區
@@ -337,7 +342,7 @@ try {
     defineinit("ADMINROLE_ID", $_config_arr['App'], 'adminrole_id', "adminkindid"); // admin session角色id
     
     defineinit("APP_NAME", $_config_arr['App'], 'app_name', "BFW"); // admin session角色id
-                                                                                    // token验证设置
+                                                                    // token验证设置
     defineinit("FORM_TOKEN_NAME", $_config_arr['App'], 'form_token_name', "tokenhash"); // form标板token验证名
     defineinit("FORM_TOKEN_EXPIRE_TIME", $_config_arr['App'], 'form_token_expire_time', 180); // form token有效期
     date_default_timezone_set(TIMEZONE);
@@ -417,8 +422,8 @@ if (RUN_MODE == "S") {
                 }
                 $total = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"]; // 计算差值
                 if (IS_AJAX_REQUEST) {
-                   if (WEB_DEBUG_AJAX) {
-                        BoDebug::DebugEcho($total,true);
+                    if (WEB_DEBUG_AJAX) {
+                        BoDebug::DebugEcho($total, true);
                     }
                 } else {
                     BoDebug::DebugEcho($total);
@@ -438,12 +443,11 @@ if (RUN_MODE == "S") {
 if (strtolower(PHP_SAPI) != "cli") {
     ob_end_flush();
 }
-//发送异步消息
+// 发送异步消息
 // $_cachedata=&Registry::getInstance()->get("cache_list_forsend");
 // if(is_array($_cachedata)&&!empty($_cachedata)){
-//     BoQueue::Enqueue("cache_list", $_cachedata);
+// BoQueue::Enqueue("cache_list", $_cachedata);
 // }
-
 function defineinit($_name, &$_conf, $_val, $_defval = "")
 {
     return define($_name, isset($_conf[$_val]) ? $_conf[$_val] : $_defval);
@@ -452,8 +456,11 @@ function defineinit($_name, &$_conf, $_val, $_defval = "")
 function autoloadclient($class)
 {
     $_classname = str_replace("\\", DS, str_replace(".", DS, $class));
-    $classpath = APP_ROOT . DS . $_classname . ".php";
-    
+    if (substr($_classname, 0, 3) == "Lib") {
+        $classpath = BFW_LIB . DS . $_classname . ".php";
+    } else {
+        $classpath = APP_ROOT . DS . $_classname . ".php";
+    }
     if (file_exists($classpath)) {
         include_once $classpath;
         if (defined("WEB_DEBUG")) {

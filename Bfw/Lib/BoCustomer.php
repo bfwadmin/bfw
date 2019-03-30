@@ -276,8 +276,8 @@ class BoCustomer extends Wangbo
                                         $_errmsg = BoConfig::Config("Sys", "webapp", "System")['visit_limit'];
                                         if (IS_AJAX_REQUEST) {
                                             static $_config_arr = [];
-                                            if (file_exists(APP_DIR . DOMIAN_VALUE . DS . "Config" . DS . "Config.php")) {
-                                                include APP_DIR . DOMIAN_VALUE . DS . "Config" . DS . "Config.php";
+                                            if (file_exists(APP_ROOT.DS."App".DS . DOMIAN_VALUE . DS . "Config" . DS . "Config.php")) {
+                                                include APP_ROOT.DS."App".DS . DOMIAN_VALUE . DS . "Config" . DS . "Config.php";
                                             }
                                             if (isset($_config_arr['App']['limit_err_array'])) {
                                                 echo json_encode($_config_arr['App']['limit_err_array']);

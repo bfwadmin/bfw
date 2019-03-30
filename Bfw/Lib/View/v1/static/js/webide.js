@@ -7,7 +7,7 @@ var file_changed = false;
 var is_staticfile = false;
 var editor_arr = [];
 var reg = /^[a-zA-Z]{3,15}$/;
-var tempid="";
+var tempid = "";
 var _bfw_config = {
 	baseurl : "",
 	routetype : "",
@@ -207,11 +207,17 @@ contex_menu = {
 					text : '运行',
 					// icon : '/?getstatic=/folder.png',
 					action : function(node) {
-						var url = "?webide=1&getcontrolact="
-							+ node.tag + "&parent=" + project_name;
+						var url = "?webide=1&getcontrolact=" + node.tag
+								+ "&parent=" + project_name;
 						ajax(url, function(data) {
-						//	$("#actionlist").html(data);
+							var inhtml="";
+							var obj = eval('(' + data + ')');
+							for (var i = 0; i < obj.length; i++) {
+								inhtml+="<p><a href='"+obj[i].url+"' target='_blank'>"+obj[i].name+"</a></p>";
+							}
+						    $("#actionlist").html(inhtml);
 							popup($('#runaction'));
+							
 							// refleshdir(project_name);
 						});
 					},
@@ -222,7 +228,12 @@ contex_menu = {
 					text : '改名',
 					// icon : '/?getstatic=/folder.png',
 					action : function(node) {
-
+						var pathinfo=node.tag.split('\\');
+						$("#filename").val(pathinfo[1]);
+						$("#parentpathname").val(pathinfo[0]);
+						$("#oldfilename").val(pathinfo[1]);
+						
+						popup($('#rename'));
 					},
 				},
 				{
@@ -301,6 +312,27 @@ function reset() {
 	file_changed = false;
 	is_staticfile = false;
 	editor_arr = [];
+}
+function rename(){
+	var newfilename=$("#filename").val();
+	if(newfilename!=""){
+		var url = "";
+		if (is_staticfile) {
+			url = "?webide=1&isstatic=1&renamefile="
+					+ $("#parentpathname").val()+"\\"+$("#oldfilename").val() + "&parent=" + project_name+"&newname="+$("#parentpathname").val()+"\\"+newfilename;
+		} else {
+			url = "?webide=1&renamefile=" + $("#parentpathname").val()+"\\"+$("#oldfilename").val()
+					+ "&parent=" + project_name+"&newname="+$("#parentpathname").val()+"\\"+newfilename;
+		}
+		ajax(url, function(data) {
+			
+			//关闭打开的旧文件
+			//tree.removeNode(node);
+			//editor.setValue("");
+			popclose('rename');
+			//refleshdir(project_name);
+		});
+	}
 }
 function openeditor(file, filedata) {
 
@@ -450,21 +482,40 @@ function closefile(f) {
 		}
 	}
 }
-function getpro(){
-	var pro_html="<li  class='pro_item'  data='.'>新建项目</li>";
+function getpro() {
+	var pro_html = "<li  class='pro_item'  data='.'>新建项目</li>";
 	ajax("?getpro=1&webide=1", function(data) {
 		var obj = eval('(' + data + ')');
 		for (var i = 0; i < obj.length; i++) {
-			if(obj[i]!="."&&obj[i]!=".."){
-				pro_html+="	<li  class='pro_item'  data='"+obj[i]+"'>"+obj[i]+" </li>";
+			if (obj[i] != "." && obj[i] != "..") {
+				pro_html += "	<li  class='pro_item'  data='" + obj[i] + "'>"
+						+ obj[i] + " </li>";
 			}
 		}
 		$("#latest_pro").html(pro_html);
-	},"get","");
+	}, "get", "");
+}
+function getcloudpro() {
+	var pro_html = "";
+	ajax("?getcloudpro=1&webide=1", function(data) {
+		var obj = eval('(' + data + ')');
+		if (obj.err) {
+			alert(obj.data);
+		} else {
+			for (var i = 0; i < obj.data.length; i++) {
+				if (obj.data[i] != "." && obj.data[i] != "..") {
+					pro_html += "	<li  class='pro_item'  data='" + obj.data[i]
+							+ "'>" + obj.data[i] + " </li>";
+				}
+			}
+			$("#cloud_pro").html(pro_html);
+		}
+	}, "get", "");
 }
 function openfile(f, p) {
 	var stuff = getstuff(f);
-	var allowext = [ '.php', '.js', '.css', '.html', '.java', '.log' ,".png",".jpeg",".jpg",".gif",".bfw"];
+	var allowext = [ '.php', '.js', '.css', '.html', '.java', '.log', ".png",
+			".jpeg", ".jpg", ".gif", ".bfw" ];
 	if (allowext.indexOf(stuff) >= 0) {
 		var file = p + "\\" + f;
 		if (showeditor(file) == 1) {
@@ -473,7 +524,8 @@ function openfile(f, p) {
 
 		if (stuff == ".png" || stuff == ".jpeg" || stuff == ".jpg"
 				|| stuff == ".gif") {
-			openeditor(file, "?isstatic=1&webide=1&getfiles=" + f + "&parent=" + p);
+			openeditor(file, "?isstatic=1&webide=1&getfiles=" + f + "&parent="
+					+ p);
 		} else {
 			if (is_staticfile) {
 				ajax("?webide=1&isstatic=1&getfiles=" + f + "&parent=" + p,
@@ -481,12 +533,13 @@ function openfile(f, p) {
 							openeditor(file, data);
 						});
 			} else {
-				ajax("?webide=1&getfiles=" + f + "&parent=" + p, function(data) {
-					openeditor(file, data);
-				});
+				ajax("?webide=1&getfiles=" + f + "&parent=" + p,
+						function(data) {
+							openeditor(file, data);
+						});
 			}
 		}
-	}else{
+	} else {
 		$.Bfw.toastshow("未知文件格式，无法打开");
 	}
 };
@@ -663,43 +716,47 @@ function hideediter() {
 	$(".popup_dia").hide();
 	proreset();
 };
-function dbconfshow(){
+function dbconfshow() {
 	$("#mysqlhost").val(localStorage.getItem("host"));
 	$("#mysqlport").val(localStorage.getItem("port"));
 	$("#mysqlname").val(localStorage.getItem("user"));
 	$("#mysqlpwd").val(localStorage.getItem("pwd"));
 	popup($('#mysqlconf'));
 }
-function login(){
-	var username=$("#loginusername").val();
-	var pwd=$("#loginpwd").val();
-	if(username==""||pwd==""){
+function login() {
+	var username = $("#loginusername").val();
+	var pwd = $("#loginpwd").val();
+	if (username == "" || pwd == "") {
 		alert("用户名密码不能为空");
 		return;
 	}
-	ajax('/?webide=1&login='+username+"|"+pwd,function(str){alert(str)});  
+	ajax('/?webide=1&login=' + username + "|" + pwd, function(str) {
+		alert(str)
+	});
 }
-function register(){
-	var username=$("#regusername").val();
-	var pwd=$("#regpwd").val();
-	if(username==""||pwd==""){
+function register() {
+	var username = $("#regusername").val();
+	var pwd = $("#regpwd").val();
+	if (username == "" || pwd == "") {
 		alert("用户名密码不能为空");
 		return;
 	}
-	ajax('/?webide=1&register='+username+"|"+pwd,function(str){alert(str)});  
+	ajax('/?webide=1&register=' + username + "|" + pwd, function(str) {
+		alert(str)
+	});
 }
-function mysqlconf(){
-	if($("#mysqlhost").val()!=""){
-		 localStorage.setItem("host",$("#mysqlhost").val());
+function mysqlconf() {
+	if ($("#mysqlhost").val() != "") {
+		localStorage.setItem("host", $("#mysqlhost").val());
 	}
-	if($("#mysqlport").val()!=""){
-		 localStorage.setItem("port",$("#mysqlport").val());
+	if ($("#mysqlport").val() != "") {
+		localStorage.setItem("port", $("#mysqlport").val());
 	}
-	if($("#mysqlname").val()!=""){
-		 localStorage.setItem("user",$("#mysqlname").val());
+	if ($("#mysqlname").val() != "") {
+		localStorage.setItem("user", $("#mysqlname").val());
 	}
-	if($("#mysqlpwd").val()!=""){
-		 localStorage.setItem("pwd",$("#mysqlpwd").val());
+	if ($("#mysqlpwd").val() != "") {
+		localStorage.setItem("pwd", $("#mysqlpwd").val());
 	}
 	alert("设置成功");
 }
@@ -711,54 +768,73 @@ function openpro(p) {
 		openfile("\welcome.bfw", p);
 	}
 };
-function popup(popupName){
-	var _scrollHeight = $(document).scrollTop(),//获取当前窗口距离页面顶部高度
-	_windowHeight = $(window).height(),//获取当前窗口高度
-	_windowWidth = $(window).width(),//获取当前窗口宽度
-	_popupHeight = popupName.height(),//获取弹出层高度
-	_popupWeight = popupName.width();//获取弹出层宽度
-	_posiTop = (_windowHeight - _popupHeight)/2 + _scrollHeight;
-	_posiLeft = (_windowWidth - _popupWeight)/2;
-	popupName.css({"left": _posiLeft + "px","top":_posiTop + "px","display":"block"});//设置position
+function popup(popupName) {
+	var _scrollHeight = $(document).scrollTop(), // 获取当前窗口距离页面顶部高度
+	_windowHeight = $(window).height(), // 获取当前窗口高度
+	_windowWidth = $(window).width(), // 获取当前窗口宽度
+	_popupHeight = popupName.height(), // 获取弹出层高度
+	_popupWeight = popupName.width();// 获取弹出层宽度
+	_posiTop = (_windowHeight - _popupHeight) / 2 + _scrollHeight;
+	_posiLeft = (_windowWidth - _popupWeight) / 2;
+	popupName.css({
+		"left" : _posiLeft + "px",
+		"top" : _posiTop + "px",
+		"display" : "block"
+	});// 设置position
 }
-function popclose(popupName){
-	$("#"+popupName).hide();
+function popclose(popupName) {
+	$("#" + popupName).hide();
 }
 
-function creatpro(){
-    if(!reg.test($("#proname").val())){
-    	alert("项目名称必须为3-15个字母");
-    	return ;
-    }
-    if(!reg.test(tempid)){
-    	alert("请选择模板");
-    	return ;
-    }
-    var uname=localStorage.getItem("user");
-    var dhost=localStorage.getItem("host");
-    var dport=localStorage.getItem("port");
-    var dpwd=localStorage.getItem("pwd");
-    if(uname==null){
-    	uname="root";
-    	// localStorage.setItem(cmdarr[2],cmdarr[3]);
-    }
-    if(dhost==null){
-    	dhost="127.0.0.1";
-    	// localStorage.setItem(cmdarr[2],cmdarr[3]);
-    	//alert("请先设置数据库连接信息");
-    }
-    if(dport==null){
-    	dport=3306;
-    }
-    if(dpwd==null){
-    	dpwd="";
-    }
-    var dbinfo=dhost+"|"+dport+"|"+uname+"|"+dpwd;
-    if(tempid!="empty"){
-    	ajax('/?webide=1&initapp='+$("#proname").val()+"&tempid="+tempid+"&dbinfo="+dbinfo,function(str){if(str=="ok"){getpro();}else{alert(str)}},"get","");  
-    }else{
-    	ajax('/?webide=1&initapp='+$("#proname").val()+"&dbinfo="+dbinfo,function(str){if(str=="ok"){getpro();}else{alert(str)}},"get","");  
-    }
+function creatpro() {
+	if (!reg.test($("#proname").val())) {
+		alert("项目名称必须为3-15个字母");
+		return;
+	}
+	if (!reg.test(tempid)) {
+		alert("请选择模板");
+		return;
+	}
+//	var uname = localStorage.getItem("user");
+//	var dhost = localStorage.getItem("host");
+//	var dport = localStorage.getItem("port");
+//	var dpwd = localStorage.getItem("pwd");
+//	if (uname == null) {
+//		uname = "root";
+//		// localStorage.setItem(cmdarr[2],cmdarr[3]);
+//	}
+//	if (dhost == null) {
+//		dhost = "127.0.0.1";
+//		// localStorage.setItem(cmdarr[2],cmdarr[3]);
+//		// alert("请先设置数据库连接信息");
+//	}
+//	if (dport == null) {
+//		dport = 3306;
+//	}
+//	if (dpwd == null) {
+//		dpwd = "";
+//	}
+//	var dbinfo = dhost + "|" + dport + "|" + uname + "|" + dpwd;
+	if (tempid != "empty") {
+		ajax('?webide=1&initapp=' + $("#proname").val() + "&tempid=" + tempid, function(str) {
+			if (str == "ok") {
+				getpro();
+				popclose("newprodia");
+			} else {
+				alert(str)
+			}
+		}, "get", "");
+	} else {
+		ajax('?webide=1&initapp=' + $("#proname").val(),
+				function(str) {
+					if (str == "ok") {
+						getpro();
+						popclose("newprodia");
+					} else {
+						alert(str)
+					}
+				}, "get", "");
+	}
 }
 function ajax(url, fnSucc, method, data) {
 	if (window.XMLHttpRequest) {
@@ -794,20 +870,33 @@ function ajax(url, fnSucc, method, data) {
 };
 
 $(function() {
-	 if (window.navigator.userAgent.indexOf("Chrome") !== -1) {
-	   
-	 } else{
-		 alert("请用基于Chrome内核的浏览器打开");
-		 return ;
-	 }
+	if (window.navigator.userAgent.indexOf("Chrome") !== -1) {
+
+	} else {
+		alert("请用基于Chrome内核的浏览器打开");
+		return;
+	}
 	getpro();
 	$("#loadding").hide();
-	$("#choose_temp li").live("click",function() {
+	$("#pro_nav_tab li").live("click", function() {
+		$("#pro_nav_tab li").removeClass("tab_selected");
+		$(this).addClass("tab_selected");
+		if ($(this).index() == 0) {
+			$("#latest_pro").show();
+			$("#cloud_pro").hide();
+		}
+		if ($(this).index() == 1) {
+			getcloudpro();
+			$("#latest_pro").hide();
+			$("#cloud_pro").show();
+		}
+	});
+	$("#choose_temp li").live("click", function() {
 		$("#choose_temp li").removeClass("tempselected");
 		$(this).addClass("tempselected");
-		tempid=$(this).attr("tempid");
+		tempid = $(this).attr("tempid");
 	});
-	$(".pro_item").live("click",function() {
+	$(".pro_item").live("click", function() {
 		openpro($(this).attr("data"));
 	});
 	$("#php_tree_tab").click(function(e) {

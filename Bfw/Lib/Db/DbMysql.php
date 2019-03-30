@@ -30,9 +30,11 @@ class DbMysql extends BoDb implements BoDbInterface
         } else {
             $_connarr=Bfw::Config("Db", "localconfig");
         }
+
         $this->_connectstr ="mysql:host={$_connarr['dbhost']};port={$_connarr['dbport']};dbname={$_connarr['dbname']}";
         $this->_username = $_connarr['dbuser'];
         $this->_password = $_connarr['dbpwd'];
+      
         try {
             $this->_connection = new \PDO($this->_connectstr, $this->_username, $this->_password, $this->_option);
             $this->_connection->query('SET NAMES utf8');

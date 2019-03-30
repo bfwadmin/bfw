@@ -165,8 +165,8 @@ class BoClient
             $_servicename = str_replace("App\\" . DOMIAN_VALUE . "\\Client\\Client_", "", get_class($this));
             // 调用模式
             static $_config_arr = [];
-            if (file_exists(APP_DIR . "Config.php")) {
-                include APP_DIR . "Config.php";
+            if (file_exists(APP_ROOT.DS."App".DS. "Config.php")) {
+                include APP_ROOT.DS."App".DS. "Config.php";
             }
             // $_runservicename = SERVICE_DOMIAN_VALUE . "/" . $_servicename . "/" . str_replace("___", "", $method);
             $_runservicename = DOMIAN_VALUE . "_" . $_servicename . "_" . str_replace("___", "", $method);

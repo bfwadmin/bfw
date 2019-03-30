@@ -3,6 +3,7 @@ namespace Lib;
 
 use Lib\Db\DbFactory;
 use Lib\Exception\DbException;
+use Lib\Util\StringUtil;
 
 class BoCode extends WangBo
 {
@@ -30,24 +31,53 @@ class BoCode extends WangBo
         $this->_dbhandle->executeNonquery('CREATE TABLE IF NOT EXISTS `' . $_tbname . '` (`id` int(11) NOT NULL AUTO_INCREMENT,  `title` varchar(50) NOT NULL,`content` text NOT NULL,PRIMARY KEY (`id`)) ENGINE=MyISAM  DEFAULT CHARSET=utf8 ;', []);
     }
 
-    public function InitApp($_appname, $_dbinfo = array())
+    private function createuserwithdb($_user, $_pwd, $_dbname)
     {
+        $this->_dbhandle->executeNonquery("CREATE USER '" . $_user . "'@'127.0.0.1' IDENTIFIED BY '" . $_pwd . "';GRANT USAGE ON *.* TO '" . $_user . "'@'127.0.0.1' IDENTIFIED BY '" . $_pwd . "' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0;CREATE DATABASE IF NOT EXISTS `" . $_dbname . "`;GRANT ALL PRIVILEGES ON `" . $_dbname . "`.* TO '" . $_user . "'@'127.0.0.1';");
+    }
+
+    private function getdevmysqlinfo()
+    {
+        static $_config_arr = [];
+        if (file_exists(APP_ROOT.DS."App".DS. "Config.php")) {
+                include APP_ROOT.DS."App".DS. "Config.php";
+            }
+        if (isset($_config_arr['Globle']['dev_mysql_conf'])) {
+            return $_config_arr['Globle']['dev_mysql_conf'];
+        } else {
+            return null;
+        }
+    }
+
+    public function InitApp($_appname, $_uid="")
+    {
+        $_dbinfo=$this->getdevmysqlinfo();
         if (! is_array($_dbinfo) || count($_dbinfo) != 4) {
-            echo "dbconfig wrong";
             return false;
         }
         $_controlername = "Hello";
+        $_dbname=  substr(md5($_uid.$_appname),8,16);
+        $_uname=$_dbname;
+        $_upwd=StringUtil::getRandChar(10);
         try {
             $this->_dbinfo = [
+                "dbtype" => "DbMysql",
+                "dbhost" => "127.0.0.1",
+                "dbport" => 3306,
+                "dbuser" =>$_uname,
+                "dbpwd" => $_upwd,
+                "dbname" => $_dbname
+            ];
+            $this->_dbhandle = DbFactory::GetInstance([
                 "dbtype" => "DbMysql",
                 "dbhost" => $_dbinfo[0],
                 "dbport" => $_dbinfo[1],
                 "dbuser" => $_dbinfo[2],
                 "dbpwd" => $_dbinfo[3],
                 "dbname" => "mysql"
-            ];
+            ]);
+            $this->createuserwithdb($_uname, $_upwd, $_dbname);
             $this->_dbhandle = DbFactory::GetInstance($this->_dbinfo);
-            $this->createdb($_appname . "_db");
             $this->createtb("bfw_" . $_controlername);
             $this->_generate([
                 'name' => $_controlername
@@ -68,9 +98,9 @@ class BoCode extends WangBo
                     "memo" => "内容"
                 ]
             ], $_appname, false);
-            $this->CreatDir(APP_BASE . DS . STATIC_NAME.DS.$_appname.DS."image");
-            $this->CreatDir(APP_BASE . DS . STATIC_NAME.DS.$_appname.DS."js");
-            $this->CreatDir( APP_BASE . DS . STATIC_NAME.DS.$_appname.DS."css");
+            $this->CreatDir(APP_BASE . DS . STATIC_NAME . DS . $_appname . DS . "image");
+            $this->CreatDir(APP_BASE . DS . STATIC_NAME . DS . $_appname . DS . "js");
+            $this->CreatDir(APP_BASE . DS . STATIC_NAME . DS . $_appname . DS . "css");
             return true;
         } catch (DbException $ex) {
             echo $ex->getException()['errmsg'];
@@ -105,7 +135,7 @@ class BoCode extends WangBo
                     "memo" => "内容"
                 ]
             ], $_appname, false);
-            //echo "" . Bfw::ACLINK($_controlername, "ListData", "", $_appname);
+            // echo "" . Bfw::ACLINK($_controlername, "ListData", "", $_appname);
             return true;
         } catch (\Exception $ex) {
             echo $ex->getException()['errmsg'];
@@ -165,7 +195,7 @@ class BoCode extends WangBo
                 }
             }
             $_temp_cont = str_replace("DOM", $_dom, $_temp_cont);
-            $_temp_cont = str_replace("DBNAME", $_dom . "_db", $_temp_cont);
+            $_temp_cont = str_replace("DBNAME",$this->_dbinfo['dbname'], $_temp_cont);
             $_temp_cont = str_replace("DBTYPE", $this->_dbinfo['dbtype'], $_temp_cont);
             $_temp_cont = str_replace("DBHOST", $this->_dbinfo['dbhost'], $_temp_cont);
             $_temp_cont = str_replace("DBUSER", $this->_dbinfo['dbuser'], $_temp_cont);
@@ -176,7 +206,6 @@ class BoCode extends WangBo
             $_temp_cont = str_replace("FIELDEDITNAMEARRAY", $this->_implode(",", $_fields, true), $_temp_cont);
             $_temp_cont = str_replace("CONTNAME", $_m, $_temp_cont);
             $_temp_cont = str_replace("CONTMEMO", $_table['memo'], $_temp_cont);
-            
             if (file_exists($_out)) {
                 if ($_isoveride) {
                     if (rename($_out, $_out . "." . time() . ".bak")) {
@@ -281,9 +310,9 @@ class BoCode extends WangBo
             );
             foreach ($_temp_arr as $item) {
                 if (strpos(strtolower($item[0]), "widget") === false && $item[0] != "Db.php" && $item[0] != "Config.php") {
-                    $_ret = $this->_replacetag(APP_ROOT . '/' . CODE_TEMP_PATH . '/' . $item[0], APP_ROOT . "/App/" . $item[1], $_fields, $_table, $_m_name, $_isoveride, $_domian);
+                    $_ret = $this->_replacetag(APP_ROOT . '/' . CODE_TEMP_PATH . '/' . $item[0], APP_ROOT.DS."App".DS . $item[1], $_fields, $_table, $_m_name, $_isoveride, $_domian);
                 } else {
-                    $_ret = $this->_replacetag(APP_ROOT . '/' . CODE_TEMP_PATH . '/' . $item[0], APP_ROOT . "/App/" . $item[1], $_fields, $_table, $_m_name, false, $_domian);
+                    $_ret = $this->_replacetag(APP_ROOT . '/' . CODE_TEMP_PATH . '/' . $item[0], APP_ROOT.DS."App".DS . $item[1], $_fields, $_table, $_m_name, false, $_domian);
                 }
                 
                 if (WEB_DEBUG) {

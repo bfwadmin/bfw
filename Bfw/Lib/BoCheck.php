@@ -13,7 +13,6 @@ class BoCheck
             CACHE_DIR,
             LOG_DIR,
             RUNTIME_DIR,
-            APP_DIR,
             PLUGIN_DIR
         ];
         foreach ($_checkdir as $item) {

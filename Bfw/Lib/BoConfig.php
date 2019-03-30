@@ -31,9 +31,9 @@ class BoConfig
         }
         $_config_path = "";
         if ($_domian == "System") {
-            $_config_path = APP_ROOT . DS . 'Lib' . DS . "Config" . DS . $_file . ".php";
+            $_config_path = BFW_LIB. DS . "Config" . DS . $_file . ".php";
         } else {
-            $_config_path = APP_ROOT . DS . 'App' . DS . $_domian . DS . "Config" . DS . $_file . ".php";
+            $_config_path = APP_ROOT.DS."App" . DS.$_domian . DS . "Config" . DS . $_file . ".php";
         }
         if (file_exists($_config_path)) {
             include $_config_path;
@@ -64,7 +64,7 @@ class BoConfig
         if ($_domian == "System") {
             $_config_path = APP_ROOT . DS . 'Lib' . DS . "Config" . DS . $_file . ".php";
         } else {
-            $_config_path = APP_ROOT . DS . 'App' . DS . $_domian . DS . "Config" . DS . $_file . ".php";
+            $_config_path = APP_ROOT.DS."App" . DS . $_domian . DS . "Config" . DS . $_file . ".php";
         }
         if (file_exists($_config_path)) {
             include $_config_path;

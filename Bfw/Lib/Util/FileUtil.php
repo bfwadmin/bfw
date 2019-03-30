@@ -86,11 +86,11 @@ class FileUtil
     public static function copydir($src, $des)
     {
         $dir = opendir($src);
-        $this->CreatDir($des);
+        self::CreatDir($des);
         while (false !== ($file = readdir($dir))) {
             if (($file != '.') && ($file != '..')) {
                 if (is_dir($src . DS . $file)) {
-                    $this->copydir($src . DS . $file, $des . DS . $file);
+                    self::copydir($src . DS . $file, $des . DS . $file);
                 } else {
                     copy($src . DS . $file, $des . DS . $file);
                 }

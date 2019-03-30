@@ -26,20 +26,49 @@
 			<li>提交问题</li>
 			<li>模板商城</li>
 			<li>文档教程</li>
-			<li>关于我们</li>
-			<li class="userinfio" onclick="popup($('#login'));">登录/注册</li>
+			<?php if(DEV_PLACE=="cloud"){?>
+			<li>团队管理</li>
+			<?php }?>
+			<li>我的任务</li>
+			<?php if($uid!=""){?>
+		       <li class="loginfo" ><p>我的中心</p>
+		       <p>我的任务</p>
+		       <p>我的日记</p></li>
+			<?php }else{?>
+		    	<li class="userinfo" onclick="popup($('#login'));">登录/注册</li>
+			<?php }?>
 		</ul>
 	</header>
 	<div id="loadding"
 		style="position: absolute; top: 0; left: 0; background: black; color: grey; height: 100vh; width: 100%; text-align: center; line-height: 400px;">
 		加载中.........</div>
-	<div id="runaction" class="popup_dia" style="width: 30%; height: 40%;">
+		<div id="rename" class="popup_dia" style="width: 20%; height: 25%;">
 		<div class="popup_title">
-			<span>执行的动作器</span> <span onclick="popclose('runaction')"
+			<span>重命名</span> <span onclick="popclose('rename')"
 				class="popup_close">×</span>
 		</div>
-		<p id="actionlist">
+			<p>
+			<input type="text" class="popup_textin" id="filename"
+				name="filename"  />
+					<input type="hidden" class="popup_textin" id="parentpathname"
+				name="parentpathname"  />
+				<input type="hidden" class="popup_textin" id="oldfilename"
+				name="oldfilename"  />
 		</p>
+		
+        <p>
+			<input type="button" value="确   定" class="popup_btn"
+				onclick="rename()" />
+		</p>
+
+	</div>
+	<div id="runaction" class="popup_dia" style="width: 20%; height: 40%;">
+		<div class="popup_title">
+			<span>请选择执行的动作器</span> <span onclick="popclose('runaction')"
+				class="popup_close">×</span>
+		</div>
+		<div id="actionlist">
+		</div>
 
 	</div>
 	<div id="addcontroler" class="popup_dia">
@@ -168,7 +197,12 @@
 	</div>
 	<div id="wellcomepage">
 		<h1>最近项目</h1>
+		<?php if(DEV_PLACE=="local"){?>
+		<ul class="nav_tab" id="pro_nav_tab"><li class="tab_selected">本地</li><li>云端</li></ul>
+		<?php }?>
 		<ul class="project" id="latest_pro">
+		</ul>
+		<ul class="project" id="cloud_pro">
 		</ul>
 	</div>
 	<div id="editorpannel">

@@ -92,6 +92,27 @@ body {
 	color:white;
 	box-shadow: 0px 0px 5px #888888;
 }
+.nav_tab{
+	border-bottom:1px solid #2596cc;
+	list-style:none;
+	padding:0;
+	margin:0;
+	clear:both;
+	height:50px;
+}
+.nav_tab li{
+	padding:10px;
+	font-size:16px;
+	margin:10px;
+	float:left;
+	cursor:pointer;
+
+}
+.nav_tab .tab_selected{
+	background:#2596cc;
+	color:#e0e0e0;
+	font-weight:bold;
+}
 .popup_dia input::-webkit-input-placeholder, textarea::-webkit-input-placeholder {
   color: #cecece;
 	font-size:14px;
@@ -172,8 +193,25 @@ padding:0;
 	background:#232323;
 	font-size:16px;
 }
-.userinfio{
+.userinfo,.loginfo{
 	float:right;
+	height:30px;
+	overflow:hidden;
+}
+.loginfo:hover{
+	height:auto;
+}
+.loginfo p{
+	padding:0;
+	margin:2px 5px 12px 5px;
+}
+#actionlist a{
+	color:grey;
+}
+#actionlist{
+	height:80%;
+	overflow-y:scroll;
+	text-align:center;
 }
 .close_btn{
 	float:right;

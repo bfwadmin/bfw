@@ -2,6 +2,7 @@
 namespace Lib;
 
 use Lib\Exception\CoreException;
+
 class Core
 {
     
@@ -23,7 +24,7 @@ class Core
     {
         Registry::getInstance()->set($key, $val);
     }
-
+    
     // 获取全局变量
     // Core::G("变量名");
     public static function G($key)
@@ -50,7 +51,12 @@ class Core
     // Core::LoadClass("类名","参数");
     public static function LoadClass($class, $para = null)
     {
-        $classpath = APP_ROOT . DS . str_replace(".", DS, str_replace("\\", DS, $class)) . ".php";
+        $classname = str_replace(".", DS, str_replace("\\", DS, $class));
+        if (substr($classname, 0, 3) == "Lib") {
+            $classpath = BFW_LIB . DS . $classname . ".php";
+        } else {
+            $classpath = APP_ROOT . DS . $classname . ".php";
+        }
         if (file_exists($classpath)) {
             include_once $classpath;
             if (is_null($para)) {
@@ -59,7 +65,7 @@ class Core
                 return new $class($para);
             }
         } else {
-            throw new CoreException(BoConfig::Config("Sys", "webapp","System")['class_not_found'] . $class);
+            throw new CoreException(BoConfig::Config("Sys", "webapp", "System")['class_not_found'] . $class);
         }
     }
     
@@ -67,14 +73,19 @@ class Core
     // Core::ImportClass("类名");
     public static function ImportClass($class)
     {
-        $classpath = APP_ROOT . DS . str_replace(".", DS, str_replace("\\", DS, $class)) . ".php";
+        $classname = str_replace(".", DS, str_replace("\\", DS, $class));
+        if (substr($classname, 0, 3) == "Lib") {
+            $classpath = BFW_LIB . DS . $classname . ".php";
+        } else {
+            $classpath = APP_ROOT . DS . $classname . ".php";
+        }
+       // $classpath = APP_ROOT . DS . str_replace(".", DS, str_replace("\\", DS, $class)) . ".php";
         if (file_exists($classpath)) {
             include_once $classpath;
             // return new $class ();
         } else {
-            throw new CoreException(BoConfig::Config("Sys", "webapp","System")['class_not_found'] . $class);
+            throw new CoreException(BoConfig::Config("Sys", "webapp", "System")['class_not_found'] . $class);
         }
     }
-
 }
 ?>

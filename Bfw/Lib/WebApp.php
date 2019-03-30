@@ -35,6 +35,12 @@ class WebApp extends WangBo
      */
     public function Execute($_controler, $_action, $_domian)
     {
+        // 开发者身份
+        if (RUN_MODE == "D") {
+            $_boins = Core::LoadClass("Lib\\BoDev");
+            return $_boins->work($_controler, $_action, $_domian);
+            // exit();
+        }
         // 监督者身份
         if (RUN_MODE == "M") {
             $_boins = Core::LoadClass("Lib\\BoMoniter");
@@ -52,29 +58,6 @@ class WebApp extends WangBo
             if (SHOW_APIDOC && isset($_GET['getapidoc'])) {
                 $_bocodeins = Core::LoadClass("Lib\\BoApi");
                 $_bocodeins->Show();
-                exit();
-            }
-            if (GEN_CODE && WEB_DEBUG && isset($_GET['gencode'])) {
-                $_bocodeins = Core::LoadClass("Lib\\BoCode");
-                $_bocodeins->Generate($_domian, isset($_GET['t']) ? $_GET['t'] : '', isset($_GET['o']) ? true : false);
-                exit();
-            }
-          
-            if (WEB_DEBUG && isset($_GET['console'])) {
-                $_ins = Core::LoadClass("Lib\\BoGui", "console");
-                $_ins->Run();
-                exit();
-            }
-            if (WEB_DEBUG) {
-                if( isset($_GET['apphandler'])|| isset($_POST['apphandler'])){
-                    $_ins = Core::LoadClass("Lib\\BoApp",isset($_GET['apphandler'])?$_GET['apphandler']:$_POST['apphandler']);
-                    $_ins->Run();
-                    exit();
-                }
-            }
-            if (WEB_DEBUG && isset($_GET['webide'])) {
-                $_ins = Core::LoadClass("Lib\\BoGui", "webide");
-                $_ins->Run();
                 exit();
             }
             if (CONTROL_VALUE == "" && ACTION_VALUE == "" && DOMIAN_VALUE == "") {

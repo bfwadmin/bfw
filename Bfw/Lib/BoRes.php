@@ -42,7 +42,7 @@ class BoRes
     // Core::V("视图名称", 域,控制器名称，数据)
     public static function View($viewname, $domain, $contval = CONTROL_VALUE, $_data = null)
     {
-        $viewpath = APP_ROOT . DS . 'App' . DS . $domain . DS . "View" . DS . $contval . DS . $viewname . ".php";
+        $viewpath = APP_ROOT.DS."App" . DS . $domain . DS . "View" . DS . $contval . DS . $viewname . ".php";
         if ($domain == 'System') {
             if ("error" == $viewname) {
                 $viewpath = APP_ROOT . DS . ERROR_PAGE;
@@ -51,7 +51,7 @@ class BoRes
             } elseif ("success" == $viewname) {
                 $viewpath = APP_ROOT . DS . SUCCESS_PAGE;
             } else {
-                $viewpath = APP_ROOT . DS . 'Lib' . DS . "View" . DS . $contval . DS . $viewname . ".php";
+                $viewpath = BFW_LIB. DS."Lib" .DS. "View" . DS . $contval . DS . $viewname . ".php";
             }
         }
         if (file_exists($viewpath)) {

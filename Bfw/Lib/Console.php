@@ -43,8 +43,8 @@ try {
     define("HOST_NAME", isset($_SERVER["HTTP_HOST"]) ? $_SERVER['HTTP_HOST'] : ''); // 当前访问主机名
     define("VERSION", "11.0"); // 版本
     static $_config_arr = [];
-    if (file_exists(APP_DIR . "Config.php")) {
-        include APP_DIR . "Config.php";
+    if (file_exists(APP_ROOT.DS."App" . DS . "Config.php")) {
+        include APP_ROOT.DS."App" . DS . "Config.php";
     }
     defineinit("PAGE_SUFFIX", $_config_arr['Globle'], 'page_suffix', ""); // 后缀 routetype=2可用
     defineinit("SERVICE_M_USER", $_config_arr['Globle'], 'service_m_user', "admin"); // 服务监督中心管理账号
@@ -152,8 +152,8 @@ try {
     define("CONTROL_VALUE", $_intval[1]); // 控制器传值
     define("ACTION_VALUE", $_intval[2]); // 动作器传值
     define("DOMIAN_VALUE", $_intval[0]); // 域传值
-    if (file_exists(APP_DIR . DOMIAN_VALUE . DS . "Config" . DS . "Config.php")) {
-        include APP_DIR . DOMIAN_VALUE . DS . "Config" . DS . "Config.php";
+    if (file_exists(APP_ROOT.DS."App" . DS . DOMIAN_VALUE . DS . "Config" . DS . "Config.php")) {
+        include APP_ROOT.DS."App" . DS . DOMIAN_VALUE . DS . "Config" . DS . "Config.php";
     }
     // 系统定义常量
     defineinit("TIMEZONE", $_config_arr['App'], 'timezone', "PRC"); // 時區
