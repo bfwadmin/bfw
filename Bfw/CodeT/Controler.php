@@ -20,6 +20,7 @@ class Controler_CONTNAME extends BoControler
             "fpm-fcgi"
         ],
         'responseformat' => 'json',
+        'responsecharset'=>'UTF-8',
         'expire' => 36,
         "allowdevice" => [
             'pc',
