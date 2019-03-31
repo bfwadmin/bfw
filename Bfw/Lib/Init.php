@@ -39,6 +39,7 @@ try {
     define("IP", UrlUtil::getip()); // 当前ip
     define("AYC_CACHE_NAME", "ayscachelist"); // 当前ip
     define("URL", UrlUtil::geturl()); // 当前url
+    define("JSON_PRETTY", isset($_SERVER['HTTP_JSONPRETTY']) ? true : false);
     define("IS_AJAX_REQUEST", isset($_SERVER['HTTP_X_REQUESTED_WITH']) || isset($_SERVER['HTTP_BFWAJAX']) ? true : false); // 判断是否是ajax请求
     define("SERVER_NAME", isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : ""); // 服务器域名
     define("SERVER_PORT", isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : ""); // 服務器

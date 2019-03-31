@@ -47,6 +47,8 @@ function copyUrl(did)
 }
 function closepanel(){
 	document.getElementById("apidebugpanel").style.display="none";
+	  document.getElementById("responsepannel").value="";
+	  document.getElementById("responsedebugdata").value="";
 }
 function apidebug(urlid,event){
 	var url=document.getElementById(urlid).innerText;
@@ -100,6 +102,7 @@ function ajax(url, fnSucc, method, data) {
 		oAjax.open("GET", url, true);// 把要读取的参数的传过来。
 	}
 	oAjax.setRequestHeader("bfwajax", "v<?=VERSION?>"); // 可以定义请求头带给后端
+	oAjax.setRequestHeader("jsonpretty", "1"); // 可以定义请求头带给后端
 	if (method == "post") {
 		oAjax.send(data);
 	} else {
@@ -130,15 +133,15 @@ p{
 #apidebugpanel {
 	box-shadow: 0 0 10px #feff93;
 	border-radius: 5px;
-	height: 400px;
+	height: 500px;
 	position: absolute;
 	display: none;
-	width: 600px;
+	width:60%;
 	background: #fff5b3;
 	padding: 9px;
 	left: 50%;
 	top: 50%;
-	margin-left: -300px;
+	margin-left: -30%;
 }
 
 #apidebugpanel select {
@@ -242,7 +245,7 @@ p{
 				placeholder="post参数类似于username=wangbo&passwd=111111这种形式" />
 		</div>
 		<h4>返回结果</h4>
-		<textarea style="width: 100%; height:100px;" id="responsepannel"></textarea>
+		<textarea style="width: 100%; height:200px;" id="responsepannel"></textarea>
 	    <textarea style="width: 100%; height: 100px;" id="responsedebugdata"></textarea>
 	</div>
 	
@@ -261,7 +264,7 @@ p{
 		</ul>
 	</div>
 	<h1 style="color: #8b8b8b;margin-top:60px; padding-left:15px;"><?=DOMIAN_VALUE?>接口文档</h1>
-	<div style="padding:5px 10px;color:#8b8b8b;"><?=$readmedata?></div>
+	<div style="padding:5px 24px;color:#8b8b8b;"><?=$readmedata?></div>
 				<?php foreach($con_act_array as $key=>$val){ ?>
 				   <div style=' color: #2596cc; background:#0c0c0c;padding:10px;margin:18px;'>
 			<a name="an_<?=$key?>" />

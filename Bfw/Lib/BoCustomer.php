@@ -362,7 +362,12 @@ class BoCustomer extends Wangbo
                                     break;
                                 case "json":
                                     header("Content-type: text/json;charset={$responsecharset}");
-                                    echo json_encode($ret);
+                                    if(JSON_PRETTY){
+                                       echo  json_encode($ret,JSON_PRETTY_PRINT);
+                                    }else{
+                                        echo json_encode($ret);
+                                    }
+                                  
                                     break;
                                 default:
                                     header("Content-type: {$responseformat};charset={$responsecharset}");

@@ -43,7 +43,6 @@ class BoGui
 
     private function getuid()
     {
-
         if (DEV_PLACE == "cloud") {
             return BoCache::Cache(SESS_ID . "app_server_uid");
         }
@@ -330,13 +329,15 @@ class BoGui
                 BoRes::View("console", "System", "v1");
                 exit();
             }
-
             $_uid = $this->getuid();
 
             if (DEV_PLACE == "cloud") {
-
                 if ($_uid == "") {
-                    BoRes::View("cloudlogin", "System", "v1");
+                    if (strpos(URL, 'Cloud') === false) {
+                        BoRes::View("cloudreg", "System", "v1");
+                    }else{
+                        BoRes::View("cloudlogin", "System", "v1");
+                    }
                     exit();
                 } else {
                     if (strpos(URL, 'Cloud') === false) {
