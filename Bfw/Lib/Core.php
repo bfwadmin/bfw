@@ -5,6 +5,7 @@ use Lib\Exception\CoreException;
 
 class Core
 {
+    private static $_autiuloadfunc=null;
     
     // 获取类的变量
     // Core::ClassFields("类");
@@ -85,6 +86,29 @@ class Core
             // return new $class ();
         } else {
             throw new CoreException(BoConfig::Config("Sys", "webapp", "System")['class_not_found'] . $class);
+        }
+    }
+    
+    /**
+     * 卸载autoload函数
+     */
+    public static function UnregAutoload(){
+        self::$_autiuloadfunc = spl_autoload_functions();
+       // var_dump( self::$_autiuloadfunc);
+        if (self::$_autiuloadfunc){
+            foreach (self::$_autiuloadfunc as $f) {
+                spl_autoload_unregister($f);
+            }
+        }
+    }
+    /**
+     * 重新注册autoload函数
+     */
+    public static  function RegAutoload(){
+        if (self::$_autiuloadfunc!=null){
+            foreach (self::$_autiuloadfunc as $f) {
+                spl_autoload_register($f);
+            }
         }
     }
 }

@@ -48,10 +48,11 @@ class SessionMysql implements BoSessionInterface
 
     static function sess_read($sess_id)
     {
+        
         try {
             BoDebug::Info("mysqlsession read " . $sess_id);
             $_s_data = self::$db->single($sess_id, "data", SESSION_MYSQL_TB, "id");
-            if ($_s_data['err'] || $_s_data['data'] == "") {
+            if ($_s_data['err'] || $_s_data['data'] == ""||$_s_data['data']['access']<time()) {
                 return "";
             }
             return $_s_data['data']['data'];
@@ -65,7 +66,7 @@ class SessionMysql implements BoSessionInterface
     {
         try {
             BoDebug::Info("mysqlsession write " . $sess_id);
-            $access = time();
+            $access = time()+SESSION_COOKIE_EXPIRE;
             $_i_data = self::$db->executeNonquery('REPLACE INTO ' .SESSION_MYSQL_TB. '  VALUES (?, ?, ?)', array(
                 $sess_id,
                 $access,
@@ -96,7 +97,7 @@ class SessionMysql implements BoSessionInterface
     static function sess_gc($sess_maxlifetime)
     {
         BoDebug::Info("mysqlsession gc ");
-        $old = time() - $sess_maxlifetime;
+        $old = time() - SESSION_COOKIE_EXPIRE;
         
         $_i_data = self::$db->executeNonquery('DELETE * FROM ' . SESSION_MYSQL_TB. ' WHERE access < ?', array(
             $old

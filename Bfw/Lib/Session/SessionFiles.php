@@ -1,7 +1,5 @@
 <?php
 namespace Lib\Session;
-use Lib\Exception\SessionException;
-use Lib\Bfw;
 use Lib\BoDebug;
 class SessionFiles implements BoSessionInterface
 {
@@ -20,7 +18,7 @@ class SessionFiles implements BoSessionInterface
     static function sess_read($sess_id)
     {
         BoDebug::Info("filesession read ".$sess_id);
-        if (file_exists(SESSION_SAVE_PATH . DS . $sess_id)) {
+        if (file_exists(SESSION_SAVE_PATH . DS . $sess_id)&&filemtime(SESSION_SAVE_PATH . DS . $sess_id)+SESSION_COOKIE_EXPIRE>time()) {
             return (string) @file_get_contents(SESSION_SAVE_PATH . DS . $sess_id);
         } else {
             return "";
@@ -45,7 +43,7 @@ class SessionFiles implements BoSessionInterface
           //  }
 
         } catch (\Exception $e) {
-            Bfw::LogR($e->getMessage(),"SESSION_ERR");
+            BoDebug::LogR($e->getMessage(),"SESSION_ERR");
            // throw new SessionException($e->getMessage());
             // throw
         }
@@ -57,7 +55,7 @@ class SessionFiles implements BoSessionInterface
             BoDebug::Info("filesession destroy ".$sess_id);
             return @unlink(SESSION_SAVE_PATH . DS . $sess_id);
         } catch (\Exception $e) {
-            Bfw::LogR($e->getMessage(),"SESSION_ERR");
+            BoDebug::LogR($e->getMessage(),"SESSION_ERR");
              //throw new SessionException($e->getMessage());
             // throw
         }
@@ -66,15 +64,15 @@ class SessionFiles implements BoSessionInterface
     static function sess_gc($sess_maxlifetime)
     {
         try {
-            BoDebug::Info("filesession gc ".$sess_maxlifetime);
+            BoDebug::Info("filesession gc ".SESSION_COOKIE_EXPIRE);
             foreach (glob(SESSION_SAVE_PATH . DS . "*") as $filename) {
-                if (filemtime($filename) + $sess_maxlifetime < time()) {
+                if (filemtime($filename) + SESSION_COOKIE_EXPIRE < time()) {
                     @unlink($filename);
                 }
             }
             return true;
         } catch (\Exception $e) {
-            Bfw::LogR($e->getMessage(),"SESSION_ERR");
+            BoDebug::LogR($e->getMessage(),"SESSION_ERR");
            // throw new SessionException($e->getMessage());
             // throw
         }

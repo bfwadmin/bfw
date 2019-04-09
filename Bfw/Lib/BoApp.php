@@ -17,7 +17,7 @@ class BoApp
     private function initdb()
     {
         if ($this->_pdo == null) {
-            $this->_pdo = new \PDO('sqlite:' . APP_ROOT . DS . 'Data' . DS . 'user.db');
+            $this->_pdo = new \PDO('sqlite:' . DEV_USERDB_DIR . 'user.db');
         }
         $this->_pdo->exec("CREATE TABLE IF NOT EXISTS user (
             id INTEGER PRIMARY KEY,
@@ -352,6 +352,7 @@ class BoApp
                 $stmt->closeCursor();
                 FileUtil::CreatDir(APP_BASE.DS."Cloud".DS.$token);
                 FileUtil::copydir(APP_ROOT.DS."CodeT".DS."cloud", APP_BASE.DS."Cloud".DS.$token);
+               
                 return $token;
             } else {
                 return false;

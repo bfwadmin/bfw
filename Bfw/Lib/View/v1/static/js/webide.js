@@ -8,17 +8,24 @@ var is_staticfile = false;
 var editor_arr = [];
 var reg = /^[a-zA-Z]{3,15}$/;
 var tempid = "";
+var bfw_tag_list= [];
+var bfw_method_list=[];
 var _bfw_config = {
 	baseurl : "",
 	routetype : "",
 	jsbaseurl : "?webide=1&getstatic=/",
 	cssbaseurl : "?webide=1&getstatic=/"
 };
-
+var langTools = ace.require("ace/ext/language_tools");
+ace.require("ace/ext/language_tools");
 contex_menu = {
 	'context2' : {
 		opennode : function(node) {
-			openfile(node.tag, project_name);
+			if(node.parent.tag!=undefined){
+				openfile(node.parent.tag+"\\"+node.tag, project_name);
+			}else{
+				openfile(node.tag, project_name);
+			}
 		},
 		foldermenu : [ {
 			type : "Common",
@@ -44,14 +51,28 @@ contex_menu = {
 			text : '修改',
 			// icon : '/?getstatic=/folder.png',
 			action : function(node) {
+				alert(node.tag);
+			}
 
+		} , {
+			type : "index",
+			text : '浏览',
+			// icon : '/?getstatic=/folder.png',
+			action : function(node) {
+				console.log(node);
 			}
 
 		} ]
 	},
 	'context1' : {
 		opennode : function(node) {
-			openfile(node.tag, project_name);
+			console.log(node.tag);
+			if(node.parent.tag!=undefined){
+				openfile(node.parent.tag+"\\"+node.tag, project_name);
+			}else{
+				openfile(node.tag, project_name);
+			}
+			
 		},
 		foldermenu : [
 				{
@@ -207,7 +228,8 @@ contex_menu = {
 					text : '运行',
 					// icon : '/?getstatic=/folder.png',
 					action : function(node) {
-						var url = "?webide=1&getcontrolact=" + node.tag
+						
+						var url = "?webide=1&getcontrolact=" + node.parent.tag+"\\"+node.tag
 								+ "&parent=" + project_name;
 						ajax(url, function(data) {
 							var inhtml="";
@@ -261,36 +283,6 @@ contex_menu = {
 	}
 };
 
-// var langTools = ace.require("ace/ext/language_tools");
-// // ace.require("ace/ext/language_tools");
-//
-// var myList = [
-// "$this->Alert('')",
-// "$this->Success('')",
-// ];
-// var myCompleter = {
-// identifierRegexps: [/[^\s]+/],
-// getCompletions: function(editor, session, pos, prefix, callback) {
-// console.info("myCompleter prefix:", prefix);
-// callback(
-// null,
-// myList.filter(entry=>{
-// return entry.includes(prefix);
-// }).map(entry=>{
-// return {
-// value: entry
-// };
-// })
-// );
-// }
-// };
-// langTools.addCompleter(myCompleter);
-// editor.on("change", function(e){
-// file_changed=true;
-// editor.execCommand("startAutocomplete");
-// })
-// editor.completers = [staticWordCompleter];
-
 function RunOnBeforeUnload() {
 	window.onbeforeunload = function() {
 		return '将丢失未保存的数据!';
@@ -305,14 +297,14 @@ function namecheck(str) {
 };
 function getfilename(pathname) {
 	return pathname.substring(pathname.lastIndexOf("\\") + 1, pathname.length);// 后缀名
-}
+};
 function reset() {
 	project_name = "";
 	editing_file = "";
 	file_changed = false;
 	is_staticfile = false;
 	editor_arr = [];
-}
+};
 function rename(){
 	var newfilename=$("#filename").val();
 	if(newfilename!=""){
@@ -326,14 +318,22 @@ function rename(){
 		}
 		ajax(url, function(data) {
 			
-			//关闭打开的旧文件
-			//tree.removeNode(node);
-			//editor.setValue("");
+			// 关闭打开的旧文件
+			// tree.removeNode(node);
+			// editor.setValue("");
 			popclose('rename');
-			//refleshdir(project_name);
+			// refleshdir(project_name);
 		});
 	}
-}
+};
+function init_complete(){
+
+ var myList = [
+ "$this->Alert('')",
+ "$this->Success('')",
+ ];
+	
+};
 function openeditor(file, filedata) {
 
 	var ids = uniqid();
@@ -369,7 +369,7 @@ function openeditor(file, filedata) {
 		$(this).children("span").hide();
 	});
 	var stuff = getstuff(file);
-	var allowext = [ '.php', '.js', '.css', '.html', '.java', '.log' ];
+	var allowext = [ '.php', '.js', '.css', '.html', '.java', '.log',".bfw" ];
 	var editorid = "edi" + ids;
 	if (allowext.indexOf(stuff) >= 0) {
 
@@ -431,29 +431,109 @@ function openeditor(file, filedata) {
 		})
 		if (stuff == ".php") {
 			editor.session.setMode("ace/mode/php");
+			var myCompleter = {
+					identifierRegexps: [/[^\s]+/],
+					getCompletions: function(editor, session, pos, prefix, callback) {
+						console.info("myCompleter prefix:", prefix);
+						
+						var lastpr=prefix.substring(prefix.length-2);
+						console.info("myCompleter prefix:", lastpr);
+		
+						if(lastpr=="->"||lastpr=="::"){
+							var entrynew="";
+							if(prefix=="$this->"){
+								 entrynew = getfilename(editing_file).replace(/.php/g, "");
+							}else{
+								 entrynew = prefix.substring(0,prefix.indexOf("::"));
+							}
+							console.log(bfw_method_list);
+							console.log(entrynew);
+							if (typeof bfw_method_list[entrynew] == "undefined") { 
+								console.log(entrynew+"不存在");
+							}else{
+								var nowpos=editor.selection.getCursor();
+								console.log(nowpos);
+								var usestr="use App\\"+entrynew+";";
+								if(editor.getValue().indexOf(usestr)>=0){
+									
+								}else{
+									//editor.gotoLine(3);
+									//editor.insert(usestr);
+									//editor.focus();
+								//	editor.moveCursorTo(nowpos.row, nowpos.column);
+								}
+								
+								callback(
+										null,
+										bfw_method_list[entrynew].method.name.map((entry,index) => {
+											return {
+												docHTML:bfw_method_list[entrynew].method.doc[index],
+												value:prefix+entry,
+												meta: "bfw class function"
+											};
+										})
+									);
+							}
+							
+						}else{
+							var lindex=prefix.indexOf("(");
+							var newprefix=prefix;
+							if(lindex>0){
+								newprefix = prefix.substring(lindex+1);
+							}
+							console.log("new"+newprefix);
+							callback(
+									null,
+									bfw_tag_list.filter(entry => {
+										return entry.includes(newprefix);
+									}).map(entry => {
+										 entrynew = entry.substring(0,entry.indexOf("::"));
+										var doc_c="";
+										if (typeof bfw_method_list[entrynew] == "undefined") { 
+											console.log(entrynew+"不存在");
+										}else{
+											doc_c=bfw_method_list[entrynew].doc;
+										}
+										return {
+											   docHTML:doc_c,
+												value:entry,
+												meta: "bfw class"
+					
+										};
+									})
+								);
+						}
+						
+					}
+				};
+			    //editor.completers = [myCompleter];
+				langTools.addCompleter(myCompleter);
 		} else if (stuff == ".css") {
 			editor.session.setMode("ace/mode/css");
 		} else if (stuff == ".js") {
 			editor.session.setMode("ace/mode/javascript");
 		} else if (stuff == ".html") {
 			editor.session.setMode("ace/mode/html");
+		} else if (stuff == ".bfw") {
+			editor.session.setMode("ace/mode/ini");
 		} else {
 			editor.session.setMode("ace/mode/php");
 		}
 		editor.setValue(filedata);
+		//editor.focus();
 	} else if (stuff == '.png' || stuff == '.jpeg' || stuff == '.jpg'
 			|| stuff == '.gif') {
 		$("#editor").append(
 				"<pre   id='" + editorid + "' ><img  class='img_show'  src='"
 						+ filedata + "' /></pre>");
 	} else if (getfilename(file) == 'welcome.bfw') {
-		$("#editor")
-				.append(
-						"<pre  id='"
-								+ editorid
-								+ "' ><div class='wellcome_show' >全球首款支持webide的开发及运行框架，</br>支持单机，伪集群，集群，SOA部署，</br>支持code first，db first，template first开发模式，支持java php net多种流行语言，</br>云端保存，多处开发，支持企业云部署，一个账号，随时随地打开浏览器即可开发应用，丰富的在线插件及文档，</br>社群问题回答，模板涵盖电商、企业官网、在线教育、企业erp，oa等热门系统，</br>支持在线模板交易，让优秀的程序员收获自己的财富</div></pre>");
+	//	$("#editor")
+		//		.append(
+			//			"<pre  id='"
+				//				+ editorid
+				//				+ "' ><div class='wellcome_show' >全球首款支持webide的开发及运行框架，</br>支持单机，伪集群，集群，SOA部署，</br>支持code first，db first，template first开发模式，支持java php net多种流行语言，</br>云端保存，多处开发，支持企业云部署，一个账号，随时随地打开浏览器即可开发应用，丰富的在线插件及文档，</br>社群问题回答，模板涵盖电商、企业官网、在线教育、企业erp，oa等热门系统，</br>支持在线模板交易，让优秀的程序员收获自己的财富</div></pre>");
 	} else {
-
+		
 	}
 
 	editor_arr.push({
@@ -464,7 +544,7 @@ function openeditor(file, filedata) {
 		"filechanged" : false,
 		"type" : is_staticfile ? 2 : 1
 	});
-}
+};
 function closefile(f) {
 	if (editor_arr.length > 0) {
 		for (var i = 0; i < editor_arr.length; i++) {
@@ -481,7 +561,7 @@ function closefile(f) {
 			showeditor(editor_arr[editor_arr.length - 1].file);
 		}
 	}
-}
+};
 function getpro() {
 	var pro_html = "<li  class='pro_item'  data='.'>新建项目</li>";
 	ajax("?getpro=1&webide=1", function(data) {
@@ -494,7 +574,7 @@ function getpro() {
 		}
 		$("#latest_pro").html(pro_html);
 	}, "get", "");
-}
+};
 function getcloudpro() {
 	var pro_html = "";
 	ajax("?getcloudpro=1&webide=1", function(data) {
@@ -511,7 +591,7 @@ function getcloudpro() {
 			$("#cloud_pro").html(pro_html);
 		}
 	}, "get", "");
-}
+};
 function openfile(f, p) {
 	var stuff = getstuff(f);
 	var allowext = [ '.php', '.js', '.css', '.html', '.java', '.log', ".png",
@@ -557,15 +637,15 @@ function showeditor(file) {
 		}
 	}
 	return 2;
-}
+};
 function uniqid(randomLength) {
 	return Number(Math.random().toString().substr(3, randomLength) + Date.now())
 			.toString(36);
-}
+};
 function getstuff(filename) {
 	return filename.substring(filename.lastIndexOf("."), filename.length)
 			.toLowerCase();// 后缀名
-}
+};
 function initdongdir(url) {
 	var tree_id = "dong_tree";
 	var cont = "context1";
@@ -600,8 +680,7 @@ function initdongdir(url) {
 				}
 
 			} else {
-				node1 = tree
-						.createNode(objt.name, false,
+				node1 = dong_tree.createNode(objt.name, false,
 								'/?webide=1&getstatic=/file.png', null,
 								objt.data, cont);
 			}
@@ -609,7 +688,7 @@ function initdongdir(url) {
 
 		dong_tree.drawTree();
 	}, "get", "");
-}
+};
 function initjingdir(url) {
 
 	var tree_id = "jing_tree";
@@ -644,7 +723,7 @@ function initjingdir(url) {
 				}
 
 			} else {
-				node1 = tree
+				node1 = jing_tree
 						.createNode(objt.name, false,
 								'/?webide=1&getstatic=/file.png', null,
 								objt.data, cont);
@@ -653,7 +732,7 @@ function initjingdir(url) {
 
 		jing_tree.drawTree();
 	}, "get", "");
-}
+};
 function refleshdir(p) {
 	project_name = p;
 	document.getElementById("project_name").innerHTML = p;
@@ -701,7 +780,7 @@ function proreset() {
 		}
 	}
 	editor_arr = [];
-}
+};
 function hideediter() {
 	if (editor_arr.length > 0) {
 		for (var i = 0; i < editor_arr.length; i++) {
@@ -722,7 +801,7 @@ function dbconfshow() {
 	$("#mysqlname").val(localStorage.getItem("user"));
 	$("#mysqlpwd").val(localStorage.getItem("pwd"));
 	popup($('#mysqlconf'));
-}
+};
 function login() {
 	var username = $("#loginusername").val();
 	var pwd = $("#loginpwd").val();
@@ -733,7 +812,7 @@ function login() {
 	ajax('/?webide=1&login=' + username + "|" + pwd, function(str) {
 		alert(str)
 	});
-}
+};
 function register() {
 	var username = $("#regusername").val();
 	var pwd = $("#regpwd").val();
@@ -744,7 +823,7 @@ function register() {
 	ajax('/?webide=1&register=' + username + "|" + pwd, function(str) {
 		alert(str)
 	});
-}
+};
 function mysqlconf() {
 	if ($("#mysqlhost").val() != "") {
 		localStorage.setItem("host", $("#mysqlhost").val());
@@ -759,14 +838,42 @@ function mysqlconf() {
 		localStorage.setItem("pwd", $("#mysqlpwd").val());
 	}
 	alert("设置成功");
-}
+};
 function openpro(p) {
 	if (p == ".") {
 		popup($("#newprodia"));
 	} else {
 		refleshdir(p);
-		openfile("\welcome.bfw", p);
+		getbfwclassfunc(p);
+		openfile("readme.bfw", p);
 	}
+};
+function getbfwclassfunc(p){
+	ajax('/?webide=1&getclass=' + p, function(data) {
+		// alert(str);
+		var obj = eval('(' + data + ')');
+		//bfw_tag_list=bfw_tag_list.concat(obj['class']);
+		omerge(bfw_tag_list,obj['class']);
+		console.log(bfw_tag_list);
+		omerge(bfw_method_list,obj['method']);
+		console.log(bfw_method_list);
+		//bfw_method_list=bfw_method_list.concat(obj['method']);
+	});
+	
+};
+function omerge(o,n){
+	   for (var p in n){
+	        if(n.hasOwnProperty(p) && (!o.hasOwnProperty(p) ))
+	            o[p]=n[p];
+	    }
+};   
+function getsysclassfunc(){
+	ajax('/?webide=1&getsysclass', function(data) {
+		var obj = eval('(' + data + ')');
+		bfw_tag_list=obj['class'];
+		console.log(bfw_tag_list);
+		bfw_method_list=obj['method'];
+	});
 };
 function popup(popupName) {
 	var _scrollHeight = $(document).scrollTop(), // 获取当前窗口距离页面顶部高度
@@ -781,10 +888,10 @@ function popup(popupName) {
 		"top" : _posiTop + "px",
 		"display" : "block"
 	});// 设置position
-}
+};
 function popclose(popupName) {
 	$("#" + popupName).hide();
-}
+};
 
 function creatpro() {
 	if (!reg.test($("#proname").val())) {
@@ -795,26 +902,26 @@ function creatpro() {
 		alert("请选择模板");
 		return;
 	}
-//	var uname = localStorage.getItem("user");
-//	var dhost = localStorage.getItem("host");
-//	var dport = localStorage.getItem("port");
-//	var dpwd = localStorage.getItem("pwd");
-//	if (uname == null) {
-//		uname = "root";
-//		// localStorage.setItem(cmdarr[2],cmdarr[3]);
-//	}
-//	if (dhost == null) {
-//		dhost = "127.0.0.1";
-//		// localStorage.setItem(cmdarr[2],cmdarr[3]);
-//		// alert("请先设置数据库连接信息");
-//	}
-//	if (dport == null) {
-//		dport = 3306;
-//	}
-//	if (dpwd == null) {
-//		dpwd = "";
-//	}
-//	var dbinfo = dhost + "|" + dport + "|" + uname + "|" + dpwd;
+// var uname = localStorage.getItem("user");
+// var dhost = localStorage.getItem("host");
+// var dport = localStorage.getItem("port");
+// var dpwd = localStorage.getItem("pwd");
+// if (uname == null) {
+// uname = "root";
+// // localStorage.setItem(cmdarr[2],cmdarr[3]);
+// }
+// if (dhost == null) {
+// dhost = "127.0.0.1";
+// // localStorage.setItem(cmdarr[2],cmdarr[3]);
+// // alert("请先设置数据库连接信息");
+// }
+// if (dport == null) {
+// dport = 3306;
+// }
+// if (dpwd == null) {
+// dpwd = "";
+// }
+// var dbinfo = dhost + "|" + dport + "|" + uname + "|" + dpwd;
 	if (tempid != "empty") {
 		ajax('?webide=1&initapp=' + $("#proname").val() + "&tempid=" + tempid, function(str) {
 			if (str == "ok") {
@@ -835,7 +942,7 @@ function creatpro() {
 					}
 				}, "get", "");
 	}
-}
+};
 function ajax(url, fnSucc, method, data) {
 	if (window.XMLHttpRequest) {
 		var oAjax = new XMLHttpRequest();
@@ -877,6 +984,7 @@ $(function() {
 		return;
 	}
 	getpro();
+	getsysclassfunc();
 	$("#loadding").hide();
 	$("#pro_nav_tab li").live("click", function() {
 		$("#pro_nav_tab li").removeClass("tab_selected");

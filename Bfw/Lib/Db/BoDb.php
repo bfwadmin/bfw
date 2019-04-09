@@ -5,7 +5,9 @@ interface BoDbInterface
 {
 
     public function insert($_data, $_tablename, $_returnid);
-
+    
+    public function insertupdate($_data, $_tablename, $_key);
+    
     public function update($_data, $_tablename,$_key);
 
     public function delete($_id, $_tablename,$_key);

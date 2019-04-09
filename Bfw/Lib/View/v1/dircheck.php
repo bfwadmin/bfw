@@ -7,7 +7,7 @@
     <meta name="description" content="全球首款支持webide的开发及运行框架，支持单机，伪集群，集群，SOA部署，支持code first，db first，template first开发模式，支持java php net多种流行语言，云端保存，多处开发，支持企业云部署，一个账号，随时随地打开浏览器即可开发应用，丰富的在线插件及文档，社群问题回答，模板涵盖电商、企业官网、在线教育、企业erp，oa等热门系统，支持在线模板交易，让优秀的程序员收获自己的财富" />
 	<link rel="shortcut icon" href="/favicon.ico" />
     <style type="text/css">
-        * {
+ * {
             box-sizing: border-box;
         }
         body {
@@ -17,20 +17,20 @@
         }
         .wrap {
             width: 100%;
-            height: 400px;
-            padding: 40px 0;
+            height: 100%;
+            padding: 140px 0;
             position: fixed;
-            top: 50%;
-            margin-top: -200px;
             opacity: 0.8;
-            background: linear-gradient(to bottom right,#50a3a2,#53e3a6);
-            background: -webkit-linear-gradient(to bottom right,#50a3a2,#53e3a6);
+            background: linear-gradient(to bottom right,#1b6e95,#084589);
+            background: -webkit-linear-gradient(to bottom right,#1b6e95,#084589);
         }
         .container {
-            width: 60%;
+        	padding:20px;
+            width: 80%;
             margin: 0 auto;
-        color:white;
-        	text-align:center;
+        	background:#0870b2;
+        	height:80%;
+        	color:white;
         }
         .container h1 {
             text-align: center;

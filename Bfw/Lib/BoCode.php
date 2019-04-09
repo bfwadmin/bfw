@@ -101,6 +101,7 @@ class BoCode extends WangBo
             $this->CreatDir(APP_BASE . DS . STATIC_NAME . DS . $_appname . DS . "image");
             $this->CreatDir(APP_BASE . DS . STATIC_NAME . DS . $_appname . DS . "js");
             $this->CreatDir(APP_BASE . DS . STATIC_NAME . DS . $_appname . DS . "css");
+            $this->CreatDir(APP_BASE . DS . STATIC_NAME . DS . $_appname . DS . "h5");
             return true;
         } catch (DbException $ex) {
             echo $ex->getException()['errmsg'];

@@ -23,9 +23,25 @@ class Pay implements BoPayInterface
         $this->_alipay_config['transport'] = 'http';
     }
 
-    function GetPara()
+    function GetPara($out_trade_no, $total_fee, $subject = "", $body = "", $_attachdata = "")
     {
-        return [];
+        $parameter = array(
+            "service" => $this->_alipay_config['service'],
+            "partner" => $this->_alipay_config['partner'],
+            "seller_id" => $this->_alipay_config['seller_id'],
+            "payment_type" => $this->_alipay_config['payment_type'],
+            "notify_url" => $this->_alipay_config['notify_url'],
+            "return_url" => $this->_alipay_config['return_url'],
+            "anti_phishing_key" => $this->_alipay_config['anti_phishing_key'],
+            "exter_invoke_ip" => $this->_alipay_config['exter_invoke_ip'],
+            "out_trade_no" => $out_trade_no,
+            "subject" => $subject,
+            "total_fee" => $total_fee,
+            "body" => $body . $this->_delimiter . $_attachdata,
+            "_input_charset" => trim(strtolower($this->_alipay_config['input_charset']))
+        );
+        $alipaySubmit = new \AlipaySubmit($this->_alipay_config);
+        return $alipaySubmit->buildRequestPara($parameter);
     }
 
     function Success()
@@ -115,6 +131,7 @@ class Pay implements BoPayInterface
             "body" => $body . $this->_delimiter . $_attachdata,
             "_input_charset" => trim(strtolower($this->_alipay_config['input_charset']))
         );
+        
         // return var_dump($parameter);
         // 建立请求
         $alipaySubmit = new \AlipaySubmit($this->_alipay_config);

@@ -30,7 +30,6 @@ class BoModel
      */
     protected $_prikey = "id";
 
-    
     /**
      * 条件
      *
@@ -103,7 +102,7 @@ class BoModel
 
     /**
      * 是否锁表
-     * 
+     *
      * @var bool
      */
     protected $_locktable = false;
@@ -145,9 +144,7 @@ class BoModel
             }
             // $this->_tbpre = Bfw::Config("Db", "tbpre");
             $_m_n = str_replace("App\\" . DOMIAN_VALUE . "\\Model\\Model_", "", get_class($this));
-            if(isset( $_conf['tb_name_ci'])&&$_conf['tb_name_ci']==true){
-                $_m_n=strtolower($_m_n);
-            }
+            
             if (isset($this->_model_table_map[$_m_n])) {
                 $this->_tablename = $this->_model_table_map[$_m_n];
             } else {
@@ -155,6 +152,9 @@ class BoModel
                     $this->_tbpre = TB_PRE;
                 }
                 $this->_tablename = $this->_tbpre . $_m_n;
+            }
+            if (isset($_conf['tb_name_ci']) && $_conf['tb_name_ci'] == true) {
+                $_m_n = strtolower($_m_n);
             }
         }
         if ($this->_dbhandle == null) {
@@ -165,19 +165,21 @@ class BoModel
             }
         }
     }
+
     /**
      * 重置变量，防止单例问题
      */
-    public function reset(){
-         $this->_joinarr=[];
-         $this->_wherearr=[];
-         $this->_unionarr=[];
-         $this->_wherestr="";
-         $this->_orderstr="";
-         $this->_fieldstr="*";
-         return $this;
-         
+    public function reset()
+    {
+        $this->_joinarr = [];
+        $this->_wherearr = [];
+        $this->_unionarr = [];
+        $this->_wherestr = "";
+        $this->_orderstr = "";
+        $this->_fieldstr = "*";
+        return $this;
     }
+
     public function ChangeDb($_table = "", $_prekey = "", $_isview = false, $_connarray = null, $_tablemap = false)
     {
         array_push($this->_oldisview, $this->_isview);
@@ -249,6 +251,22 @@ class BoModel
     }
 
     /**
+     * 插入一条数据，有就更新,主键不能为数据库自增
+     *
+     * @param array $_data            
+     *
+     *
+     */
+    public function InsertUpdate($_data)
+    {
+        try {
+            return ! $this->_isview ? $this->_dbhandle->insertupdate($_data, $this->_tablename, $this->_prikey) : Bfw::RetMsg(true, "view not supported");
+        } catch (DbException $e) {
+            return Bfw::RetMsg(true, $e->getMessage());
+        }
+    }
+
+    /**
      * 更新一条记录
      *
      * @param array $_data            
@@ -272,6 +290,37 @@ class BoModel
     {
         try {
             return ! $this->_isview ? $this->_dbhandle->delete($_id, $this->_tablename, $this->_prikey) : Bfw::RetMsg(true, "view not supported");
+        } catch (DbException $e) {
+            return Bfw::RetMsg(true, $e->getMessage());
+        }
+    }
+
+    /**
+     * 批量更新
+     *
+     * @param array $_wherestr            
+     * @param array $_wherearr            
+     * @param array $_data            
+     */
+    private function MUpdate($_wherestr, $_wherearr, $_data)
+    {
+        try {
+            return ! $this->_isview ? $this->_dbhandle->mutiupdate($_wherestr, $_wherearr, $this->_tablename, $_data) : Bfw::RetMsg(true, "view not supported");
+        } catch (DbException $e) {
+            return Bfw::RetMsg(true, $e->getMessage());
+        }
+    }
+
+    /**
+     * 批量删除
+     *
+     * @param array $_wherestr            
+     * @param array $_wherearr            
+     */
+    private function MDelete($_wherestr, $_wherearr)
+    {
+        try {
+            return ! $this->_isview ? $this->_dbhandle->mutidelete($_wherestr, $_wherearr, $this->_tablename) : Bfw::RetMsg(true, "view not supported");
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
         }
@@ -404,7 +453,9 @@ class BoModel
     public function ExecuteNonQuery($_sql, $_val = null)
     {
         try {
-            return $this->_dbhandle->executeNonquery(str_replace("[T]", $this->_tablename, $_sql), $_val);
+            $_sql = str_replace("[T]", $this->_tablename, $_sql);
+            $_sql = $this->GetTableNameByTag($_sql);
+            return $this->_dbhandle->executeNonquery($_sql, $_val);
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
         }
@@ -419,7 +470,9 @@ class BoModel
     public function ExecuteReader($_sql, $_val = null)
     {
         try {
-            return $this->_dbhandle->executereader(str_replace("[T]", $this->_tablename, $_sql), $_val);
+            $_sql = str_replace("[T]", $this->_tablename, $_sql);
+            $_sql = $this->GetTableNameByTag($_sql);
+            return $this->_dbhandle->executereader($_sql, $_val);
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
         }
@@ -439,7 +492,7 @@ class BoModel
 
     /**
      * 锁表
-     * 
+     *
      * @return \Lib\BoModel
      */
     function Lock()
@@ -545,6 +598,24 @@ class BoModel
     }
 
     /**
+     * 批量删除
+     */
+    function MutiDelete()
+    {
+        return $this->MutiDelete($this->_wherestr, $this->_wherearr);
+    }
+
+    /**
+     * 批量更新
+     * 
+     * @param unknown $_data            
+     */
+    function MutiUpdate($_data)
+    {
+        return $this->MutiUpdate($this->_wherestr, $this->_wherearr, $_data);
+    }
+
+    /**
      *
      * @param 排序 $_str            
      * @return BoModel
@@ -592,10 +663,10 @@ class BoModel
         if (! empty($this->_orderstr)) {
             $_sql .= " order by " . $this->_orderstr;
         }
-        if ($this->_page>=0 &&$this->_pagesize>0) {
-            $_sql .= " limit " . $this->_page*$this->_pagesize . "," . $this->_pagesize;
+        if ($this->_page >= 0 && $this->_pagesize > 0) {
+            $_sql .= " limit " . $this->_page * $this->_pagesize . "," . $this->_pagesize;
         }
-        return $this->ExecuteReader($this->GetTableNameByTag($_sql), $this->_wherearr);
+        return $this->ExecuteReader($_sql, $this->_wherearr);
     }
 
     /**
@@ -630,7 +701,7 @@ class BoModel
             $_sql .= " where " . $this->_wherestr;
         }
         // return $this->GetTableNameByTag($_sql);
-        $_ret = $this->ExecuteReader($this->GetTableNameByTag($_sql), $this->_wherearr);
+        $_ret = $this->ExecuteReader($_sql, $this->_wherearr);
         if ($_ret['err']) {
             return $_ret;
         }
@@ -689,7 +760,7 @@ class BoModel
         if (substr($method, 0, 6) == "FindBy") {
             $_suff = substr($method, 6);
             if (count($arguments) == 2 && preg_match("/([A-Za-z]+)(And|Or)([A-Za-z]+)$/", $_suff, $match)) {
-                $this->_wherestr = "  ".$match[1]."=?  ".$match[2]."  " .$match[3]."=? ";
+                $this->_wherestr = "  " . $match[1] . "=?  " . $match[2] . "  " . $match[3] . "=? ";
                 $this->_wherearr = $arguments;
                 die($this->_wherestr);
                 return $this->Select();

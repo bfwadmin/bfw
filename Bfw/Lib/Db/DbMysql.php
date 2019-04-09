@@ -26,33 +26,32 @@ class DbMysql extends BoDb implements BoDbInterface
 
     public function __construct($_connarr = null)
     {
-        if (! is_null($_connarr) && is_array($_connarr)) {
-        } else {
-            $_connarr=Bfw::Config("Db", "localconfig");
+        if (! is_null($_connarr) && is_array($_connarr)) {} else {
+            $_connarr = Bfw::Config("Db", "localconfig");
         }
-
-        $this->_connectstr ="mysql:host={$_connarr['dbhost']};port={$_connarr['dbport']};dbname={$_connarr['dbname']}";
+        
+        $this->_connectstr = "mysql:host={$_connarr['dbhost']};port={$_connarr['dbport']};dbname={$_connarr['dbname']}";
         $this->_username = $_connarr['dbuser'];
         $this->_password = $_connarr['dbpwd'];
-      
+        
         try {
             $this->_connection = new \PDO($this->_connectstr, $this->_username, $this->_password, $this->_option);
             $this->_connection->query('SET NAMES utf8');
-            BoDebug::Info("mysql connect ".$this->_connectstr);
+            BoDebug::Info("mysql connect " . $this->_connectstr);
         } catch (\PDOException $e) {
             throw new DbException($e->getMessage());
         }
     }
 
-    public function single($_id, $_field, $_tablename, $_key,$_islock=false)
+    public function single($_id, $_field, $_tablename, $_key, $_islock = false)
     {
         try {
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
             $sql = "SELECT {$_field} FROM  {$_tablename} WHERE {$_key}=:id";
-            if($_islock){
-                $sql.="  FOR UPDATE";
+            if ($_islock) {
+                $sql .= "  FOR UPDATE";
             }
             BoDebug::Info($sql);
             $stmt = $this->_connection->prepare($sql);
@@ -65,6 +64,60 @@ class DbMysql extends BoDb implements BoDbInterface
             }
             return Bfw::RetMsg(false, $_ldata);
         } catch (\PDOException $e) {
+            throw new DbException($e->getMessage());
+        }
+    }
+
+    public function insertupdate($_data, $_tablename, $_key)
+    {
+        try {
+            if (is_null($this->_connection)) {
+                return Bfw::RetMsg(true, "数据库连接失败");
+            }
+            if (! empty($_data)) {
+                // $_tablename = $this->GetTableName();
+                $sql_field = "";
+                $sql_val = "";
+                $val = array();
+                $sql_up_field = "";
+                $up_val = [];
+                foreach ($_data as $_field => $_val) {
+                    if ($_val === null) {} else {
+                        
+                        $sql_field .= "{$_field},";
+                        $sql_val .= "?,";
+                        $val[] = $_val;
+                        if ($_key != $_field) {
+                            $sql_up_field .= "{$_field}=?,";
+                            $up_val[] = $_val;
+                        }
+                    }
+                }
+                
+                if ($sql_up_field != "") {
+                    $sql_up_field = substr($sql_up_field, 0, strlen($sql_up_field) - 1);
+                }
+                if ($sql_field != "") {
+                    $sql_field = substr($sql_field, 0, strlen($sql_field) - 1);
+                }
+                if ($sql_val != "") {
+                    $sql_val = substr($sql_val, 0, strlen($sql_val) - 1);
+                }
+                $val = array_merge($val, $up_val);
+                BoDebug::Info("INSERT value:" . var_export($val, true));
+                $sql = "INSERT INTO {$_tablename} ({$sql_field})VALUES ({$sql_val})  ON DUPLICATE KEY UPDATE  {$sql_up_field}";
+                BoDebug::Info($sql);
+                $issuccess = $this->_connection->prepare($sql)->execute($val);
+                if ($issuccess) {
+                    return Bfw::RetMsg(false, true);
+                } else {
+                    return Bfw::RetMsg(false, false);
+                }
+            } else {
+                return Bfw::RetMsg(true, "数据不能为空");
+            }
+        } catch (\PDOException $e) {
+            // return Bfw::RetMsg(true, $e->getMessage());
             throw new DbException($e->getMessage());
         }
     }
@@ -115,6 +168,57 @@ class DbMysql extends BoDb implements BoDbInterface
         }
     }
 
+    public function mutiupdate($_wherestr, $_wherearr, $_tablename, $_data)
+    {
+        try {
+            if (! is_array($_data)) {
+                return Bfw::RetMsg(true, "data值必为数组");
+            }
+            if (is_null($this->_connection)) {
+                return Bfw::RetMsg(true, "数据库连接失败");
+            }
+            
+            if (! empty($_data)) {
+                
+                $sql = "";
+                $val = array();
+                foreach ($_data as $_k => $_val) {
+                    
+                    if (! is_null($_val)) {
+                        if (is_array($_val) && count($_val) >= 2 && is_numeric($_val[1]) && in_array($_val[0], [
+                            '-',
+                            '+'
+                        ])) {
+                            $sql .= $_k . "=" . $_k . $_val[0] . $_val[1] . ",";
+                        } else {
+                            $sql .= "{$_k}=?,";
+                            $val[] = $_val;
+                        }
+                    }
+                }
+                
+                if ($sql != "") {
+                    $sql = substr($sql, 0, strlen($sql) - 1);
+                }
+                $_wherearr=array_merge($val,$_wherearr);
+                $sql = "UPDATE {$_tablename} SET " . $sql . " WHERE " . $_wherestr;
+                // die($sql.var_export($val,true));
+                BoDebug::Info($sql);
+                $issuccess = $this->_connection->prepare($sql)->execute($_wherearr);
+                if ($issuccess) {
+                    return Bfw::RetMsg(false, true);
+                } else {
+                    return Bfw::RetMsg(false, false);
+                }
+            } else {
+                return Bfw::RetMsg(true, "数据不能为空");
+            }
+        } catch (\PDOException $e) {
+            
+            throw new DbException($e->getMessage());
+        }
+    }
+
     public function update($_data, $_tablename, $_key)
     {
         try {
@@ -131,7 +235,7 @@ class DbMysql extends BoDb implements BoDbInterface
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
-           
+            
             if (! empty($_data)) {
                 
                 $sql = "";
@@ -179,27 +283,57 @@ class DbMysql extends BoDb implements BoDbInterface
         }
     }
 
+    public function mutidelete($_wherestr, $_wherearr, $_tablename)
+    {
+        try {
+            if (is_null($this->_connection)) {
+                return Bfw::RetMsg(true, "数据库连接失败");
+            }
+            if (empty($_wherestr)) {
+                return Bfw::RetMsg(true, "条件不能为空");
+            }
+            $sql = "DELETE FROM  {$_tablename} WHERE " . $_wherestr;
+            BoDebug::Info($_wherestr);
+            BoDebug::Info($sql);
+            $issuccess = $this->_connection->prepare($sql)->execute($_wherearr);
+            if ($issuccess) {
+                return Bfw::RetMsg(false, true);
+            } else {
+                return Bfw::RetMsg(false, false);
+            }
+        } catch (\PDOException $e) {
+            throw new DbException($e->getMessage());
+        }
+    }
+
     public function delete($_id, $_tablename, $_key)
     {
         try {
-            $_singledata = $this->single($_id, $_key, $_tablename, $_key);
-            if ($_singledata['err']) {
-                return $_singledata;
-            }
-            if ($_singledata['data'] == null) {
-                return Bfw::RetMsg(true, "data_null");
-            }
+            // $_singledata = $this->single($_id, $_key, $_tablename, $_key);
+            // if ($_singledata['err']) {
+            // return $_singledata;
+            // }
+            // if ($_singledata['data'] == null) {
+            // return Bfw::RetMsg(true, "data_null");
+            // }
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
             if (empty($_id)) {
-                return Bfw::RetMsg(true, "主键空值");
+                return Bfw::RetMsg(true, "主键不能空值");
             }
-            $sql = "DELETE FROM  {$_tablename} WHERE {$_key}=:id";
+            $_wherestr = "";
+            $_id_arr = explode(",", $_id);
+            foreach ($_id_arr as $_i) {
+                $_wherestr .= " {$_key}=? or";
+            }
+            if ($_wherestr != "") {
+                $_wherestr = substr($_wherestr, 0, strlen($_wherestr) - 2);
+            }
+            $sql = "DELETE FROM  {$_tablename} WHERE " . $_wherestr;
+            BoDebug::Info($_id);
             BoDebug::Info($sql);
-            $issuccess = $this->_connection->prepare($sql)->execute(array(
-                ':id' => $_id
-            ));
+            $issuccess = $this->_connection->prepare($sql)->execute($_id_arr);
             if ($issuccess) {
                 return Bfw::RetMsg(false, true);
             } else {
@@ -224,13 +358,13 @@ class DbMysql extends BoDb implements BoDbInterface
             }
             
             $_lcount = 0;
-           BoDebug::TickStart($sql_count);
+            BoDebug::TickStart($sql_count);
             $stmt = $this->_connection->prepare($sql_count);
             $stmt->execute($_wherearr);
             while (($row = $stmt->fetch(\PDO::FETCH_NUM)) != false) {
                 $_lcount = $row[0];
             }
-           BoDebug::TickStop($sql_count);
+            BoDebug::TickStop($sql_count);
             return Bfw::RetMsg(false, $_lcount);
         } catch (\PDOException $e) {
             throw new DbException($e->getMessage());
@@ -261,7 +395,7 @@ class DbMysql extends BoDb implements BoDbInterface
             }
             // BoDebug::Info($sql);
             // echo $sql;
-           BoDebug::TickStart($sql);
+            BoDebug::TickStart($sql);
             $stmt = $this->_connection->prepare($sql);
             $stmt->execute($_wherearr);
             $_ldata = array();

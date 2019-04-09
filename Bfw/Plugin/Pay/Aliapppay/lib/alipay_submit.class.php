@@ -109,6 +109,12 @@ class AlipaySubmit {
 		return $sHtml;
 	}
 	
+	function buildpara($para_temp, $method, $button_name) {
+
+	    return $this->buildRequestPara($para_temp);
+
+	}
+	
 	
 	/**
      * 用于防钓鱼，调用接口query_timestamp来获取时间戳的处理函数

@@ -1,0 +1,74 @@
+<?php
+
+namespace Iot\Request\V20180120;
+
+/**
+ * Request of BatchDeleteDeviceGroupRelations
+ *
+ * @method string getIotInstanceId()
+ * @method string getGroupId()
+ * @method array getDevices()
+ */
+class BatchDeleteDeviceGroupRelationsRequest extends \RpcAcsRequest
+{
+
+    /**
+     * @var string
+     */
+    protected $method = 'POST';
+
+    /**
+     * Class constructor.
+     */
+    public function __construct()
+    {
+        parent::__construct(
+            'Iot',
+            '2018-01-20',
+            'BatchDeleteDeviceGroupRelations',
+            'iot'
+        );
+    }
+
+    /**
+     * @param string $iotInstanceId
+     *
+     * @return $this
+     */
+    public function setIotInstanceId($iotInstanceId)
+    {
+        $this->requestParameters['IotInstanceId'] = $iotInstanceId;
+        $this->queryParameters['IotInstanceId'] = $iotInstanceId;
+
+        return $this;
+    }
+
+    /**
+     * @param string $groupId
+     *
+     * @return $this
+     */
+    public function setGroupId($groupId)
+    {
+        $this->requestParameters['GroupId'] = $groupId;
+        $this->queryParameters['GroupId'] = $groupId;
+
+        return $this;
+    }
+
+    /**
+     * @param array $devices
+     *
+     * @return $this
+     */
+    public function setDevices(array $devices)
+    {
+        $this->requestParameters['Devices'] = $devices;
+        foreach ($devices as $i => $iValue) {
+            $this->queryParameters['Device.' . ($i + 1) . '.DeviceName'] = $devices[$i]['DeviceName'];
+            $this->queryParameters['Device.' . ($i + 1) . '.ProductKey'] = $devices[$i]['ProductKey'];
+        }
+
+        return $this;
+    }
+}

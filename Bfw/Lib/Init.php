@@ -40,7 +40,7 @@ try {
     define("AYC_CACHE_NAME", "ayscachelist"); // 当前ip
     define("URL", UrlUtil::geturl()); // 当前url
     define("JSON_PRETTY", isset($_SERVER['HTTP_JSONPRETTY']) ? true : false);
-    define("IS_AJAX_REQUEST", isset($_SERVER['HTTP_X_REQUESTED_WITH']) || isset($_SERVER['HTTP_BFWAJAX']) ? true : false); // 判断是否是ajax请求
+    define("IS_AJAX_REQUEST", isset($_SERVER['HTTP_X_REQUESTED_WITH']) || isset($_SERVER['HTTP_BFWAJAX'])||isset($_POST['bfwajax'])||isset($_GET['bfwajax']) ? true : false); // 判断是否是ajax请求
     define("SERVER_NAME", isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : ""); // 服务器域名
     define("SERVER_PORT", isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : ""); // 服務器
     define("APPSELF", isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : ''); // 当前脚本名称
@@ -76,6 +76,8 @@ try {
         if (RUN_MODE == "D") {
             defineinit("DEV_PLACE", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'devplace', "local"); // 开发地点 云端或本地 local cloud
             defineinit("DEV_DEMO_URL", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'devdemourl', "http://a.exm.com/Cloud/"); // 开发地点 云端或本地 local cloud
+            defineinit("DEV_USERDB_DIR", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'devuserdbdir', APP_ROOT.DS."Data".DS); // 云开发用户注册数据库
+            defineinit("DEV_USERCOOKIE_NAME", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'devusercookiename', "bfw_id"); // 云开发用户注册数据库
         }
         $_defaultdom = isset($_config_arr['Globle']['host_runmode'][HOST_NAME]['dom']) ? $_config_arr['Globle']['host_runmode'][HOST_NAME]['dom'] : "";
         $_defaultcont = isset($_config_arr['Globle']['host_runmode'][HOST_NAME]['cont']) ? $_config_arr['Globle']['host_runmode'][HOST_NAME]['cont'] : "";
@@ -333,6 +335,7 @@ try {
         defineinit("SESSION_MYSQL_PWD", $_config_arr['App'], 'session_mysql_pwd', "root"); // memcache 端口
         defineinit("SESSION_MYSQL_TB", $_config_arr['App'], 'session_mysql_tb', "bfw_sessions"); // memcache 端口
     }
+    defineinit("SESSION_COOKIE_DOMIAN", $_config_arr['App'], 'session_cookie_domian', HOST_NAME); // session cookie域
     defineinit("SESSION_COOKIE_EXPIRE", $_config_arr['App'], 'session_cookie_expire', 3600 * 10); // 过期时间
     defineinit("SESSION_ID_NAME", $_config_arr['App'], 'session_id_name', "BFWID"); // sessionid
     
@@ -353,11 +356,11 @@ try {
         'C',
         'M'
     ]) && strtolower(PHP_SAPI) != "cli") {
-        ini_set('session.gc_maxlifetime', SESSION_COOKIE_EXPIRE);
-        ini_set('session.gc_probability', 0);
-        ini_set('session.gc_divisor', 100);
+       // ini_set('session.gc_maxlifetime', SESSION_COOKIE_EXPIRE);
+       // ini_set('session.gc_probability', 0);
+       // ini_set('session.gc_divisor', 100);
         session_name(SESSION_ID_NAME);
-        session_set_cookie_params(SESSION_COOKIE_EXPIRE, "/", null, false, true);
+        session_set_cookie_params(SESSION_COOKIE_EXPIRE, "/", SESSION_COOKIE_DOMIAN, false, true);
         $_sessionpath = "Lib\\Session\\" . SESSION_HANDLER_NAME . "::";
         session_set_save_handler($_sessionpath . "sess_open", $_sessionpath . "sess_close", $_sessionpath . "sess_read", $_sessionpath . "sess_write", $_sessionpath . "sess_destroy", $_sessionpath . "sess_gc");
         if (isset($_POST[SESSION_ID_NAME]) && $_POST[SESSION_ID_NAME] != "") {

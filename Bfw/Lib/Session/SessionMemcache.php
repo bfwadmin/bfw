@@ -59,7 +59,7 @@ class SessionMemcache implements BoSessionInterface
             return true;
         }
         BoDebug::Info("memsession set " . $sess_id);
-        return self::$db->set($sess_id, $data, SESSION_MEMCACHE_COMPRESS, ini_get('session.gc_maxlifetime'));
+        return self::$db->set($sess_id, $data, SESSION_MEMCACHE_COMPRESS, SESSION_COOKIE_EXPIRE);
     }
 
     static function sess_destroy($sess_id)

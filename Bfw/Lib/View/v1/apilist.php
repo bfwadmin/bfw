@@ -1,15 +1,16 @@
 <?php
+
 function builderurl($c, $a, $d)
 {
-    $_urlarr=parse_url(URL);
+    $_urlarr = parse_url(URL);
     $_baseurl = "";
-    if($_urlarr){
-        $_baseurl=$_urlarr['scheme']."://";
-        $_baseurl.=$_urlarr['host'];
-        if(isset($_urlarr['port'])){
-            $_baseurl.=":".$_urlarr['port'];
+    if ($_urlarr) {
+        $_baseurl = $_urlarr['scheme'] . "://";
+        $_baseurl .= $_urlarr['host'];
+        if (isset($_urlarr['port'])) {
+            $_baseurl .= ":" . $_urlarr['port'];
         }
-        $_baseurl.=$_urlarr['path'];
+        $_baseurl .= $_urlarr['path'];
     }
     
     $routype = isset($_GET['route']) ? $_GET['route'] : 0;
@@ -17,7 +18,7 @@ function builderurl($c, $a, $d)
         return $_baseurl . "?" . DOMIAN_NAME . "=" . $d . "&" . CONTROL_NAME . "=" . $c . "&" . ACTION_NAME . "=" . $a;
     } else 
         if ($routype == 2) {
-            return $_baseurl . $c  . "/" . $a;
+            return $_baseurl . $c . "/" . $a;
         } else {
             return "";
         }
@@ -98,6 +99,8 @@ function ajax(url, fnSucc, method, data) {
 		oAjax.open("POST", url, true);// 把要读取的参数的传过来。
 		oAjax.setRequestHeader("Content-type",
 				"application/x-www-form-urlencoded");
+		oAjax.setRequestHeader("clientinfo",
+		"h5_mobile_1.0");
 	} else {
 		oAjax.open("GET", url, true);// 把要读取的参数的传过来。
 	}
@@ -126,33 +129,36 @@ function ajax(url, fnSucc, method, data) {
 body {
 	background: #1c1c1c;
 }
-p{
-	margin:0;
-	padding:0;
+
+p {
+	margin: 0;
+	padding: 0;
 }
+
 #apidebugpanel {
 	box-shadow: 0 0 10px #feff93;
 	border-radius: 5px;
 	height: 500px;
 	position: absolute;
 	display: none;
-	width:60%;
+	width: 60%;
 	background: #fff5b3;
 	padding: 9px;
 	left: 50%;
 	top: 50%;
 	margin-left: -30%;
+	z-index:222;
 }
 
 #apidebugpanel select {
 	width: 20%;
 	padding: 10px;
-	height:40px;
+	height: 40px;
 }
 
 #apidebugpanel input {
 	padding: 10px;
-	height:40px;
+	height: 40px;
 }
 
 #closebtn {
@@ -167,63 +173,78 @@ p{
 
 #sendbtn {
 	width: 20%;
-	height:30px;
+	height: 30px;
 }
 
 #postpara {
 	width: 100%;
-	height:40px;
+	height: 40px;
 }
-#mulu{
-	background:#000000;
-	color:white;
-	padding:0px 5px;
-	width:100%;
-	position:fixed;
-	top:0;
-	left:0;
+#summary{
+	width:85%;
+	margin-left:15%;
 }
-#mulu ul{
-	padding:0;
+#mulu {
+	background: #000000;
+	color: #8b8b8b;
+	padding: 5px;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 15%;
+	height:100vh;
+	overflow:scroll;
+	font-size:16px;
+}
+
+#mulu ul {
+	padding: 0;
+	margin: 0;
+	list-style: none;
+	clear: both;
+}
+
+#mulu ul li {
+	line-height: 30px;
+	margin: 0 10px;
+	display: block;
+	overflow: hidden;
+	background: black;
+	padding: 10px;
+}
+
+
+#mulu ul li a .selected{
+	color:blue;
+	
+}
+#mulu ul li h4 {
+	padding:0px;
 	margin:0;
-	list-style:none;
-	clear:both;
+	font-weight:bold;
+	font-size:18px;
 }
-
-#mulu ul li{
-	line-height:30px;
-	float:left;
-	margin:0 10px;
-	display:block;
-	height:25px;
-	overflow:hidden;
-	background:black;
-	padding:10px;
-}
-
-#mulu ul li:hover{
-	height:auto;
-	background:#2f2f2f;
+#mulu ul li h4 a {
+	color:#2596cc;
 }
 #mulu ul li a {
-    text-decoration:none;
-	color:white;
+	text-decoration: none;
+	color: #d1d1d1;
 }
-#mulu ul li a:link{
-	color:white;
-	text-decoration:none;
-}
-#mulu ul li a:hover{
-	text-decoration:none;
-}
-#mulu ul li a:active{
-	color:white;
-	text-decoration:none;
-}
-#mulu ul li a:visited{
-	color:white;
-	text-decoration:none;
-}
+#mulu::-webkit-scrollbar {
+        width: 10px;  
+        height: 1px;
+    }
+#mulu::-webkit-scrollbar-thumb {
+        border-radius: 10px;
+         -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        background: #535353;
+    }
+#mulu::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        border-radius: 10px;
+        background: #EDEDED;
+    }
 </style>
 
 
@@ -245,17 +266,19 @@ p{
 				placeholder="post参数类似于username=wangbo&passwd=111111这种形式" />
 		</div>
 		<h4>返回结果</h4>
-		<textarea style="width: 100%; height:200px;" id="responsepannel"></textarea>
-	    <textarea style="width: 100%; height: 100px;" id="responsedebugdata"></textarea>
+		<textarea style="width: 100%; height: 200px;" id="responsepannel"></textarea>
+		<textarea style="width: 100%; height: 100px;" id="responsedebugdata"></textarea>
 	</div>
-	
+
 	<div id="mulu">
-	<ul >
+		<ul>
 		<?php foreach($con_act_array as $key=>$val){ ?>
-		<li><a href="#an_<?=$key?>"><?=$val[0]['doccomment'][0]?></a>
+		<li><h4><a href="#an_<?=$key?>"><?=$val[0]['doccomment'][0]?></a></h4>
 	   
 		<?php   foreach ($val as $item) {?>
-		<p><a href="#ac_<?=$key?>_<?=$item[0]?>"><?=$item[1]?></a></p>
+		<p>
+					<a class="selected"  href="#ac_<?=$key?>_<?=$item[0]?>"><?=$item[1]?></a>
+				</p>
 		
 		<?php }?>
 		
@@ -263,41 +286,47 @@ p{
 		<?php }?>
 		</ul>
 	</div>
-	<h1 style="color: #8b8b8b;margin-top:60px; padding-left:15px;"><?=DOMIAN_VALUE?>接口文档</h1>
-	<div style="padding:5px 24px;color:#8b8b8b;"><?=$readmedata?></div>
+	<div id="summary">
+		<h1 style="color: #2596cc; padding-left: 20px;"><?=DOMIAN_VALUE?>接口文档</h1>
+		<div style="padding: 5px 24px; color: #8b8b8b;"><?=$readmedata?></div>
 				<?php foreach($con_act_array as $key=>$val){ ?>
-				   <div style=' color: #2596cc; background:#0c0c0c;padding:10px;margin:18px;'>
+				   <div
+			style='color: #2596cc; background: #0c0c0c; padding: 10px; margin: 18px;'>
 			<a name="an_<?=$key?>" />
-			
-		
-		<p style="font-weight:bold;"><?=str_replace("*","<br/>",$val[0]['doccomment'][0])?></p>
-				<p><?=str_replace("*","<br/>",$val[0]['doccomment'][1])?></p>
+
+
+			<p style="font-weight: bold;"><?=str_replace("*","<br/>",$val[0]['doccomment'][0])?></p>
+			<p><?=str_replace("*","<br/>",$val[0]['doccomment'][1])?></p>
 					<?php
         $i = 0;
         foreach ($val as $item) {
-            if(!isset($item['doccomment'])){
-            ?>
-            <a  name="ac_<?=$key?>_<?=$item[0]?>"/>
+            if (! isset($item['doccomment'])) {
+                ?>
+            <a name="ac_<?=$key?>_<?=$item[0]?>" />
 
-           <div style="margin: 20px 0px;background: #404040;padding: 20px; ">
-            		<div style='color: #d1d1d1; line-height:25px;'>
+			<div style="margin: 20px 0px; background: #404040; padding: 20px;">
+				<div style='color: #d1d1d1; line-height: 25px;'>
 	<?=$item[3]?>
 	</div>
-		<p style='color: #8b8b8b;'>
-			接口地址:<span id="url_<?=$key?><?=$i?>"><?=builderurl($key,$item[0],DOMIAN_VALUE)?></span><input
-				type="button" onclick="apidebug('url_<?=$key?><?=$i?>',event);" value="调试" />
-			<input type="button" onClick="copyUrl('url_<?=$key?><?=$i?>')" value="复制" />
-		</p>
-		</div>
+				<p style='color: #8b8b8b;'>
+					接口地址:<span id="url_<?=$key?><?=$i?>"><?=builderurl($key,$item[0],DOMIAN_VALUE)?></span><input
+						type="button" onclick="apidebug('url_<?=$key?><?=$i?>',event);"
+						value="调试" /> <input type="button"
+						onClick="copyUrl('url_<?=$key?><?=$i?>')" value="复制" />
+				</p>
+			</div>
 					<?php
-					$i ++;
+                $i ++;
             }
         }
-       
+        
         ?>
 		</div>
 				<?php } ?>
-				<div id="debug_info_area"></div>
-				 <div style="margin: 0; text-align:center; color:white;">Power by BFW<sup><?=VERSION?></sup>[SOA framework]</div>
-		</body>
+		
+				 <div style="margin: 0; text-align: center; color: white;">
+			Power by BFW<sup><?=VERSION?></sup>[SOA framework]
+		</div>
+	</div>
+</body>
 </html>

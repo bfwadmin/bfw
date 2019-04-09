@@ -2,6 +2,7 @@
 namespace Plugin;
 
 use Lib\Bfw;
+use Lib\BoSess;
 
 class Verify
 {
@@ -102,15 +103,15 @@ class Verify
     public function check($code, $id = '')
     {
         $key = $this->authcode($this->seKey) . $id;
-        echo $key;
+        //echo $key;
         // 验证码不能为空
-        $secode = Bfw::Session($key);
+        $secode = BoSess::Session($key);
         if (empty($code) || empty($secode)) {
             return false;
         }
-        echo $secode;
+       // echo $secode;
         if ($this->authcode(strtoupper($code)) == $secode) {
-            $this->reset && Bfw::Session($key, null);
+            $this->reset && BoSess::Session($key, null);
             return true;
         }
         
@@ -186,7 +187,7 @@ class Verify
         // 保存验证码
         $key = $this->authcode($this->seKey);
         $code = $this->authcode(strtoupper(implode('', $code)));
-        Bfw::Session($key . $id, $code, $this->expire);
+        BoSess::Session($key . $id, $code, $this->expire);
         header('Cache-Control: private, max-age=0, no-store, no-cache, must-revalidate');
         header('Cache-Control: post-check=0, pre-check=0', false);
         header('Pragma: no-cache');

@@ -10,16 +10,20 @@
 <link rel="stylesheet" media="all" href="?webide=1&getstatic=/tree.css" />
 <link rel="stylesheet" media="all"
 	href="?webide=1&getstatic=/webide.css" />
-
+<style type="text/css">
+.ace_autocomplete {
+	width: 600px !important;
+}
+</style>
 </head>
 <body onload="RunOnBeforeUnload()">
 	<div id="mask"
 		class="pos-abs v-fullscreen opacity-7 color-black zindex-99999 dis-hide">
-		<div id="notice">loading...</div>
+		<div id="notice">loading</div>
 	</div>
 	<header>
 		<ul>
-			<li class="logo">BFW</li>
+			<li class="logo">BFW STUDIO</li>
 			<li>开发设置</li>
 			<li onclick="dbconfshow();">数据库连接</li>
 			<li>云端存储</li>
@@ -31,32 +35,30 @@
 			<?php }?>
 			<li>我的任务</li>
 			<?php if($uid!=""){?>
-		       <li class="loginfo" ><p>我的中心</p>
-		       <p>我的任务</p>
-		       <p>我的日记</p></li>
+		       <li class="loginfo"><p>我的中心</p>
+				<p>我的任务</p>
+				<p>我的日记</p></li>
 			<?php }else{?>
 		    	<li class="userinfo" onclick="popup($('#login'));">登录/注册</li>
 			<?php }?>
 		</ul>
 	</header>
 	<div id="loadding"
-		style="position: absolute; top: 0; left: 0; background: black; color: grey; height: 100vh; width: 100%; text-align: center; line-height: 400px;">
-		加载中.........</div>
-		<div id="rename" class="popup_dia" style="width: 20%; height: 25%;">
+		style="position: absolute; top: 0; left: 0; background: black; color: grey; height: 100vh; width: 100%; ">
+		<div style="text-align: center;font-size:32px; margin:45vh auto;">LOADING BFW STUDIO</div></div>
+	<div id="rename" class="popup_dia" style="width: 20%; height: 25%;">
 		<div class="popup_title">
 			<span>重命名</span> <span onclick="popclose('rename')"
 				class="popup_close">×</span>
 		</div>
-			<p>
-			<input type="text" class="popup_textin" id="filename"
-				name="filename"  />
-					<input type="hidden" class="popup_textin" id="parentpathname"
-				name="parentpathname"  />
-				<input type="hidden" class="popup_textin" id="oldfilename"
-				name="oldfilename"  />
+		<p>
+			<input type="text" class="popup_textin" id="filename" name="filename" />
+			<input type="hidden" class="popup_textin" id="parentpathname"
+				name="parentpathname" /> <input type="hidden" class="popup_textin"
+				id="oldfilename" name="oldfilename" />
 		</p>
-		
-        <p>
+
+		<p>
 			<input type="button" value="确   定" class="popup_btn"
 				onclick="rename()" />
 		</p>
@@ -67,8 +69,7 @@
 			<span>请选择执行的动作器</span> <span onclick="popclose('runaction')"
 				class="popup_close">×</span>
 		</div>
-		<div id="actionlist">
-		</div>
+		<div id="actionlist"></div>
 
 	</div>
 	<div id="addcontroler" class="popup_dia">
@@ -198,7 +199,10 @@
 	<div id="wellcomepage">
 		<h1>最近项目</h1>
 		<?php if(DEV_PLACE=="local"){?>
-		<ul class="nav_tab" id="pro_nav_tab"><li class="tab_selected">本地</li><li>云端</li></ul>
+		<ul class="nav_tab" id="pro_nav_tab">
+			<li class="tab_selected">本地</li>
+			<li>云端</li>
+		</ul>
 		<?php }?>
 		<ul class="project" id="latest_pro">
 		</ul>

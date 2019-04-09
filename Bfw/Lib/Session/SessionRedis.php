@@ -61,7 +61,7 @@ class SessionRedis implements BoSessionInterface
     {
         try {
             BoDebug::Info("redissession write " . $sess_id);
-            return self::$db->setex($sess_id, ini_get('session.gc_maxlifetime'), $data);
+            return self::$db->setex($sess_id, SESSION_COOKIE_EXPIRE, $data);
         } catch (\Exception $e) {
             BoDebug::Info("redissession connect fail " . $e->getMessage());
         }
@@ -81,7 +81,7 @@ class SessionRedis implements BoSessionInterface
     {
         try {
             BoDebug::Info("redissession gc ");
-            self::$db->keys("*");
+           // self::$db->keys("*");
             return true;
         } catch (\Exception $e) {
             BoDebug::Info("redissession connect fail " . $e->getMessage());

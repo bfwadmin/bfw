@@ -132,7 +132,7 @@ class FileUtil
                     $_data[] = [
                         "name" => $file,
                         "type" => 2,
-                        "data" => $_dir . DS . $file
+                        "data" => $file
                     ];
                 }
             }
