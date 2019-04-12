@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>BFW-演示页面</title>
+<meta name="robots" content="all" />
+<meta name="keywords" content="BFW" />
+<meta name="description" content="BFW" />
+<link type="text/css" rel="stylesheet" href="../css/bfw.css">
+<script src="../js/bfw.js"></script>
+<style>
+.bfw-footer a {
+	color: white;
+}
+
+.bfw-footer a:link {
+	color: white;
+}
+
+.menu {
+	padding: 0;
+	margin: 0;
+}
+
+.menu li {
+	display: block;
+	padding: 10px;
+	margin: 5px;
+	border-bottom: 2px solid white;
+}
+
+.menu li:hover {
+	border-bottom: 2px solid #001f50;
+	border-radius: 0px;
+}
+
+.menu  .selected {
+	border-bottom: 2px solid #001f50;
+	border-radius: 0px;
+}
+
+.search-bar {
+	background: white;
+	width: 50%;
+	margin: 120px auto;
+	height: 50px;
+	overflow: hidden;
+}
+
+.search-bar input {
+	outline: none;
+	border: none;
+	margin: 8px;
+}
+
+.search-btn {
+	height: 50px;
+	background: #d9d9d9;
+	line-height: 50px;
+	cursor: pointer;
+}
+
+.section {
+	padding: 10px;
+}
+
+.section .title {
+	height: 30px;
+	border-bottom: 2px solid #001f50;
+}
+
+.section ul {
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+.section li {
+	padding: 5px;
+}
+
+.list-item h3, .list-item p {
+	padding-left: 20px;
+}
+
+.list-item p {
+	color: grey;
+}
+
+.content {
+	line-height: 20px;
+	padding: 20px;
+}
+
+.writer {
+	display: inline-block;
+	margin: 5px auto;
+	width: 100px;
+	height: 100px;
+	border-radius: 100px;
+	-webkit-border-radius: 100px;
+	-moz-border-radius: 100px;
+	border: 2px solid #fff;
+	box-shadow: 0 0 4px #ccc;
+	overflow: hidden
+}
+
+.bfw-nav-item li:hover {
+	background: #484848;
+}
+</style>
+</head>
+<body>
+
+	<div class="bfw-cont " style="background:#3d3d3d;">
+		<div class="bfw-header  bfw-width-per">
+			<div
+				class=" bfw-over-h bfw-nav-bar bfw-color-b-b bfw-color-w bfw-height-90  bfw-opa-l">
+				<div class="bfw-nav-item ">
+					<img style="height: 80px; margin: 6px 5px 3px 5px;" src="../image/logo.png" />
+				</div>
+				<div class="bfw-nav-item bfw-mar-30 bfw-pad-5">
+					<a class="bfw-color-w" href="#aboutus">公司介绍</a>
+
+				</div>
+				<div class="bfw-nav-item bfw-mar-30 bfw-pad-5">
+					<a class="bfw-color-w" href="#service">我们的服务</a>
+
+				</div>
+				<div
+					class="bfw-nav-item bfw-mar-30 bfw-pad-5 bfw-width-150  bfw-color-b-b">
+					<a class="bfw-color-w" href="#advantage">我们的优势</a> <span
+						class="bfw-width-150">
+						<ul>
+							<li>发布博客</li>
+							<li>我要问答</li>
+							<li>我的博豆</li>
+						</ul>
+					</span>
+				</div>
+				<!-- 
+				<div class="bfw-nav-item bfw-mar-30 bfw-pad-5 bfw-float-r "
+					onclick="$('#alert').dia(function(){return true;},[])">登录/注册</div> -->
+
+				<div
+					class="bfw-sc-pc bfw-nav-item bfw-mar-30 bfw-pad-5 bfw-float-r bfw-pos-rel bfw-width-150  bfw-color-b-b">
+					<a class="bfw-color-w" href="dd">wang123</a> <span
+						class="bfw-width-150">
+						<ul>
+							<li>发布博客</li>
+							<li>我要问答</li>
+							<li>我的博豆</li>
+						</ul>
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class=" bfw-align-c" style="width: 83%; margin: 0 auto;">
+			<div class="bfw-row-owner search-bar">
+				<div class="bfw-row-70">
+					<input class="bfw-width-per bfw-pad-s" type="text"
+						placeholder="请输入关键词" />
+				</div>
+				<div class="bfw-row-30 search-btn">搜索</div>
+			</div>
+		</div>
+		<div class="bfw-middle bfw-color-b-w"
+			style="width: 83%; margin: 0 auto;">
+			<div class="bfw-row-owner bfw-height-auto">
+				<div class="bfw-row-70">
+					<h2 class="bfw-align-c bfw-pad-l">BFW简介</h2>
+					<p class="bfw-align-c">发布于2012-12-12 130次浏览 分享到</p>
+					<div class="content bfw-line-l">
+<p>本程序由王小伢兴趣爱好编写，</p>
+<p>是全球首款支持webide的开发及运行框架，</p>
+<p>支持单机，伪集群，集群，SOA部署，</p>
+<p>支持code first，db first，template first开发模式，支持java php net多种流行语言，</p>
+<p>云端保存，多处开发，支持企业云部署，一个账号，随时随地打开浏览器即可开发应用，丰富的在线插件及文档，</p>
+<p>社群问题回答，模板涵盖电商、企业官网、在线教育、企业erp，oa等热门系统，</p>
+<p>支持在线模板交易，让优秀的程序员收获自己的财富</p>
+					</div>
+				
+				
+
+				</div>
+				<div class="bfw-row-30" style="background: #f3f3f3">
+					<div class="section">
+						<div class="bfw-align-c">
+							<img class="writer" src="image/Pai_15438878833412.png" />
+						</div>
+						<p class="bfw-align-c">王薄12132</p>
+						<div class="bfw-pad-l bfw-align-c">
+							<a class="bfw-btn-m bfw-color-b-w bfw-color-b bfw-mar-m">加关注</a><a
+								class="bfw-mar-m bfw-btn-m">加关注</a>
+						</div>
+					</div>
+					<div class="section">
+						<div class="title">最新排行</div>
+						<div class="cont">
+							<ul>
+								<li><a href="#">bfw简介</a></li>
+								<li><a href="#">bfw简介</a></li>
+									<li><a href="#">bfw简介</a></li>
+										<li><a href="#">bfw简介</a></li>
+											<li><a href="#">bfw简介</a></li>
+												<li><a href="#">bfw简介</a></li>
+													<li><a href="#">bfw简介</a></li>
+							</ul>
+						</div>
+					</div>
+
+				</div>
+				<div class="bfw-row-clear "></div>
+			</div>
+		</div>
+		<div
+			class="bfw-footer bfw-height-l bfw-align-c bfw-color-b-b bfw-color-w bfw-pad-l">
+			<a>关于我们</a>|<a>关于我们</a>|<a>关于我们</a>|<a>关于我们</a>|<a>关于我们</a>
+			<p>COPYRIGHT © 20018-2019 BFW版权所有 All RIGHTS RESERVED</p>
+			
+		</div>
+	</div>
+</body>
+</html>

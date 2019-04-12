@@ -76,6 +76,7 @@ body {
 	padding: 35px 5px;
 	text-align: center;
 	color: white;
+	overflow:hidden;
 }
 .project li:hover {
 	background:#2596cc;
@@ -181,6 +182,7 @@ body {
 	font-size:16px;
 	font-weight:bold;
 	margin-bottom:6px;
+	color:#9d9d9d;
 }
 .tree{
 	padding:0 20px;
@@ -197,6 +199,32 @@ padding:0;
 	float:right;
 	height:30px;
 	overflow:hidden;
+}
+.navitem{
+	height:60px;
+	width:120px;
+	position: relative;
+	text-align:center;
+	padding:0 0 0 0;
+	line-height:20px;
+
+}
+.navitem div:hover{
+	height:auto;
+   background:#232323;
+}
+.navitem div p{
+	padding:0;
+	margin:0;
+}
+.navitem div{
+	padding:10px;
+	position: absolute;
+	z-index:1111;
+	height:50px;
+	overflow:hidden;
+	width:100%;
+	line-height:40px;
 }
 .loginfo:hover{
 	height:auto;
@@ -221,6 +249,8 @@ header {
 	height: 60px;
 	background: black;
 	color: #cbcbcb;
+
+		
 }
 
 header ul {
@@ -238,7 +268,7 @@ header ul {
 header ul li {
 	display: block;
 	float: left;
-	padding: 20px;
+ padding:20px;
 	cursor: pointer;
 }
 
@@ -254,7 +284,13 @@ header ul li:hover {
 	left: 20%;
 	right: 0;
 	clear:both;
-
+	z-index:111;
+	overflow:hidden;
+	background:#272727;
+}
+#file_tab:hover{
+	height:60px;
+	overflow-y:scroll;
 }
 #file_tab ul{
 	list-style:none;
@@ -275,7 +311,8 @@ header ul li:hover {
 	width: auto;
 	height: auto;
 	max-width: 100%;
-	max-height: 100%;	
+	max-height: 100%;
+	margin:0 auto;
 }
 .wellcome_show{
 	width:60vh;
@@ -345,4 +382,10 @@ header ul li:hover {
 }
 .logo{
 	color:#2596cc;
+	font-weight:bold;
+	font-size:26px;
+}
+.logo_vers{
+	color:grey;
+	font-size:12px;
 }

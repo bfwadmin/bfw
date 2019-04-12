@@ -45,11 +45,11 @@ class BoRes
         $viewpath = APP_ROOT.DS."App" . DS . $domain . DS . "View" . DS . $contval . DS . $viewname . ".php";
         if ($domain == 'System') {
             if ("error" == $viewname) {
-                $viewpath = APP_ROOT . DS . ERROR_PAGE;
+                $viewpath = ERROR_PAGE;
             } elseif ("msgbox" == $viewname) {
-                $viewpath = APP_ROOT . DS . MSGBOX_PAGE;
+                $viewpath = MSGBOX_PAGE;
             } elseif ("success" == $viewname) {
-                $viewpath = APP_ROOT . DS . SUCCESS_PAGE;
+                $viewpath =  SUCCESS_PAGE;
             } else {
                 $viewpath = BFW_LIB. DS."Lib" .DS. "View" . DS . $contval . DS . $viewname . ".php";
             }

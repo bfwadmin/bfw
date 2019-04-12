@@ -11,7 +11,8 @@ $_config_arr['Globle'] = [
     "host_runmode" => [
         "bfwclouddeveloper"=>[
             "mode"=>"D",
-            "devplace"=>"cloud"//local
+            "devplace"=>"cloud",//local
+            "devuserdbdir"=>BFW_LIB.DS."Data".DS
         ],
 		"a.exm.com"=>[
 			"mode"=>"C"

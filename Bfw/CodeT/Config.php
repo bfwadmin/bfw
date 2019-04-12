@@ -8,6 +8,8 @@ $_config_arr['App'] = [
 	"log_dir"=>APP_BASE.DS."Log".DS,
 	"data_dir"=>APP_BASE.DS."Data".DS,
 	"static_dir"=>"static",
-	"cache_dir"=>APP_BASE.DS."Cache".DS,
+	"cache_dir"=>BFW_LIB.DS."Cache".DS,
+    "plugin_dir"=>BFW_LIB.DS."Plugin".DS,
+    "runtime_dir"=>BFW_LIB.DS."Runtime".DS,
 ];
 

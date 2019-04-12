@@ -4,7 +4,7 @@ namespace Lib\Db;
 use Lib\Bfw;
 use Lib\BoDebug;
 use Lib\Exception\DbException;
-require_once APP_ROOT . DS . "Lib" . DS . "Db" . DS . 'BoDb.php';
+require_once BFW_LIB . DS . "Lib" . DS . "Db" . DS . 'BoDb.php';
 
 class DbMysql extends BoDb implements BoDbInterface
 {

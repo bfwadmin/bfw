@@ -1,6 +1,6 @@
 <html>
 <head lang="zh-CN">
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BFW网页开发环境</title>
 <meta name="keywords" content="php开发框架,SOA框架,java开发框架" />
@@ -23,10 +23,12 @@
 	</div>
 	<header>
 		<ul>
-			<li class="logo">BFW STUDIO</li>
-			<li>开发设置</li>
-			<li onclick="dbconfshow();">数据库连接</li>
+			<li class="logo">BFW STUDIO<span class="logo_vers">v1.0</span></li>
+		
+			<li onclick="dbconfshow();">开发设置</li>
+			<?php if(DEV_PLACE=="local"){?>
 			<li>云端存储</li>
+			<?php }?>
 			<li>提交问题</li>
 			<li>模板商城</li>
 			<li>文档教程</li>
@@ -34,18 +36,39 @@
 			<li>团队管理</li>
 			<?php }?>
 			<li>我的任务</li>
-			<?php if($uid!=""){?>
-		       <li class="loginfo"><p>我的中心</p>
-				<p>我的任务</p>
-				<p>我的日记</p></li>
-			<?php }else{?>
-		    	<li class="userinfo" onclick="popup($('#login'));">登录/注册</li>
-			<?php }?>
+			<li onclick="popup($('#aboutus'));" >关于我们</li>
+			
+	     <li class="navitem"  id="logined" style="float:right;<?php if($uid==""){?>display:none;<?php }?>">
+				<div>
+					<p>我的中心</p>
+					<p>我的日记</p>
+					<p>我的任务</p>
+					<p>我的博客</p>
+					<p onclick="logout();">退出</p>
+				</div>
+			</li>
+	
+		 <li class="userinfo" id="unlogin"  onclick="popup($('#login'));" style="<?php if($uid!=""){?>display:none;<?php }?>">登录/注册</li>
 		</ul>
 	</header>
 	<div id="loadding"
-		style="position: absolute; top: 0; left: 0; background: black; color: grey; height: 100vh; width: 100%; ">
-		<div style="text-align: center;font-size:32px; margin:45vh auto;">LOADING BFW STUDIO</div></div>
+		style="position: absolute; z-index: 1111; top: 0; left: 0; background: black; color:#44a6ff ; height: 100vh; width: 100%;">
+		<div style="text-align: center; margin: 45vh auto; ">
+		<div style="font-size: 42px; font-weight:bold;">BFW STUDIO</div>
+			<div style="color:#3c3c3c;padding-top:10px;">made develop easier</div>
+		</div>
+		
+	</div>
+		<div id="aboutus" class="popup_dia" style="width: 50%; height: 40%;">
+		<div class="popup_title">
+			<span>关于我们</span> <span onclick="popclose('aboutus')"
+				class="popup_close">×</span>
+		</div>
+		<p style="color:grey;">
+		    本程序由王小伢兴趣爱好编写，</br>
+			是全球首款支持webide的开发及运行框架，</br>支持单机，伪集群，集群，SOA部署，</br>支持code first，db first，template first开发模式，支持java php net多种流行语言，</br>云端保存，多处开发，支持企业云部署，一个账号，随时随地打开浏览器即可开发应用，丰富的在线插件及文档，</br>社群问题回答，模板涵盖电商、企业官网、在线教育、企业erp，oa等热门系统，</br>支持在线模板交易，让优秀的程序员收获自己的财富
+		</p>
+	</div>
 	<div id="rename" class="popup_dia" style="width: 20%; height: 25%;">
 		<div class="popup_title">
 			<span>重命名</span> <span onclick="popclose('rename')"
@@ -56,12 +79,24 @@
 			<input type="hidden" class="popup_textin" id="parentpathname"
 				name="parentpathname" /> <input type="hidden" class="popup_textin"
 				id="oldfilename" name="oldfilename" />
+				 <input type="hidden" class="popup_textin"
+				id="oldfiletype" name="oldfiletype" />
+				
 		</p>
 
 		<p>
 			<input type="button" value="确   定" class="popup_btn"
 				onclick="rename()" />
 		</p>
+
+	</div>
+	
+		<div id="previewhtml" class="popup_dia" style="width: 30%; height: 20%;">
+		<div class="popup_title">
+			<span>由于浏览器限制弹窗，请点击查看</span> <span onclick="popclose('previewhtml')"
+				class="popup_close">×</span>
+		</div>
+		<div id="previewbtn" style="text-align:center;color:grey;"></div>
 
 	</div>
 	<div id="runaction" class="popup_dia" style="width: 20%; height: 40%;">

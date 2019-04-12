@@ -64,9 +64,9 @@ try {
     defineinit("DOMIAN_NAME", $_config_arr['Globle'], 'domian_name', "dom"); // 域名称
     defineinit("ACTION_NAME", $_config_arr['Globle'], 'action_name', "act"); // 动作器名称
     defineinit("ROUTER_NAME", $_config_arr['Globle'], 'router_name', "r"); // 路由参数名称
-    defineinit("SUCCESS_PAGE", $_config_arr['Globle'], 'success_page', "/Lib/View/v1/success.php"); // 成功页面
-    defineinit("MSGBOX_PAGE", $_config_arr['Globle'], 'msgbox_page', "/Lib/View/v1/msgbox.php"); // 提醒页面
-    defineinit("ERROR_PAGE", $_config_arr['Globle'], 'error_page', "/Lib/View/v1/error.php"); // 错误页面
+    defineinit("SUCCESS_PAGE", $_config_arr['Globle'], 'success_page', BFW_LIB."/Lib/View/v1/success.php"); // 成功页面
+    defineinit("MSGBOX_PAGE", $_config_arr['Globle'], 'msgbox_page', BFW_LIB."/Lib/View/v1/msgbox.php"); // 提醒页面
+    defineinit("ERROR_PAGE", $_config_arr['Globle'], 'error_page', BFW_LIB."/Lib/View/v1/error.php"); // 错误页面
     
     $_defaultdom = "";
     $_defaultcont = "";
@@ -212,7 +212,7 @@ try {
     defineinit("LOG_DIR", $_config_arr['App'], 'log_dir', APP_ROOT . DS . "Log" . DS); // 日志记录路径
     defineinit("LOG_TO_SERVER", $_config_arr['App'], 'log_to_server', false); // 把日志发送日志服务器
     defineinit("DATA_DIR", $_config_arr['App'], 'data_dir', APP_ROOT . DS . "Data" . DS); // runtime记录路径
-    defineinit("PLUGIN_DIR", $_config_arr['App'], 'plugin_dir', APP_ROOT . DS . "Plugin" . DS); // 插件路径
+    defineinit("PLUGIN_DIR", $_config_arr['App'], 'plugin_dir', BFW_LIB . DS . "Plugin" . DS); // 插件路径
     defineinit("STATIC_DIR", $_config_arr['App'], 'static_dir', "static"); // 静态文件夹名称
                                                                            // 代码生成设置
     defineinit("GEN_CODE", $_config_arr['App'], 'gen_code', false); // 运行时从数据库生成代码
@@ -286,7 +286,7 @@ try {
     defineinit("CLIENT_TIMEOUT", $_config_arr['App'], 'client_timeout', 10); // 客户消费服务时间单位秒
                                                                              // 路径设置
     defineinit("STATIC_FILE_PATH", $_config_arr['App'], 'static_file_path', "/static/"); // 静态资源路径
-    defineinit("CACHE_DIR", $_config_arr['App'], 'cache_dir', APP_ROOT . DS . 'Cache' . DS); // CACHE路径
+    defineinit("CACHE_DIR", $_config_arr['App'], 'cache_dir', BFW_LIB . DS . 'Cache' . DS); // CACHE路径
     defineinit("RUNTIME_DIR", $_config_arr['App'], 'runtime_dir', APP_ROOT . DS . 'Runtime' . DS); // RUNTIME_DIR路径 // 獲取連接詞中數據
     defineinit("UPLOAD_DIR", $_config_arr['App'], 'upload_dir', "/upload/");
     // define("UPLOAD_DIR", DS . 'home' . DS . 'uploadfiles' . DS . 'userpic' . DS);

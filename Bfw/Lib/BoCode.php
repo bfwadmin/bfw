@@ -4,6 +4,7 @@ namespace Lib;
 use Lib\Db\DbFactory;
 use Lib\Exception\DbException;
 use Lib\Util\StringUtil;
+use Lib\Util\FileUtil;
 
 class BoCode extends WangBo
 {
@@ -39,9 +40,9 @@ class BoCode extends WangBo
     private function getdevmysqlinfo()
     {
         static $_config_arr = [];
-        if (file_exists(APP_ROOT.DS."App".DS. "Config.php")) {
-                include APP_ROOT.DS."App".DS. "Config.php";
-            }
+        if (file_exists(APP_ROOT . DS . "App" . DS . "Config.php")) {
+            include APP_ROOT . DS . "App" . DS . "Config.php";
+        }
         if (isset($_config_arr['Globle']['dev_mysql_conf'])) {
             return $_config_arr['Globle']['dev_mysql_conf'];
         } else {
@@ -49,22 +50,22 @@ class BoCode extends WangBo
         }
     }
 
-    public function InitApp($_appname, $_uid="")
+    public function InitApp($_appname, $_uid = "")
     {
-        $_dbinfo=$this->getdevmysqlinfo();
+        $_dbinfo = $this->getdevmysqlinfo();
         if (! is_array($_dbinfo) || count($_dbinfo) != 4) {
             return false;
         }
         $_controlername = "Hello";
-        $_dbname=  substr(md5($_uid.$_appname),8,16);
-        $_uname=$_dbname;
-        $_upwd=StringUtil::getRandChar(10);
+        $_dbname = substr(md5($_uid . $_appname), 8, 16);
+        $_uname = $_dbname;
+        $_upwd = StringUtil::getRandChar(10);
         try {
             $this->_dbinfo = [
                 "dbtype" => "DbMysql",
                 "dbhost" => "127.0.0.1",
                 "dbport" => 3306,
-                "dbuser" =>$_uname,
+                "dbuser" => $_uname,
                 "dbpwd" => $_upwd,
                 "dbname" => $_dbname
             ];
@@ -98,10 +99,9 @@ class BoCode extends WangBo
                     "memo" => "内容"
                 ]
             ], $_appname, false);
-            $this->CreatDir(APP_BASE . DS . STATIC_NAME . DS . $_appname . DS . "image");
-            $this->CreatDir(APP_BASE . DS . STATIC_NAME . DS . $_appname . DS . "js");
-            $this->CreatDir(APP_BASE . DS . STATIC_NAME . DS . $_appname . DS . "css");
-            $this->CreatDir(APP_BASE . DS . STATIC_NAME . DS . $_appname . DS . "h5");
+            $this->CreatDir(APP_BASE . DS . STATIC_NAME . DS . $_appname);
+            FileUtil::copydir(BFW_LIB . '/' . CODE_TEMP_PATH . DS . "Cloud" . DS . "static", APP_BASE . DS . STATIC_NAME . DS . $_appname . DS);
+            file_put_contents(APP_ROOT . DS . "App" .DS. $_appname . DS . "readme.bfw", "项目备注信息填写");
             return true;
         } catch (DbException $ex) {
             echo $ex->getException()['errmsg'];
@@ -196,7 +196,7 @@ class BoCode extends WangBo
                 }
             }
             $_temp_cont = str_replace("DOM", $_dom, $_temp_cont);
-            $_temp_cont = str_replace("DBNAME",$this->_dbinfo['dbname'], $_temp_cont);
+            $_temp_cont = str_replace("DBNAME", $this->_dbinfo['dbname'], $_temp_cont);
             $_temp_cont = str_replace("DBTYPE", $this->_dbinfo['dbtype'], $_temp_cont);
             $_temp_cont = str_replace("DBHOST", $this->_dbinfo['dbhost'], $_temp_cont);
             $_temp_cont = str_replace("DBUSER", $this->_dbinfo['dbuser'], $_temp_cont);
@@ -311,9 +311,9 @@ class BoCode extends WangBo
             );
             foreach ($_temp_arr as $item) {
                 if (strpos(strtolower($item[0]), "widget") === false && $item[0] != "Db.php" && $item[0] != "Config.php") {
-                    $_ret = $this->_replacetag(APP_ROOT . '/' . CODE_TEMP_PATH . '/' . $item[0], APP_ROOT.DS."App".DS . $item[1], $_fields, $_table, $_m_name, $_isoveride, $_domian);
+                    $_ret = $this->_replacetag(BFW_LIB . '/' . CODE_TEMP_PATH . '/' . $item[0], APP_ROOT . DS . "App" . DS . $item[1], $_fields, $_table, $_m_name, $_isoveride, $_domian);
                 } else {
-                    $_ret = $this->_replacetag(APP_ROOT . '/' . CODE_TEMP_PATH . '/' . $item[0], APP_ROOT.DS."App".DS . $item[1], $_fields, $_table, $_m_name, false, $_domian);
+                    $_ret = $this->_replacetag(BFW_LIB . '/' . CODE_TEMP_PATH . '/' . $item[0], APP_ROOT . DS . "App" . DS . $item[1], $_fields, $_table, $_m_name, false, $_domian);
                 }
                 
                 if (WEB_DEBUG) {

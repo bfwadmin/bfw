@@ -26,8 +26,8 @@ function builderurl($c, $a, $d)
 ?>
 <html>
 <head lang="zh-CN">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title><?=DOMIAN_VALUE?>接口文档</title>
 <meta name="keywords" content="php开发框架,SOA框架,java开发框架" />
 <meta name="description"

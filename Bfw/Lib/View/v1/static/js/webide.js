@@ -8,6 +8,8 @@ var is_staticfile = false;
 var editor_arr = [];
 var reg = /^[a-zA-Z]{3,15}$/;
 var tempid = "";
+var bfw_sys_tag_list= [];
+var bfw_sys_method_list=[];
 var bfw_tag_list= [];
 var bfw_method_list=[];
 var _bfw_config = {
@@ -16,27 +18,49 @@ var _bfw_config = {
 	jsbaseurl : "?webide=1&getstatic=/",
 	cssbaseurl : "?webide=1&getstatic=/"
 };
+
+
 var langTools = ace.require("ace/ext/language_tools");
 ace.require("ace/ext/language_tools");
 contex_menu = {
 	'context2' : {
 		opennode : function(node) {
-			if(node.parent.tag!=undefined){
-				openfile(node.parent.tag+"\\"+node.tag, project_name);
-			}else{
-				openfile(node.tag, project_name);
-			}
+
+				openfile(getfilepath(node)+"\\"+node.tag, project_name);
+
 		},
 		foldermenu : [ {
 			type : "Common",
 			text : '新建',
 			// icon : '/?getstatic=/folder.png',
 			action : function(node) {
-				ajax("?webide=1&getfiles=" + node.tag + "&parent="
-						+ project_name, function(data) {
-					editing_file = node.tag;
-					editor.setValue(data);
-				});
+				
+				if(node.tag=="html"||node.tag=="css"||node.tag=="js"){
+					    var fname=prompt("请输入文件名，不能包含后缀","test"); 
+						if (fname != null && fname != "" && namecheck(fname)) {
+							var url = "";
+							if (is_staticfile) {
+								url = "?webide=1&isstatic=1&createfiles="
+										+ fname + "&parent=" + project_name
+										+ "&pfolder=" + node.tag+"&ftype="+node.tag;
+							} else {
+								url = "?webide=1&createfiles=" + fname
+										+ "&parent=" + project_name
+										+ "&pfolder=" + node.tag;
+							}
+					    	ajax(url, function(data) {
+					    		var file = fname + "."+node.tag;
+						        var newnode = node.createChildNode( file, false,
+								'?webide=1&getstatic=/file.png',file,
+								'context2');
+						        jing_tree.selectNode(newnode);
+						        
+						        openfile( getfilepath(newnode)+"\\"+file, project_name);
+		
+							});
+					    } 
+				}
+
 			},
 		} ],
 		filemenu : [ {
@@ -44,21 +68,54 @@ contex_menu = {
 			text : '删除',
 			// icon : '/?getstatic=/folder.png',
 			action : function(node) {
-
+				if (window.confirm("您确定删除吗?")) {
+					var url = "";
+					if (is_staticfile) {
+						url = "?webide=1&isstatic=1&delfiles="+
+							getfilepath(node)+"\\" +node.tag + "&parent=" + project_name;
+					} else {
+						url = "?webide=1&delfiles=" + getfilepath(node)+"\\" +node.tag 
+								+ "&parent=" + project_name;
+					}
+					ajax(url, function(data) {
+						jing_tree.removeNode(node);
+						//editor.setValue("");
+						// refleshdir(project_name);
+					});
+				}
 			}
 		}, {
 			type : "Common",
-			text : '修改',
+			text : '重命名',
 			// icon : '/?getstatic=/folder.png',
 			action : function(node) {
-				alert(node.tag);
+				var pathinfo=node.tag.split('.');
+				if(pathinfo.length>=2){
+					$("#filename").val(pathinfo[0]);
+					$("#parentpathname").val(getfilepath(node));
+					$("#oldfilename").val(pathinfo[0]);
+					$("#oldfiletype").val(pathinfo[1]);
+					
+					popup($('#rename'));
+				}
+
 			}
 
 		} , {
-			type : "index",
-			text : '浏览',
+			type : "Common",
+			text : '查看效果',
 			// icon : '/?getstatic=/folder.png',
 			action : function(node) {
+				ajax("?webide=1&getstaticurl=" + node.tag + "&parent="
+						+ project_name, function(data) {
+					var inhtml="";
+
+						inhtml+="<p><a href='"+data+"/"+project_name+getfilepath(node)+"/"+node.tag+"' target='_blank'>查看</a></p>";
+					//}
+				    $("#previewbtn").html(inhtml);
+					popup($('#previewhtml'));
+
+				});
 				console.log(node);
 			}
 
@@ -67,11 +124,7 @@ contex_menu = {
 	'context1' : {
 		opennode : function(node) {
 			console.log(node.tag);
-			if(node.parent.tag!=undefined){
-				openfile(node.parent.tag+"\\"+node.tag, project_name);
-			}else{
-				openfile(node.tag, project_name);
-			}
+			openfile(getfilepath(node)+"\\"+node.tag, project_name);
 			
 		},
 		foldermenu : [
@@ -80,11 +133,7 @@ contex_menu = {
 					text : '新建服务',
 					// icon : '/?getstatic=/folder.png',
 					action : function(node) {
-						ajax("?webide=1&getfiles=" + node.tag + "&parent="
-								+ project_name, function(data) {
-							editing_file = node.tag;
-							editor.setValue(data);
-						});
+						 createmodule(node,'context1');
 					},
 				},
 				{
@@ -92,11 +141,7 @@ contex_menu = {
 					text : '新建widget',
 					// icon : '/?getstatic=/folder.png',
 					action : function(node) {
-						ajax("?webide=1&getfiles=" + node.tag + "&parent="
-								+ project_name, function(data) {
-							editing_file = node.tag;
-							editor.setValue(data);
-						});
+						 createmodule(node,'context1');
 					},
 
 				},
@@ -105,11 +150,7 @@ contex_menu = {
 					text : '新建切面',
 					// icon : '/?getstatic=/folder.png',
 					action : function(node) {
-						ajax("?webide=1&getfiles=" + node.tag + "&parent="
-								+ project_name, function(data) {
-							editing_file = node.tag;
-							editor.setValue(data);
-						});
+						 createmodule(node,'context1');
 					},
 
 				},
@@ -131,11 +172,7 @@ contex_menu = {
 					text : '新建验证器',
 					// icon : '/?getstatic=/folder.png',
 					action : function(node) {
-						ajax("?webide=1&getfiles=" + node.tag + "&parent="
-								+ project_name, function(data) {
-							editing_file = node.tag;
-							editor.setValue(data);
-						});
+						 createmodule(node,'context1');
 					},
 
 				},
@@ -144,11 +181,7 @@ contex_menu = {
 					text : '新建调用端',
 					// icon : '/?getstatic=/folder.png',
 					action : function(node) {
-						ajax("?webide=1&getfiles=" + node.tag + "&parent="
-								+ project_name, function(data) {
-							editing_file = node.tag;
-							editor.setValue(data);
-						});
+						 createmodule(node,'context1');
 					},
 
 				},
@@ -170,11 +203,7 @@ contex_menu = {
 					text : '新建实体',
 					// icon : '/?getstatic=/folder.png',
 					action : function(node) {
-						ajax("?webide=1&getfiles=" + node.tag + "&parent="
-								+ project_name, function(data) {
-							editing_file = node.tag;
-							editor.setValue(data);
-						});
+						 createmodule(node,'context1');
 					},
 
 				},
@@ -202,9 +231,9 @@ contex_menu = {
 										+ fname + ".php";
 								var newnode = node.createChildNode("Controler_"
 										+ fname + ".php", false,
-										'/?webide=1&getstatic=/file.png', file,
+										'?webide=1&getstatic=/file.png', file,
 										'context1');
-								tree.selectNode(newnode);
+								dong_tree.selectNode(newnode);
 								openfile(file, project_name);
 								// refleshdir(project_name);
 							});
@@ -247,15 +276,18 @@ contex_menu = {
 				},
 				{
 					type : "Common",
-					text : '改名',
+					text : '重命名',
 					// icon : '/?getstatic=/folder.png',
 					action : function(node) {
-						var pathinfo=node.tag.split('\\');
-						$("#filename").val(pathinfo[1]);
-						$("#parentpathname").val(pathinfo[0]);
-						$("#oldfilename").val(pathinfo[1]);
-						
-						popup($('#rename'));
+						var pathinfo=node.tag.split('.');
+						if(pathinfo.length>=2){
+							$("#filename").val(pathinfo[0]);
+							$("#parentpathname").val(getfilepath(node));
+							$("#oldfilename").val(pathinfo[0]);
+							$("#oldfiletype").val(pathinfo[1]);
+							
+							popup($('#rename'));
+						}
 					},
 				},
 				{
@@ -266,15 +298,15 @@ contex_menu = {
 						if (window.confirm("您确定删除吗?")) {
 							var url = "";
 							if (is_staticfile) {
-								url = "?webide=1&isstatic=1&delfiles="
-										+ node.tag + "&parent=" + project_name;
+								url = "?webide=1&isstatic=1&delfiles="+
+									getfilepath(node)+"\\" +node.tag + "&parent=" + project_name;
 							} else {
-								url = "?webide=1&delfiles=" + node.tag
+								url = "?webide=1&delfiles=" + getfilepath(node)+"\\" +node.tag 
 										+ "&parent=" + project_name;
 							}
 							ajax(url, function(data) {
-								tree.removeNode(node);
-								editor.setValue("");
+								dong_tree.removeNode(node);
+								//editor.setValue("");
 								// refleshdir(project_name);
 							});
 						}
@@ -282,7 +314,29 @@ contex_menu = {
 				} ]
 	}
 };
+function createmodule(node,cont){
+	  var fname=prompt("请输入文件名，不能前缀","Home"); 
+		if (fname != null && fname != "" && namecheck(fname)) {
+			var url = "";
+			if (is_staticfile) {
+				url = "?webide=1&isstatic=1&createfiles="
+						+ fname + "&parent=" + project_name
+						+ "&pfolder=" + node.tag+"&ftype="+node.tag;
+			} else {
+				url = "?webide=1&createfiles=" + fname
+						+ "&parent=" + project_name
+						+ "&pfolder=" + node.tag;
+			}
+	    	ajax(url, function(data) {
+	    		var file =node.tag+"_"+ fname + ".php";
+		        var newnode = node.createChildNode( file, false,
+				'?webide=1&getstatic=/file.png',file,
+				cont);
+		        openfile( getfilepath(newnode)+"\\"+file, project_name);
 
+			});
+	    } 
+}
 function RunOnBeforeUnload() {
 	window.onbeforeunload = function() {
 		return '将丢失未保存的数据!';
@@ -304,6 +358,7 @@ function reset() {
 	file_changed = false;
 	is_staticfile = false;
 	editor_arr = [];
+
 };
 function rename(){
 	var newfilename=$("#filename").val();
@@ -311,10 +366,10 @@ function rename(){
 		var url = "";
 		if (is_staticfile) {
 			url = "?webide=1&isstatic=1&renamefile="
-					+ $("#parentpathname").val()+"\\"+$("#oldfilename").val() + "&parent=" + project_name+"&newname="+$("#parentpathname").val()+"\\"+newfilename;
+					+ $("#parentpathname").val()+"\\"+$("#oldfilename").val() + "&parent=" + project_name+"&newname="+$("#parentpathname").val()+"\\"+newfilename+"&filetype="+$("#oldfiletype").val();
 		} else {
-			url = "?webide=1&renamefile=" + $("#parentpathname").val()+"\\"+$("#oldfilename").val()
-					+ "&parent=" + project_name+"&newname="+$("#parentpathname").val()+"\\"+newfilename;
+			url = "?webide=1&renamefile=" 
+				+ $("#parentpathname").val()+"\\"+$("#oldfilename").val() + "&parent=" + project_name+"&newname="+$("#parentpathname").val()+"\\"+newfilename+"&filetype="+$("#oldfiletype").val();
 		}
 		ajax(url, function(data) {
 			
@@ -337,8 +392,8 @@ function init_complete(){
 function openeditor(file, filedata) {
 
 	var ids = uniqid();
-	$("#file_tab ul").append(
-			"<li id='tab" + ids + "' class='file_selected' alt='" + file + "'>"
+	$("#file_tab ul").prepend(
+			"<li id='tab" + ids + "' class='file_selected' title='" + file + "'><span id='filechanged_"+ids+"'></span>"
 					+ getfilename(file) + "<span class='tab_close' id='close"
 					+ ids + "'>×</span></li>");
 	$("#tab" + ids).click(function() {
@@ -348,6 +403,9 @@ function openeditor(file, filedata) {
 			if ($(this).attr("id") == editor_arr[i].tabid) {
 				// editor_arr[i].editor.hide();
 				$(this).addClass("file_selected");
+				if($("#file_tab ul li").eq(0).attr("id")!=$(this).attr("id")){
+					  $("#file_tab ul li").eq(0).before($(this));
+				}			  
 				$("#" + editor_arr[i].editorid).show();
 				return;
 			}
@@ -355,18 +413,19 @@ function openeditor(file, filedata) {
 
 	});
 	$("#close" + ids).click(function() {
-		closefile($(this).parent('li').attr("alt"));
+		console.log("click");
+		closefile($(this).parent('li').attr("title"));
 	});
 	$("#tab" + ids).hover(function() {
 		if ($(this).attr("class") != "file_selected") {
 			$(this).addClass("tab_hoveon");
 		}
-		$(this).children("span").show();
+		$(this).children("span").eq(1).show();
 	}, function() {
 		if ($(this).attr("class") != "file_selected") {
 			$(this).removeClass("tab_hoveon");
 		}
-		$(this).children("span").hide();
+		$(this).children("span").eq(1).hide();
 	});
 	var stuff = getstuff(file);
 	var allowext = [ '.php', '.js', '.css', '.html', '.java', '.log',".bfw" ];
@@ -379,6 +438,8 @@ function openeditor(file, filedata) {
 		editor.setTheme("ace/theme/chaos");
 		// editor.session.setMode("ace/mode/php");
 		editor.setFontSize(18);
+		editor.setOption("wrap", "free");
+		
 		editor.commands.addCommand({
 			name : "showKeyboardShortcuts",
 			bindKey : {
@@ -403,7 +464,7 @@ function openeditor(file, filedata) {
 				if (editor_arr.length > 0) {
 					for (var i = 0; i < editor_arr.length; i++) {
 						if (editor == editor_arr[i].editor) {
-							savefile(editor_arr[i].file);
+							savefile(editor_arr[i]);
 							break;
 						}
 					}
@@ -418,17 +479,26 @@ function openeditor(file, filedata) {
 			enableSnippets : true,
 			enableLiveAutocompletion : true
 		});
+		editor.getSession().selection.on('changeCursor', function(e) {
+			console.log("chagge cuse");
+		});
+		editor.getSession().selection.on('changeSelection', function(e) {
+			var selecttext=editor.session.getTextRange(editor.getSelectionRange());
+			console.log(selecttext);
+		});
 		editor.on("change", function(e) {
 			if (editor_arr.length > 0) {
 				for (var i = 0; i < editor_arr.length; i++) {
 					if (editor == editor_arr[i].editor) {
 						editor_arr[i].filechanged = true;
+						console.log(editor_arr[i].id+"filechanged");
+						$("#filechanged_"+ editor_arr[i].id).html("*");
 						break;
 					}
 				}
 			}
 
-		})
+		});
 		if (stuff == ".php") {
 			editor.session.setMode("ace/mode/php");
 			var myCompleter = {
@@ -438,8 +508,28 @@ function openeditor(file, filedata) {
 						
 						var lastpr=prefix.substring(prefix.length-2);
 						console.info("myCompleter prefix:", lastpr);
-		
-						if(lastpr=="->"||lastpr=="::"){
+		                if(lastpr=="::"){
+		            		var entrynew = prefix.substring(0,prefix.indexOf("::"));
+		            		if (typeof bfw_method_list[entrynew] == "undefined") { 
+								console.log(entrynew+"不存在");
+							}else{
+								addns(editor,bfw_method_list[entrynew].method.namespace);
+								console.log("namspace::"+bfw_method_list[entrynew].method.namespace);
+		    				callback(
+									null,
+									bfw_method_list[entrynew].method.staticname.map((entry,index) => {
+										
+										
+										return {
+											docHTML:bfw_method_list[entrynew].method.staticdoc[index],
+											value:prefix+entry,
+											meta: "bfw class function"
+										};
+									})
+								);
+							}
+		                }else
+						if(lastpr=="->"){
 							var entrynew="";
 							if(prefix=="$this->"){
 								 entrynew = getfilename(editing_file).replace(/.php/g, "");
@@ -451,18 +541,9 @@ function openeditor(file, filedata) {
 							if (typeof bfw_method_list[entrynew] == "undefined") { 
 								console.log(entrynew+"不存在");
 							}else{
-								var nowpos=editor.selection.getCursor();
-								console.log(nowpos);
-								var usestr="use App\\"+entrynew+";";
-								if(editor.getValue().indexOf(usestr)>=0){
-									
-								}else{
-									//editor.gotoLine(3);
-									//editor.insert(usestr);
-									//editor.focus();
-								//	editor.moveCursorTo(nowpos.row, nowpos.column);
-								}
-								
+								//console.log(bfw_method_list[entrynew].method.name);
+								addns(editor,bfw_method_list[entrynew].method.namespace);
+								console.log("namspace::"+bfw_method_list[entrynew].method.namespace);
 								callback(
 										null,
 										bfw_method_list[entrynew].method.name.map((entry,index) => {
@@ -481,13 +562,17 @@ function openeditor(file, filedata) {
 							if(lindex>0){
 								newprefix = prefix.substring(lindex+1);
 							}
+							console.log(bfw_tag_list);
 							console.log("new"+newprefix);
 							callback(
 									null,
 									bfw_tag_list.filter(entry => {
 										return entry.includes(newprefix);
 									}).map(entry => {
-										 entrynew = entry.substring(0,entry.indexOf("::"));
+										var entrynew=entry;
+										if(entry.indexOf("::")>=0){
+											 entrynew = entry.substring(0,entry.indexOf("::"));
+								     	}
 										var doc_c="";
 										if (typeof bfw_method_list[entrynew] == "undefined") { 
 											console.log(entrynew+"不存在");
@@ -524,7 +609,7 @@ function openeditor(file, filedata) {
 	} else if (stuff == '.png' || stuff == '.jpeg' || stuff == '.jpg'
 			|| stuff == '.gif') {
 		$("#editor").append(
-				"<pre   id='" + editorid + "' ><img  class='img_show'  src='"
+				"<pre   id='" + editorid + "'  style='text-align:center;'><img  class='img_show'  src='"
 						+ filedata + "' /></pre>");
 	} else if (getfilename(file) == 'welcome.bfw') {
 	//	$("#editor")
@@ -541,14 +626,38 @@ function openeditor(file, filedata) {
 		"editor" : editor,
 		"editorid" : editorid,
 		"tabid" : "tab" + ids,
+		"id":ids,
 		"filechanged" : false,
-		"type" : is_staticfile ? 2 : 1
+		"type" : is_staticfile ? 2 : 1,
+		"namespace":[]
 	});
+};
+function addns(editor,ns){
+	if (editor_arr.length > 0) {
+		for (var i = 0; i < editor_arr.length; i++) {
+			if (editor == editor_arr[i].editor) {
+				if($.inArray(ns, editor_arr[i].namespace)>=0){
+					
+				}else{
+					editor_arr[i].namespace.push(ns);
+				}
+				
+				console.log(editor_arr[i]);
+			
+				break;
+			}
+		}
+	}	
 };
 function closefile(f) {
 	if (editor_arr.length > 0) {
 		for (var i = 0; i < editor_arr.length; i++) {
 			if (f == editor_arr[i].file) {
+				if(editor_arr[i].filechanged){
+					if (confirm("文件未保存，是否先保存再关闭项目？")) {
+						savefile(editor_arr[i]);
+					}
+				}
 				editor_arr[i].editor = null;
 				$("#" + editor_arr[i].editorid).remove();
 				$("#" + editor_arr[i].tabid).remove();
@@ -567,7 +676,7 @@ function getpro() {
 	ajax("?getpro=1&webide=1", function(data) {
 		var obj = eval('(' + data + ')');
 		for (var i = 0; i < obj.length; i++) {
-			if (obj[i] != "." && obj[i] != "..") {
+			if (obj[i] != "." && obj[i] != ".."&&obj[i] != "Config.php") {
 				pro_html += "	<li  class='pro_item'  data='" + obj[i] + "'>"
 						+ obj[i] + " </li>";
 			}
@@ -583,7 +692,7 @@ function getcloudpro() {
 			alert(obj.data);
 		} else {
 			for (var i = 0; i < obj.data.length; i++) {
-				if (obj.data[i] != "." && obj.data[i] != "..") {
+				if (obj.data[i] != "." && obj.data[i] != ".."&&obj.data[i] != "Config.php") {
 					pro_html += "	<li  class='pro_item'  data='" + obj.data[i]
 							+ "'>" + obj.data[i] + " </li>";
 				}
@@ -597,11 +706,11 @@ function openfile(f, p) {
 	var allowext = [ '.php', '.js', '.css', '.html', '.java', '.log', ".png",
 			".jpeg", ".jpg", ".gif", ".bfw" ];
 	if (allowext.indexOf(stuff) >= 0) {
-		var file = p + "\\" + f;
+		var file = p  + f;
 		if (showeditor(file) == 1) {
 			return;
 		}
-
+		console.log("openfile:"+file);
 		if (stuff == ".png" || stuff == ".jpeg" || stuff == ".jpg"
 				|| stuff == ".gif") {
 			openeditor(file, "?isstatic=1&webide=1&getfiles=" + f + "&parent="
@@ -642,9 +751,32 @@ function uniqid(randomLength) {
 	return Number(Math.random().toString().substr(3, randomLength) + Date.now())
 			.toString(36);
 };
+function getfilepath(node){
+	if(typeof node.parent.tag != "undefined"){
+	          return getfilepath(node.parent)+"\\"+node.parent.tag;
+	}else{
+		return "";
+	}
+};
 function getstuff(filename) {
 	return filename.substring(filename.lastIndexOf("."), filename.length)
 			.toLowerCase();// 后缀名
+};
+
+function treenode(obj,lnode,context){
+	var objk = eval(obj);
+	for (var i = 0; i < obj.length; i++) {
+		var objk = eval(obj[i]);
+		if (objk.type == 1) {
+			treenode(eval(objk.data),lnode.createChildNode(objk.name, false,
+					'?webide=1&getstatic=/folder.png', objk.name,
+					context),context);
+		} else {
+			 lnode.createChildNode(objk.name, false,
+					'?webide=1&getstatic=/file.png', objk.data,
+					context);
+		}
+	}
 };
 function initdongdir(url) {
 	var tree_id = "dong_tree";
@@ -656,32 +788,12 @@ function initdongdir(url) {
 		for (var i = 0; i < obj.length; i++) {
 			var objt = eval(obj[i]);
 			if (objt.type == 1) {
-				node1 = dong_tree.createNode(objt.name, false,
-						'/?webide=1&getstatic=/folder.png', null, objt.name,
-						cont);
-				for (var j = 0; j < objt.data.length; j++) {
-					var objk = eval(objt.data[j]);
-
-					if (objk.type == 1) {
-						node2 = node1.createChildNode(objk.name, false,
-								'/?webide=1&getstatic=/folder.png', objk.name,
-								cont);
-						for (var q = 0; q < objk.data.length; q++) {
-							var objq = eval(objk.data[q]);
-							node3 = node2.createChildNode(objq.name, false,
-									'/?webide=1&getstatic=/file.png', objt.name
-											+ "/" + objq.data, cont);
-						}
-					} else {
-						node2 = node1.createChildNode(objk.name, false,
-								'/?webide=1&getstatic=/file.png', objk.data,
-								cont);
-					}
-				}
-
+				treenode(objt.data,dong_tree.createNode(objt.name, false,
+						'?webide=1&getstatic=/folder.png', null, objt.name,
+						cont),cont);
 			} else {
-				node1 = dong_tree.createNode(objt.name, false,
-								'/?webide=1&getstatic=/file.png', null,
+				dong_tree.createNode(objt.name, false,
+								'?webide=1&getstatic=/file.png', null,
 								objt.data, cont);
 			}
 		}
@@ -699,33 +811,15 @@ function initjingdir(url) {
 		for (var i = 0; i < obj.length; i++) {
 			var objt = eval(obj[i]);
 			if (objt.type == 1) {
-				node1 = jing_tree.createNode(objt.name, false,
-						'/?webide=1&getstatic=/folder.png', null, objt.name,
-						cont);
-				for (var j = 0; j < objt.data.length; j++) {
-					var objk = eval(objt.data[j]);
-
-					if (objk.type == 1) {
-						node2 = node1.createChildNode(objk.name, false,
-								'/?webide=1&getstatic=/folder.png', objk.name,
-								cont);
-						for (var q = 0; q < objk.data.length; q++) {
-							var objq = eval(objk.data[q]);
-							node3 = node2.createChildNode(objq.name, false,
-									'/?webide=1&getstatic=/file.png', objt.name
-											+ "/" + objq.data, cont);
-						}
-					} else {
-						node2 = node1.createChildNode(objk.name, false,
-								'/?webide=1&getstatic=/file.png', objk.data,
-								cont);
-					}
-				}
+	
+				treenode(objt.data,jing_tree.createNode(objt.name, false,
+						'?webide=1&getstatic=/folder.png', null, objt.name,
+						cont),cont);
 
 			} else {
-				node1 = jing_tree
+			 jing_tree
 						.createNode(objt.name, false,
-								'/?webide=1&getstatic=/file.png', null,
+								'?webide=1&getstatic=/file.png', null,
 								objt.data, cont);
 			}
 		}
@@ -740,30 +834,40 @@ function refleshdir(p) {
 	initjingdir("?webide=1&isstatic=1&getappdir=" + p);
 	$("#editorpannel").show();
 
-	// editor.setValue("");
-	// file_changed = false;
-
 };
-function savefile(filename) {
-	if (editor_arr.length > 0) {
-		for (var i = 0; i < editor_arr.length; i++) {
-			if (filename == editor_arr[i].file) {
-				var url = "";
-				if (editor_arr[i].type == 1) {
-					url = "?webide=1&savefiles=" + filename;
-				} else {
-					url = "?webide=1&isstatic=1&savefiles=" + filename
-				}
-				ajax(url, function(data) {
-					if (data == "ok") {
-						editor_arr[i].filechanged = false;
-						$.Bfw.toastshow("保存成功");
-					}
-				}, "post", "data=" + editor_arr[i].editor.getValue());
-				break;
-			}
-		}
+function savefile(editor) {
+	var url = "";
+	if (editor.type == 1) {
+		url = "?webide=1&savefiles=" + editor.file;
+	} else {
+		url = "?webide=1&isstatic=1&savefiles=" + editor.file
 	}
+	
+	var nowpos=editor.editor.selection.getCursor();
+	console.log(nowpos);
+	if (editor.namespace.length > 0) {
+		editor.editor.gotoLine(3);
+		for (var i = 0; i < editor.namespace.length; i++) {
+			if(editor.editor.getValue().indexOf(editor.namespace[i])>=0){
+				
+			}else{
+				editor.editor.insert("use "+editor.namespace[i]+";");
+			}
+			
+		}
+		editor.namespace=[];
+	}
+	editor.editor.moveCursorTo(nowpos.row, nowpos.column);
+	console.log(editor.namespace);
+	//return;
+	ajax(url, function(data) {
+		if (data == "ok") {
+			editor.filechanged = false;
+			$("#filechanged_"+ editor.id).html("");
+			$.Bfw.toastshow("保存成功");
+			getbfwclassfunc(project_name);
+		}
+	}, "post", "data=" +encodeURIComponent(editor.editor.getValue()) );
 };
 function proreset() {
 	project_name = "";
@@ -780,13 +884,19 @@ function proreset() {
 		}
 	}
 	editor_arr = [];
+	$("#php_tree_tab").addClass("dir_s_tab");
+	$("#php_tree_tab").removeClass("dir_tab");
+	$("#static_tree_tab").removeClass("dir_s_tab");
+	$("#static_tree_tab").addClass("dir_tab");
+	$("#dong_tree").show();
+	$("#jing_tree").hide();
 };
 function hideediter() {
 	if (editor_arr.length > 0) {
 		for (var i = 0; i < editor_arr.length; i++) {
 			if (editor_arr[i].filechanged) {
 				if (confirm("文件未保存，是否先保存再关闭项目？")) {
-					savefile(editor_arr[i].file);
+					savefile(editor_arr[i]);
 				}
 			}
 		}
@@ -810,7 +920,15 @@ function login() {
 		return;
 	}
 	ajax('/?webide=1&login=' + username + "|" + pwd, function(str) {
-		alert(str)
+		//alert(str)
+		var ret = eval('(' + str + ')');
+		if(ret.err){
+			alert(ret.data);
+		}else{
+			$("#logined").show();
+			$("#unlogin").hide();
+			popclose("login");
+		}
 	});
 };
 function register() {
@@ -821,7 +939,23 @@ function register() {
 		return;
 	}
 	ajax('/?webide=1&register=' + username + "|" + pwd, function(str) {
-		alert(str)
+		var ret = eval('(' + str + ')');
+		if(ret.err){
+			alert(ret.data);
+		}else{
+			$("#logined").show();
+			$("#unlogin").hide();
+			popclose("register");
+		}
+	});
+};
+function logout(){
+	ajax('/?webide=1&logout=1', function(str) {
+		if(str=="ok"){
+			$("#logined").hide();
+			$("#unlogin").show();
+		}
+		//alert(str)
 	});
 };
 function mysqlconf() {
@@ -845,18 +979,23 @@ function openpro(p) {
 	} else {
 		refleshdir(p);
 		getbfwclassfunc(p);
-		openfile("readme.bfw", p);
+		openfile("\\readme.bfw", p);
 	}
 };
 function getbfwclassfunc(p){
-	ajax('/?webide=1&getclass=' + p, function(data) {
+	ajax('?webide=1&getclass=' + p, function(data) {
 		// alert(str);
 		var obj = eval('(' + data + ')');
+		if(obj instanceof Object){
+			console.log(obj['class']);
+			bfw_tag_list=bfw_sys_tag_list.concat(obj['class']);
+			//omerge(bfw_tag_list,obj['class']);
+			console.log(bfw_tag_list);
+			bfw_method_list=$.extend(bfw_sys_method_list,obj['method']);
+			console.log(bfw_method_list);
+		}
 		//bfw_tag_list=bfw_tag_list.concat(obj['class']);
-		omerge(bfw_tag_list,obj['class']);
-		console.log(bfw_tag_list);
-		omerge(bfw_method_list,obj['method']);
-		console.log(bfw_method_list);
+
 		//bfw_method_list=bfw_method_list.concat(obj['method']);
 	});
 	
@@ -868,11 +1007,11 @@ function omerge(o,n){
 	    }
 };   
 function getsysclassfunc(){
-	ajax('/?webide=1&getsysclass', function(data) {
+	ajax('?webide=1&getsysclass', function(data) {
 		var obj = eval('(' + data + ')');
-		bfw_tag_list=obj['class'];
-		console.log(bfw_tag_list);
-		bfw_method_list=obj['method'];
+		bfw_sys_tag_list=obj['class'];
+		//console.log(bfw_tag_list);
+		bfw_sys_method_list=obj['method'];
 	});
 };
 function popup(popupName) {
