@@ -9,12 +9,16 @@ body {
 	background: #272727;
 	color:white;
 }
-
+a{
+	color:white;
+	text-decoration:none;
+}
 .project {
 	list-style: "none";
 	padding: 0;
 	margin: 0;
 	clear: both;
+	font-size:16px;
 }
 
 #editorpannel {
@@ -68,18 +72,25 @@ body {
 .project li {
 	display: block;
 	float: left;
-	width: 100px;
-	height: 100px;
+	width: 200px;
+	height: 80px;
 	margin: 5px;
 	border: 1px solid #ffffff;
 	cursor: pointer;
-	padding: 35px 5px;
+	padding: 30px 5px;
 	text-align: center;
 	color: white;
 	overflow:hidden;
 }
+.project li p {
+	margin-top:25px;
+}
+.project li p a {
+	padding:5px;
+}
 .project li:hover {
 	background:#2596cc;
+		padding: 10px 5px;
 }
 .popup_dia {
 	z-index:9999;

@@ -622,6 +622,8 @@ function openeditor(file, filedata) {
 	}
 
 	editor_arr.push({
+		"filedata":filedata,
+		"filetype":stuff,
 		"file" : file,
 		"editor" : editor,
 		"editorid" : editorid,
@@ -671,14 +673,38 @@ function closefile(f) {
 		}
 	}
 };
+function showapppower(p){
+	$("#apppower_appname").val(p);
+	ajax("?getapppower="+p+"&webide=1&targetappname="+p, function(data) {
+		$("#apppower_text").val(data);
+		popup($("#apppower"));
+	});
+};
+function setapppower(){
+	var powers=$("#apppower_text").val();
+	var p=$("#apppower_appname").val();
+	//$("#apppower_appname").val(p);
+	ajax("?setapppower="+p+"&webide=1&powers="+powers+"&targetappname="+p, function(data) {
+		popclose("apppower");
+	});
+};
 function getpro() {
-	var pro_html = "<li  class='pro_item'  data='.'>新建项目</li>";
+	var pro_html = "<li  class='pro_item'  data='.'><span data='.' class='pron_item_name'>新建项目</span></li>";
 	ajax("?getpro=1&webide=1", function(data) {
 		var obj = eval('(' + data + ')');
 		for (var i = 0; i < obj.length; i++) {
-			if (obj[i] != "." && obj[i] != ".."&&obj[i] != "Config.php") {
-				pro_html += "	<li  class='pro_item'  data='" + obj[i] + "'>"
-						+ obj[i] + " </li>";
+		    console.log(obj[i]);
+			if (obj[i].type=="self") {
+				pro_html += "	<li  class='pro_item'  ><span data='" + obj[i].name + "' class='pron_item_name'>"
+						+obj[i].name+ "</span> " +
+								"" +
+								"<p><a>打开</a><a onclick='showapppower(\""+obj[i].name+"\");'>权限</a><a>快照</a><a onclick='delpro(\""+obj[i].name+"\");'>删除</a></p></li>";
+			}
+			if (obj[i].type=="team") {
+				pro_html += "	<li  class='pro_item'  ><span data='" + obj[i].name + "' class='pron_item_name'>"
+						+obj[i].name+ "</span> " +
+								"" +
+								"<p><a href='/Cloud/"+obj[i].url+"/?webide=1&targetappname="+ obj[i].name+"' target='_blank'>进入</a></p></li>";
 			}
 		}
 		$("#latest_pro").html(pro_html);
@@ -1031,7 +1057,14 @@ function popup(popupName) {
 function popclose(popupName) {
 	$("#" + popupName).hide();
 };
-
+function delpro(p){
+	if(confirm("确定删除？")){
+		ajax('?webide=1&delapp=' + p, function(data) {
+			//var obj = eval('(' + data + ')');
+			getpro();
+		});
+	}
+};
 function creatpro() {
 	if (!reg.test($("#proname").val())) {
 		alert("项目名称必须为3-15个字母");
@@ -1083,6 +1116,13 @@ function creatpro() {
 	}
 };
 function ajax(url, fnSucc, method, data) {
+	if(url.indexOf("targetappname")>=0){
+		
+	}else{
+		url=url+"&targetappname="+project_name;
+	}
+
+	
 	if (window.XMLHttpRequest) {
 		var oAjax = new XMLHttpRequest();
 	} else {
@@ -1095,7 +1135,7 @@ function ajax(url, fnSucc, method, data) {
 	} else {
 		oAjax.open("GET", url, true);// 把要读取的参数的传过来。
 	}
-	oAjax.setRequestHeader("bfwajax", "v<?=VERSION?>"); // 可以定义请求头带给后端
+	oAjax.setRequestHeader("bfwajax", "v1"); // 可以定义请求头带给后端
 	if (method == "post") {
 		oAjax.send(data);
 	} else {
@@ -1143,7 +1183,7 @@ $(function() {
 		$(this).addClass("tempselected");
 		tempid = $(this).attr("tempid");
 	});
-	$(".pro_item").live("click", function() {
+	$(".pron_item_name").live("click", function() {
 		openpro($(this).attr("data"));
 	});
 	$("#php_tree_tab").click(function(e) {

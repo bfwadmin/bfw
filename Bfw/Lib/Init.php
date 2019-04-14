@@ -354,7 +354,7 @@ try {
     define("UNIX_TIME", time()); // 当前时间戳，整形
     if (in_array(RUN_MODE, [
         'C',
-        'M'
+        'M',
     ]) && strtolower(PHP_SAPI) != "cli") {
        // ini_set('session.gc_maxlifetime', SESSION_COOKIE_EXPIRE);
        // ini_set('session.gc_probability', 0);

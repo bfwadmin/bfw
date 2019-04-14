@@ -40,7 +40,7 @@
 			
 	     <li class="navitem"  id="logined" style="float:right;<?php if($uid==""){?>display:none;<?php }?>">
 				<div>
-					<p>我的中心</p>
+					<p><a href="/Cloud/<?=$uid?>/?webide=1">我的中心</a></p>
 					<p>我的日记</p>
 					<p>我的任务</p>
 					<p>我的博客</p>
@@ -150,6 +150,23 @@
 				onclick="addcontroler()" />
 		</p>
 	</div>
+	<div id="apppower" class="popup_dia" style="width: 50%; height: 40%;">
+		<div class="popup_title">
+			<span>设置app开发权限</span> <span onclick="popclose('apppower')" class="popup_close">×</span>
+		</div>
+		<p>
+			<input type="hidden" class="popup_textin" id="apppower_appname"
+				name="apppower_appname" placeholder="请输入控制器名称" />
+			<textarea class="popup_textin" id="apppower_text" style="height:60%;"
+				name="apppower_text" placeholder="请输入开发人员账号，并用|分割" ></textarea>
+		</p>
+	
+		<p>
+			<input type="button" value="确 定" class="popup_btn"
+				onclick="setapppower()" />
+		</p>
+	</div>
+	
 	<div id="login" class="popup_dia" style="width: 30%; height: 40%;">
 		<div class="popup_title">
 			<span>登录</span> <span onclick="popclose('login')" class="popup_close">×</span>

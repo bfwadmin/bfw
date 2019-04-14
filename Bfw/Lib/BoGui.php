@@ -34,17 +34,29 @@ class BoGui
     private function setuid($_uid)
     {
         if (DEV_PLACE == "cloud") {
-            BoCache::Cache(SESS_ID . "app_server_uid", $_uid, 0);
+            file_put_contents(BFW_LIB . DS . "Cache" . DS . $this->genkey(), $_uid);
+            // BoCache::Cache(SESS_ID . "app_server_uid", $_uid, 0);
         }
         if (DEV_PLACE == "local") {
             BoCache::Cache("app_server_uid", $_uid, 0);
         }
     }
 
+    private function genkey()
+    {
+        session_start();
+        $_sessid = session_id(); // 用户Sessionid
+        session_write_close();
+        return $_sessid . "app_server_uid";
+        // file_put_contents($filename, $data)
+    }
+
     private function getuid()
     {
         if (DEV_PLACE == "cloud") {
-            return BoCache::Cache(SESS_ID . "app_server_uid");
+            return file_get_contents(BFW_LIB . DS . "Cache" . DS . $this->genkey());
+            // $_key=.
+            // return BoCache::Cache(SESS_ID . "app_server_uid");
         }
         if (DEV_PLACE == "local") {
             return BoCache::Cache("app_server_uid");
@@ -55,7 +67,7 @@ class BoGui
     private function logout()
     {
         if (DEV_PLACE == "cloud") {
-            return BoCache::Cache(SESS_ID . "app_server_uid", "");
+            return file_put_contents(BFW_LIB . DS . "Cache" . DS . $this->genkey(), "");
         }
         if (DEV_PLACE == "local") {
             return BoCache::Cache("app_server_uid", "");
@@ -77,6 +89,24 @@ class BoGui
             return [
                 'err' => true,
                 "data" => "登录失败"
+            ];
+        }
+    }
+
+    private function gettoken($_uname)
+    {
+        $_ba = new BoApp();
+        $_ret = $_ba->getTokenbyname($_uname);
+        if ($_ret) {
+            
+            return [
+                'err' => false,
+                "data" => $_ret
+            ];
+        } else {
+            return [
+                'err' => true,
+                "data" => ""
             ];
         }
     }
@@ -156,8 +186,29 @@ class BoGui
         return $_cont_act_a;
     }
 
+    private function checkpower($_uid)
+    {
+        return APPSELF == "/Cloud/{$_uid}/index.php";
+    }
+
     public function Run()
     {
+        if (isset($_GET['getstatic'])) {
+            $_file = str_replace("\\", '', str_replace("/", '', $_GET['getstatic']));
+            if (substr($_file, strlen($_file) - 4) == ".css") {
+                header('Content-type: text/css');
+                echo file_get_contents(BFW_LIB . DS . "Lib" . DS . "View/v1/static/css/" . $_file);
+            }
+            if (substr($_file, strlen($_file) - 3) == ".js") {
+                header('Content-type: text/javascript');
+                echo file_get_contents(BFW_LIB . DS . "Lib" . DS . "View/v1/static/js/" . $_file);
+            }
+            if (substr($_file, strlen($_file) - 4) == ".png" || substr($_file, strlen($_file) - 4) == ".jpg") {
+                header('Content-Type: image/jpeg');
+                echo file_get_contents(BFW_LIB . DS . "Lib" . DS . "View/v1/static/images/" . $_file);
+            }
+            exit();
+        }
         if (isset($_GET['login'])) {
             if (isset($_GET['login'])) {
                 $loginpara = explode("|", $_GET['login']);
@@ -201,12 +252,109 @@ class BoGui
             }
         }
         $_uid = $this->getuid();
-        
+        if (isset($_GET['getsysclass'])) {
+            $_method = [];
+            $_utillist = FileUtil::getFileListByDir(BFW_LIB . DS . "Lib" . DS . "Util" . DS);
+            $_bofunc = [
+                'BoSess.php',
+                "BoConfig.php",
+                "BoRes.php",
+                "BoReq.php",
+                "BoDebug.php",
+                "BoCache.php",
+                "Bfw.php",
+                "Core.php"
+            ];
+            foreach ($_bofunc as &$_file) {
+                $_file = str_replace(".php", "", $_file);
+                $_method[$_file] = $this->getmethod("Lib." . $_file);
+                // $_file .= "::getInstance()";
+            }
+            // echo BFW_LIB . DS . "Util" . DS;
+            foreach ($_utillist as &$_file) {
+                $_file = str_replace(".php", "", $_file);
+                $_method[$_file] = $this->getmethod("Lib.Util." . $_file);
+                // $_file .= "::getInstance()";
+            }
+            echo json_encode([
+                'class' => array_merge($_utillist, $_bofunc),
+                "method" => $_method
+            ]);
+            exit();
+        }
+        if (isset($_GET['getpro'])) {
+            
+            // 获取本地项目
+            $_dirarr = [];
+            $_remarr = [];
+            $dirArr = scandir(APP_ROOT . DS . "App" . DS);
+            
+            foreach ($dirArr as $_item) {
+                if (strtolower($_item) != "config.php" && strtolower($_item) != ".." && strtolower($_item) != ".") {
+                    // if (strpos(URL, $_uid) === true) {
+                    $_dirarr[] = [
+                        'type' => 'self',
+                        "name" => $_item,
+                        "url" => ""
+                    ];
+                    // } else {
+                    
+                    // }
+                }
+            }
+            if (DEV_PLACE != "cloud") {
+                echo json_encode($_dirarr);
+                exit();
+            }
+            $_datapath = BFW_LIB . DS . "Data" . DS . "Teamapp_" . $_uid;
+            if (file_exists($_datapath)) {
+                $_team_arr = unserialize(file_get_contents($_datapath));
+                foreach ($_team_arr as $_item) {
+                    
+                    $_remarr[] = [
+                        'type' => 'team',
+                        "name" => $_item[0],
+                        "url" => $_item[1]
+                    ];
+                }
+            }
+            // 获取团队项
+            if ($this->checkpower($_uid)) {
+                foreach ($_remarr as $_item) {
+                    $_dirarr[] = $_item;
+                }
+                echo json_encode($_dirarr);
+                // die("ss");
+            } else {
+                foreach ($_remarr as &$_item) {
+                    $_item['type'] = "self";
+                }
+                echo json_encode($_remarr);
+            }
+            
+            // echo json_encode($_dirarr);
+            exit();
+        }
         if (DEV_PLACE == "cloud") {
             if ($_uid != "") {
-                if (strpos(URL, $_uid) === false) {
-                    header("Location:/Cloud/" . $_uid . "/?webide=1");
-                    exit();
+                // 根据权限检测是否可以团队开发
+                if (file_exists(DATA_DIR . DS . "apppower_token_" . $_GET['targetappname'])) {
+                    $_tokendata = file_get_contents(DATA_DIR . DS . "apppower_token_" . $_GET['targetappname']);
+                    if ($_tokendata != "") {
+                        // die($_tokendata);
+                        $_token_arr = explode("|", $_tokendata);
+                        if (! in_array($_uid, $_token_arr)) {
+                            if (! $this->checkpower($_uid)) {
+                                header("Location:/Cloud/" . $_uid . "/?webide=1");
+                                exit();
+                            }
+                        }
+                    }
+                } else {
+                    if (! $this->checkpower($_uid)) {
+                        header("Location:/Cloud/" . $_uid . "/?webide=1");
+                        exit();
+                    }
                 }
             } else {
                 if (IS_AJAX_REQUEST) {
@@ -221,7 +369,59 @@ class BoGui
                 exit();
             }
         }
-        
+        // 获得app的开发权限
+        if (isset($_GET['getapppower'])) {
+            echo file_get_contents(DATA_DIR . DS . "apppower_" . $_GET['getapppower']);
+            // echo "1111|12313";
+            exit();
+        }
+        // 设置权限
+        if (isset($_GET['setapppower'])) {
+            if (DEV_PLACE == "cloud") {
+                if (! $this->checkpower($_uid)) {
+                    echo "no power";
+                    exit();
+                }
+            }
+            file_put_contents(DATA_DIR . DS . "apppower_" . $_GET['setapppower'], $_GET['powers']);
+            
+            if ($_GET['powers'] != "") {
+                $_powers = explode("|", $_GET['powers']);
+                $_token_arr = [];
+                foreach ($_powers as $_power) {
+                    $_token = $this->gettoken($_power);
+                    if (! $_token['err']) {
+                        if ($_token['data'] != $_uid) {
+                            
+                            $_token_arr[] = $_token['data'];
+                            $_datapath = BFW_LIB . DS . "Data" . DS . "Teamapp_" . $_token['data'];
+                            $_data = [];
+                            if (file_exists($_datapath)) {
+                                $_data = unserialize(file_get_contents($_datapath));
+                            }
+                            $_tokenpar = [
+                                $_GET['setapppower'],
+                                $_uid
+                            ];
+                            if (! in_array($_tokenpar, $_data)) {
+                                $_data[] = $_tokenpar;
+                            }
+                            
+                            file_put_contents($_datapath, serialize($_data));
+                        }
+                    }
+                }
+                file_put_contents(DATA_DIR . DS . "apppower_token_" . $_GET['setapppower'], implode("|", $_token_arr));
+            }
+            exit();
+        }
+        if (isset($_GET['delapp'])) {
+            // die(APP_ROOT . DS . "App" . DS . str_replace("./", "", $_GET['delapp']));
+            if (FileUtil::delDirAndFile(APP_ROOT . DS . "App" . DS . str_replace("./", "", $_GET['delapp']))) {
+                echo "ok";
+            }
+            exit();
+        }
         if (isset($_GET['getfiles'])) {
             if (isset($_GET['isstatic'])) {
                 echo file_get_contents(APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['getfiles']));
@@ -283,41 +483,6 @@ class BoGui
             exit();
         }
         
-        if (isset($_GET['getsysclass'])) {
-            $_method = [];
-            $_utillist = FileUtil::getFileListByDir(BFW_LIB . DS . "Lib" . DS . "Util" . DS);
-            $_bofunc = [
-                'BoSess.php',
-                "BoConfig.php",
-                "BoRes.php",
-                "BoReq.php",
-                "BoDebug.php",
-                "BoCache.php",
-                "Bfw.php",
-                "Core.php"
-            ];
-            foreach ($_bofunc as &$_file) {
-                $_file = str_replace(".php", "", $_file);
-                $_method[$_file] = $this->getmethod("Lib." . $_file);
-                // $_file .= "::getInstance()";
-            }
-            // echo BFW_LIB . DS . "Util" . DS;
-            foreach ($_utillist as &$_file) {
-                $_file = str_replace(".php", "", $_file);
-                $_method[$_file] = $this->getmethod("Lib.Util." . $_file);
-                // $_file .= "::getInstance()";
-            }
-            echo json_encode([
-                'class' => array_merge($_utillist, $_bofunc),
-                "method" => $_method
-            ]);
-            exit();
-        }
-        if (isset($_GET['getpro'])) {
-            $dirArr = scandir(APP_ROOT . DS . "App" . DS);
-            echo json_encode($dirArr);
-            exit();
-        }
         if (isset($_GET['getcloudpro'])) {
             echo $this->listapp();
             exit();
@@ -337,11 +502,11 @@ class BoGui
                 "html"
             ])) {
                 if (isset($_GET['isstatic'])) {
-                    //echo APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . str_replace("./", "", $_GET['renamefile']) . "." . $_filetyp;
+                    // echo APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . str_replace("./", "", $_GET['renamefile']) . "." . $_filetyp;
                     rename(APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . str_replace("./", "", $_GET['renamefile']) . "." . $_filetype, APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . str_replace("./", "", $_GET['newname']) . "." . $_filetype);
                     // FileUtil::CreatDir(APP_BASE . DS . STATIC_NAME.DS.$_GET['parent'].DS.$_GET['createfolder']);
                 } else {
-                    rename(APP_ROOT . DS . "App" . DS . $_GET['parent'] . str_replace("./", "", $_GET['renamefile']) . "." . $_filetype, APP_ROOT .  DS . "App" .DS . $_GET['parent'] . str_replace("./", "", $_GET['newname']) . "." . $_filetype);
+                    rename(APP_ROOT . DS . "App" . DS . $_GET['parent'] . str_replace("./", "", $_GET['renamefile']) . "." . $_filetype, APP_ROOT . DS . "App" . DS . $_GET['parent'] . str_replace("./", "", $_GET['newname']) . "." . $_filetype);
                 }
             }
             
@@ -399,7 +564,7 @@ class BoGui
         }
         if (isset($_GET['getstaticurl'])) {
             if (DEV_PLACE == "cloud") {
-                echo DEV_DEMO_URL . $this->getuid() . "/" . STATIC_NAME;
+                echo DEV_DEMO_URL .str_replace("/index.php","", str_replace("/Cloud/", "", APPSELF)) . "/" . STATIC_NAME;
             } else {
                 echo DEV_DEMO_URL . "/" . STATIC_NAME;
             }
@@ -416,7 +581,7 @@ class BoGui
                     if ($_item != "__get") {
                         if (DEV_PLACE == "cloud") {
                             $_ret[] = [
-                                'url' => DEV_DEMO_URL . $this->getuid() . "/index.php?r=" . $_GET['parent'] . "|" . str_replace("Controler_", "", $classname) . "|" . $_item,
+                                'url' => DEV_DEMO_URL .str_replace("/index.php","", str_replace("/Cloud/", "", APPSELF))  . "/index.php?r=" . $_GET['parent'] . "|" . str_replace("Controler_", "", $classname) . "|" . $_item,
                                 "name" => $_item
                             ];
                         } else {
@@ -436,23 +601,8 @@ class BoGui
             if (isset($_GET['isstatic'])) {
                 echo json_encode(FileUtil::getfilebydir($_file, APP_BASE . DS . STATIC_NAME . DS));
             } else {
+                // echo APP_ROOT;
                 echo json_encode(FileUtil::getfilebydir($_file, APP_ROOT . DS . "App" . DS));
-            }
-            exit();
-        }
-        if (isset($_GET['getstatic'])) {
-            $_file = str_replace("\\", '', str_replace("/", '', $_GET['getstatic']));
-            if (substr($_file, strlen($_file) - 4) == ".css") {
-                header('Content-type: text/css');
-                echo file_get_contents(BFW_LIB . DS . "Lib" . DS . "View/v1/static/css/" . $_file);
-            }
-            if (substr($_file, strlen($_file) - 3) == ".js") {
-                header('Content-type: text/javascript');
-                echo file_get_contents(BFW_LIB . DS . "Lib" . DS . "View/v1/static/js/" . $_file);
-            }
-            if (substr($_file, strlen($_file) - 4) == ".png" || substr($_file, strlen($_file) - 4) == ".jpg") {
-                header('Content-Type: image/jpeg');
-                echo file_get_contents(BFW_LIB . DS . "Lib" . DS . "View/v1/static/images/" . $_file);
             }
             exit();
         }
@@ -467,6 +617,15 @@ class BoGui
             exit();
         }
         if (isset($_GET['initapp'])) {
+            // echo $_uid;
+            // exit();
+            if (DEV_PLACE == "cloud") {
+                if (! $this->checkpower($_uid)) {
+                    echo "no power";
+                    // header("Location:/Cloud/" . $_uid . "/?webide=1");
+                    exit();
+                }
+            }
             $_appname = ucwords($_GET['initapp']);
             if (preg_match("/^[a-zA-Z]{3,20}$/", $_appname)) {
                 $dbpara = explode("|", $_GET['dbinfo']);
@@ -528,23 +687,25 @@ class BoGui
             }
             
             if (DEV_PLACE == "cloud") {
-                if ($_uid == "") {
-                    if (strpos(URL, 'Cloud') === false) {
-                        BoRes::View("cloudreg", "System", "v1");
+                if (! isset($_GET['targetappname'])) {
+                    if ($_uid == "") {
+                        if (strpos(URL, 'Cloud') === false) {
+                            BoRes::View("cloudreg", "System", "v1");
+                        } else {
+                            // die("s");
+                            header("Location:/?webide=1");
+                            // BoRes::View("cloudreg", "System", "v1");
+                        }
+                        exit();
                     } else {
-                        // die("s");
-                        header("Location:/?webide=1");
-                        // BoRes::View("cloudreg", "System", "v1");
-                    }
-                    exit();
-                } else {
-                    if (strpos(URL, 'Cloud') === false) {
-                        header("Location:/Cloud/" . $_uid . "/?webide=1");
-                        exit();
-                    }
-                    if (strpos(URL, $_uid) === false) {
-                        header("Location:/Cloud/" . $_uid . "/?webide=1");
-                        exit();
+                        if (strpos(URL, 'Cloud') === false) {
+                            header("Location:/Cloud/" . $_uid . "/?webide=1");
+                            exit();
+                        }
+                        if (strpos(URL, $_uid) === false) {
+                            header("Location:/Cloud/" . $_uid . "/?webide=1");
+                            exit();
+                        }
                     }
                 }
             }

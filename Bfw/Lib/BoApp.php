@@ -25,6 +25,7 @@ class BoApp
             userpwd TEXT,
             token TEXT,
            regtime TEXT)");
+      
     }
 
     public function __construct($_mode = 0)
@@ -233,6 +234,13 @@ class BoApp
             return "ok";
         }
     }
+    public function getTokenbyname($_uname){
+        return $this->getoken($_uname);
+    }
+    
+    public function setApppower($_app,$tokenstr){
+        return $this->setappow($_app,$tokenstr);
+    }
 
     public function login($_uname, $_pwd)
     {
@@ -276,7 +284,65 @@ class BoApp
         }
         return false;
     }
-
+    
+    private function setappow($_app,$tokenstr){
+        $this->initdb();
+        $time = date('Y-m-d H:i:s');
+        $sql = "SELECT id FROM app where username=:username";
+        $stmt = $this->_pdo->prepare($sql);
+        $_data = [];
+        if ($stmt) {
+            $stmt->bindParam(':username', $_uname);
+            $stmt->execute();
+            $_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+        } else {
+            return false;
+            // var_dump($this->_pdo->errorInfo());
+        }
+        if (empty($_data)) {
+            $sql = "INSERT INTO user (username,userpwd,regtime,token) VALUES (:username,:userpwd,:regtime,:token)";
+            $stmt = $this->_pdo->prepare($sql);
+            if ($stmt) {
+                $token = StringUtil::guid();
+                $stmt->bindParam(':username', $_uname);
+                $stmt->bindParam(':userpwd', $_pwd);
+                $stmt->bindParam(':regtime', $time);
+                $stmt->bindParam(':token', $token);
+                $stmt->execute();
+                $stmt->closeCursor();
+                FileUtil::CreatDir(APP_BASE.DS."Cloud".DS.$token);
+                FileUtil::copydir(APP_ROOT.DS."CodeT".DS."cloud", APP_BASE.DS."Cloud".DS.$token);
+                 
+                return $token;
+            } else {
+                return false;
+                // var_dump($this->_pdo->errorInfo());
+            }
+        } else {
+            return false;
+        }
+       
+    }
+    private function getoken($_uname){
+        $this->initdb();
+        $sql = "SELECT token FROM user where username=:uname";
+        $stmt = $this->_pdo->prepare($sql);
+        $_data = [];
+        if ($stmt) {
+            $stmt->bindParam(':uname', $_uname);
+            $stmt->execute();
+            $_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+        } else {
+            return false;
+        }
+        if (empty($_data)) {
+            return false;
+        } else {
+            return $_data[0]['token'];
+        }
+    }
     private function getuid($token)
     {
         $this->initdb();

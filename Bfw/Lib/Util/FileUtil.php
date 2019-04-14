@@ -66,6 +66,29 @@ class FileUtil
         }
     }
 
+    /**
+     * 删除目录及文件
+     *
+     * @param unknown $dirName            
+     * @return boolean
+     */
+    public static function delDirAndFile($dirName)
+    {
+        if (false != ($handle = opendir($dirName))) {
+            while (false !== ($item = readdir($handle))) {
+                if ($item != "." && $item != "..") {
+                    if (is_dir($dirName . DS . $item)) {
+                        self::delDirAndFile($dirName . DS . $item);
+                    } else {
+                        @unlink($dirName . DS . $item);
+                    }
+                }
+            }
+            closedir($handle);
+            return rmdir($dirName);
+        }
+    }
+
     public static function addFileToZip($path, &$zip, $folder = '')
     {
         $handler = opendir($path); // 打开当前文件夹由$path指定。
@@ -118,15 +141,15 @@ class FileUtil
     public static function getfilebydir($_dir, $_base = "/")
     {
         $_data = [];
-        $_dirdata = scandir($_base.$_dir);
-       // var_dump($_dirdata);
+        $_dirdata = scandir($_base . $_dir);
+        // var_dump($_dirdata);
         foreach ($_dirdata as $file) {
             if (($file != '.') && ($file != '..')) {
-                if (is_dir($_base.$_dir . DS . $file)) {
+                if (is_dir($_base . $_dir . DS . $file)) {
                     $_data[] = [
                         "name" => $file,
                         "type" => 1,
-                        "data" => self::getfilebydir( $file, $_base.$_dir.DS)
+                        "data" => self::getfilebydir($file, $_base . $_dir . DS)
                     ];
                 } else {
                     $_data[] = [
