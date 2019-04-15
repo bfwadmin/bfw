@@ -12,6 +12,8 @@ class BoApp
 
     private $_pdo = null;
 
+    private $_version_pdo = null;
+
     const UNSERVICENUM = 3;
 
     private function initdb()
@@ -25,12 +27,138 @@ class BoApp
             userpwd TEXT,
             token TEXT,
            regtime TEXT)");
-      
+    }
+
+    private function initversion_db($_appname)
+    {
+        if ($this->_version_pdo == null) {
+            $this->_version_pdo = new \PDO('sqlite:' . DATA_DIR . $_appname . '_appversion.db');
+        }
+        $this->_version_pdo->exec("CREATE TABLE IF NOT EXISTS appversion (
+            id INTEGER PRIMARY KEY,
+            appname TEXT,
+            memo TEXT,
+            username TEXT,
+            usertoken TEXT,
+            versionpath TEXT,
+           atime TEXT);CREATE TABLE IF NOT EXISTS commitlog (
+            id INTEGER PRIMARY KEY,
+            appname TEXT,
+            memo TEXT,
+            file TEXT,
+            username TEXT,
+            usertoken TEXT,
+            actiontype TEXT,
+           atime TEXT)");
     }
 
     public function __construct($_mode = 0)
     {
         $this->_mode = $_mode;
+    }
+
+    public function commitlog($_appname, $_file, $_type, $_memo,$_usertoken)
+    {
+        $this->initversion_db($_appname);
+        $time = date('Y-m-d H:i:s');
+        $_username = "wanbo";
+        $sql = "INSERT INTO commitlog (username,appname,memo,usertoken,atime,actiontype,file) VALUES (:username,:appname,:memo,:usertoken,:atime,:actiontype,:file)";
+        $stmt = $this->_version_pdo->prepare($sql);
+        if ($stmt) {
+            //$token = StringUtil::guid();
+            $stmt->bindParam(':username', $_username);
+            $stmt->bindParam(':appname', $_appname);
+            $stmt->bindParam(':atime', $time);
+            $stmt->bindParam(':memo', $_memo);
+            $stmt->bindParam(':usertoken', $_usertoken);
+            $stmt->bindParam(':actiontype', $_type);
+            $stmt->bindParam(':file', $_file);
+            $stmt->execute();
+            $stmt->closeCursor();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function getcommitlog($_appname,$_pagesize,$_pagenum)
+    {
+        $this->initversion_db($_appname);
+        // $time = date('Y-m-d H:i:s');
+        $sql = "SELECT * FROM commitlog where appname=:appname";
+        $stmt = $this->_version_pdo->prepare($sql);
+        $_data = [];
+        if ($stmt) {
+            $stmt->bindParam(':appname', $_appname);
+            $stmt->execute();
+            $_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+        }
+        return $_data;
+    }
+    public function getappversion($_appname)
+    {
+        $this->initversion_db($_appname);
+        // $time = date('Y-m-d H:i:s');
+        $sql = "SELECT atime,memo,id FROM appversion where appname=:appname";
+        $stmt = $this->_version_pdo->prepare($sql);
+        $_data = [];
+        if ($stmt) {
+            $stmt->bindParam(':appname', $_appname);
+            $stmt->execute();
+            $_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+        }
+        return $_data;
+    }
+
+    public function setappversion($_appname, $_v, $_usertoken)
+    {
+        $this->initversion_db($_appname);
+        $sql = "SELECT versionpath FROM appversion where id=:id";
+        $stmt = $this->_version_pdo->prepare($sql);
+        // $_data = [];
+        if ($stmt) {
+            $stmt->bindParam(':id', $_v);
+            $stmt->execute();
+            $_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            return [
+                'err' => false,
+                "data" => $_data[0]['versionpath']
+            ];
+        } else {
+            return [
+                'err' => true,
+                "data" => "not exist"
+            ];
+        }
+    }
+
+    public function addappversion($_appname, $_memo, $_usertoken)
+    {
+        $this->initversion_db($_appname);
+        $time = date('Y-m-d H:i:s');
+        $_username = "wanbo";
+        $sql = "INSERT INTO appversion (username,appname,memo,usertoken,atime,versionpath) VALUES (:username,:appname,:memo,:usertoken,:atime,:versionpath)";
+        $stmt = $this->_version_pdo->prepare($sql);
+        if ($stmt) {
+            $token = StringUtil::guid();
+            $stmt->bindParam(':username', $_username);
+            $stmt->bindParam(':appname', $_appname);
+            $stmt->bindParam(':atime', $time);
+            $stmt->bindParam(':memo', $_memo);
+            $stmt->bindParam(':usertoken', $_usertoken);
+            $stmt->bindParam(':versionpath', $_username);
+            $stmt->execute();
+            $stmt->closeCursor();
+            // FileUtil::CreatDir(APP_BASE . DS . "Cloud" . DS . $token);
+            // FileUtil::copydir(APP_ROOT . DS . "CodeT" . DS . "cloud", APP_BASE . DS . "Cloud" . DS . $token);
+
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public function listapp()
@@ -59,7 +187,7 @@ class BoApp
             $_data = str_replace($_dbname, "[[DB]]", $_data);
             $_data = str_replace($_appname, "[[DOM]]", $_data);
             file_put_contents(RUNTIME_DIR . $_appname . ".sql", $_data);
-            
+
             if (file_exists(RUNTIME_DIR . $_appname . ".sql")) {
                 $_out = HttpUtil::Upload(DEV_HOST_URL, [
                     "apphandler" => 2,
@@ -131,7 +259,7 @@ class BoApp
 
     public function download($_appname, $_localname, $_dbinfo, $_from_temp = false)
     {
-        
+
         // 检测数据库是否可以连接
         $_conn = mysql_connect($_dbinfo[0] . ":" . $_dbinfo[1], $_dbinfo[2], $_dbinfo[3]);
         if ($_conn) {
@@ -157,10 +285,10 @@ class BoApp
             if ($_staticdata) {
                 file_put_contents(RUNTIME_DIR . $_appname . "static.zip", $_staticdata);
             }
-            
+
             $_staticdata = null;
             FileUtil::unzip(RUNTIME_DIR . $_appname . "static.zip", APP_BASE . DS . STATIC_DIR . DS . $_localname);
-            
+
             $_sqlcdata = file_get_contents(DEV_HOST_URL . "?apphandler=1&token=" . $_uid . "&t=1&f=" . $_appname . ".sql");
             if ($_sqlcdata == false) {
                 return "获取数据库失败";
@@ -178,7 +306,7 @@ class BoApp
                 $_db_config["dbname"] = $_localname . "_db";
                 BoConfig::ConfigSet("Db", "localconfig", $_db_config, $_localname);
             }
-            
+
             $_data = file_get_contents(RUNTIME_DIR . $_appname . ".sql");
             $_data = str_replace("[[DB]]", $_localname . "_db", $_data);
             $_data = str_replace("[[DOM]]", $_localname, $_data);
@@ -197,12 +325,12 @@ class BoApp
             if (FileUtil::unzip(RUNTIME_DIR . $_appname . "back.zip", APP_ROOT . DS . "App" . DS . $_localname)) {
                 // FileUtil::replace_text(APP_ROOT . DS . "App" . DS . $_localname . DS, $_appname, $_localname);
             }
-            
+
             $_staticdata = file_get_contents(DEV_HOST_URL . "?apphandler=1&t=0&token=" . $_uid . "&f=" . $_appname . "static.zip");
             if ($_staticdata) {
                 file_put_contents(RUNTIME_DIR . $_appname . "static.zip", $_staticdata);
             }
-            
+
             $_staticdata = null;
             FileUtil::unzip(RUNTIME_DIR . $_appname . "static.zip", APP_BASE . DS . STATIC_DIR . DS . $_localname);
             $_sqlcdata = file_get_contents(DEV_HOST_URL . "?apphandler=1&t=0&token=" . $_uid . "&f=" . $_appname . ".sql");
@@ -211,7 +339,7 @@ class BoApp
             }
             file_put_contents(RUNTIME_DIR . $_appname . ".sql", $_sqlcdata);
             $_sqlcdata = null;
-            
+
             $_db_config = BoConfig::Config("Db", "localconfig", $_appname);
             $_dbname = $_db_config["dbname"];
             if (is_array($_db_config)) {
@@ -223,7 +351,7 @@ class BoApp
                 $_db_config["dbname"] = $_localname . "_db";
                 Bfw::ConfigSet("Db", "localconfig", $_db_config, $_localname);
             }
-            
+
             $_data = file_get_contents(RUNTIME_DIR . $_appname . ".sql");
             // $_data = str_replace($_dbname, $_localname . "_db", $_data);
             // $_data = str_replace($_appname, $_localname, $_data);
@@ -234,12 +362,15 @@ class BoApp
             return "ok";
         }
     }
-    public function getTokenbyname($_uname){
+
+    public function getTokenbyname($_uname)
+    {
         return $this->getoken($_uname);
     }
-    
-    public function setApppower($_app,$tokenstr){
-        return $this->setappow($_app,$tokenstr);
+
+    public function setApppower($_app, $tokenstr)
+    {
+        return $this->setappow($_app, $tokenstr);
     }
 
     public function login($_uname, $_pwd)
@@ -284,8 +415,9 @@ class BoApp
         }
         return false;
     }
-    
-    private function setappow($_app,$tokenstr){
+
+    private function setappow($_app, $tokenstr)
+    {
         $this->initdb();
         $time = date('Y-m-d H:i:s');
         $sql = "SELECT id FROM app where username=:username";
@@ -311,9 +443,9 @@ class BoApp
                 $stmt->bindParam(':token', $token);
                 $stmt->execute();
                 $stmt->closeCursor();
-                FileUtil::CreatDir(APP_BASE.DS."Cloud".DS.$token);
-                FileUtil::copydir(APP_ROOT.DS."CodeT".DS."cloud", APP_BASE.DS."Cloud".DS.$token);
-                 
+                FileUtil::CreatDir(APP_BASE . DS . "Cloud" . DS . $token);
+                FileUtil::copydir(APP_ROOT . DS . "CodeT" . DS . "cloud", APP_BASE . DS . "Cloud" . DS . $token);
+
                 return $token;
             } else {
                 return false;
@@ -322,9 +454,10 @@ class BoApp
         } else {
             return false;
         }
-       
     }
-    private function getoken($_uname){
+
+    private function getoken($_uname)
+    {
         $this->initdb();
         $sql = "SELECT token FROM user where username=:uname";
         $stmt = $this->_pdo->prepare($sql);
@@ -343,6 +476,7 @@ class BoApp
             return $_data[0]['token'];
         }
     }
+
     private function getuid($token)
     {
         $this->initdb();
@@ -416,9 +550,9 @@ class BoApp
                 $stmt->bindParam(':token', $token);
                 $stmt->execute();
                 $stmt->closeCursor();
-                FileUtil::CreatDir(APP_BASE.DS."Cloud".DS.$token);
-                FileUtil::copydir(APP_ROOT.DS."CodeT".DS."cloud", APP_BASE.DS."Cloud".DS.$token);
-               
+                FileUtil::CreatDir(APP_BASE . DS . "Cloud" . DS . $token);
+                FileUtil::copydir(APP_ROOT . DS . "CodeT" . DS . "cloud", APP_BASE . DS . "Cloud" . DS . $token);
+
                 return $token;
             } else {
                 return false;
@@ -441,7 +575,7 @@ class BoApp
             }
             // $filesize=$_FILES['file']['size'];
             // $max_uploadsize=ini_get('upload_max_filesize');
-            
+
             $_desdir = DATA_DIR . DS . "User_" . $uid;
             if ($_istemp == 1) {
                 $_desdir = DATA_DIR . DS . "TempUnchecked";
@@ -466,7 +600,7 @@ class BoApp
     {
         $uid = $this->getuid($_token);
         if ($uid) {
-            $_desdir = APP_BASE . DS . "Cloud".DS. $_token . DS."App".DS;
+            $_desdir = APP_BASE . DS . "Cloud" . DS . $_token . DS . "App" . DS;
             $dirArr = scandir($_desdir);
             return json_encode([
                 'err' => false,

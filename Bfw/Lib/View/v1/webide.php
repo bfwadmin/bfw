@@ -24,7 +24,7 @@
 	<header>
 		<ul>
 			<li class="logo">BFW STUDIO<span class="logo_vers">v1.0</span></li>
-		
+
 			<li onclick="dbconfshow();">开发设置</li>
 			<?php if(DEV_PLACE=="local"){?>
 			<li>云端存储</li>
@@ -33,40 +33,122 @@
 			<li>模板商城</li>
 			<li>文档教程</li>
 			<?php if(DEV_PLACE=="cloud"){?>
-			<li>团队管理</li>
+			<li onclick="$('#wikipannel').show();">WIKI</li>
 			<?php }?>
 			<li>我的任务</li>
-			<li onclick="popup($('#aboutus'));" >关于我们</li>
-			
-	     <li class="navitem"  id="logined" style="float:right;<?php if($uid==""){?>display:none;<?php }?>">
+			<li onclick="popup($('#aboutus'));">关于我们</li>
+
+			<li class="navitem"  id="logined" style="float:right;<?php if($uid==""){?>display:none;<?php }?>">
 				<div>
-					<p><a href="/Cloud/<?=$uid?>/?webide=1">我的中心</a></p>
+					<p>
+						<a href="/Cloud/<?=$uid?>/?webide=1">我的中心</a>
+					</p>
 					<p>我的日记</p>
-					<p>我的任务</p>
+					<p onclick="$('#jobpannel').show()">我的任务</p>
 					<p>我的博客</p>
 					<p onclick="logout();">退出</p>
 				</div>
 			</li>
-	
-		 <li class="userinfo" id="unlogin"  onclick="popup($('#login'));" style="<?php if($uid!=""){?>display:none;<?php }?>">登录/注册</li>
+
+			<li class="userinfo" id="unlogin"  onclick="popup($('#login'));" style="<?php if($uid!=""){?>display:none;<?php }?>">登录/注册</li>
 		</ul>
 	</header>
 	<div id="loadding"
-		style="position: absolute; z-index: 1111; top: 0; left: 0; background: black; color:#44a6ff ; height: 100vh; width: 100%;">
-		<div style="text-align: center; margin: 45vh auto; ">
-		<div style="font-size: 42px; font-weight:bold;">BFW STUDIO</div>
-			<div style="color:#3c3c3c;padding-top:10px;">made develop easier</div>
+		style="position: absolute; z-index: 1111; top: 0; left: 0; background: black; color: #44a6ff; height: 100vh; width: 100%;">
+		<div style="text-align: center; margin: 45vh auto;">
+			<div style="font-size: 42px; font-weight: bold;">BFW STUDIO</div>
+			<div style="color: #3c3c3c; padding-top: 10px;">made develop easier</div>
 		</div>
-		
+
 	</div>
-		<div id="aboutus" class="popup_dia" style="width: 50%; height: 40%;">
+	<div id="addjobpage" class="popup_dia"
+		style="width: 50%; height: 50%;">
+		<div class="popup_title">
+			<span>新增任务</span> <span onclick="popclose('addjobpage')"
+				class="popup_close">×</span>
+		</div>
+		<p>
+			<input type="text" placeholder="任务名称" class="popup_textin" id="jobname"
+				name="jobname" />
+		</p>
+		<p>
+
+			<textarea class="popup_textin" id="wikibody_text"
+				style="height: 60%;" name="wikibody_text" placeholder="请输入任务简介"></textarea>
+		</p>
+
+		<p>
+			<input type="button" value="提 交" class="popup_btn"
+				onclick="addwikipage()" />
+		</p>
+	</div>
+	<div id="commitlog" class="popup_dia" style="width: 60%; height: 60%;">
+		<div class="popup_title">
+			<span>日志查看</span> <span onclick="popclose('commitlog')"
+				class="popup_close">×</span>
+		</div>
+
+		<ul id="commitloglist">
+			<!-- 			<li><p>2019-11-11 23:30</p> -->
+			<!-- 				<p> -->
+			<!-- 					系统增加了功纳斯达克发链接 <input type="button" value="回滚到此版本" /> -->
+			<!-- 				</p></li> -->
+
+		</ul>
+		<p>
+			<input type="button" value="更多" class="popup_btn" onclick="" />
+		</p>
+
+	</div>
+	<div id="appversoncontrol" class="popup_dia"
+		style="width: 50%; height: 60%;">
+		<div class="popup_title">
+			<span>版本控制</span> <span onclick="popclose('appversoncontrol')"
+				class="popup_close">×</span>
+		</div>
+		<input type="hidden" id="appversion_appname" name="appversion_appname" />
+		<ul id="appversonlist">
+			<!-- 			<li><p>2019-11-11 23:30</p> -->
+			<!-- 				<p> -->
+			<!-- 					系统增加了功纳斯达克发链接 <input type="button" value="回滚到此版本" /> -->
+			<!-- 				</p></li> -->
+
+		</ul>
+		<p>
+			<input type="button" value="提交版本" class="popup_btn"
+				onclick="addversion()" />
+		</p>
+
+	</div>
+	<div id="addwikipage" class="popup_dia"
+		style="width: 60%; height: 80%;">
+		<div class="popup_title">
+			<span>新增wiki文档</span> <span onclick="popclose('addwikipage')"
+				class="popup_close">×</span>
+		</div>
+		<p>
+			<input type="text" placeholder="文档名称" class="popup_textin" id="wikipagename"
+				name="wikipagename" />
+		</p>
+		<p>
+
+			<textarea class="popup_textin" id="wikibody_text"
+				style="height: 75%;" name="wikibody_text" placeholder="请输入"></textarea>
+		</p>
+
+		<p>
+			<input type="button" value="提 交" class="popup_btn"
+				onclick="addwikipage()" />
+		</p>
+	</div>
+	<div id="aboutus" class="popup_dia" style="width: 50%; height: 40%;">
 		<div class="popup_title">
 			<span>关于我们</span> <span onclick="popclose('aboutus')"
 				class="popup_close">×</span>
 		</div>
-		<p style="color:grey;">
-		    本程序由王小伢兴趣爱好编写，</br>
-			是全球首款支持webide的开发及运行框架，</br>支持单机，伪集群，集群，SOA部署，</br>支持code first，db first，template first开发模式，支持java php net多种流行语言，</br>云端保存，多处开发，支持企业云部署，一个账号，随时随地打开浏览器即可开发应用，丰富的在线插件及文档，</br>社群问题回答，模板涵盖电商、企业官网、在线教育、企业erp，oa等热门系统，</br>支持在线模板交易，让优秀的程序员收获自己的财富
+		<p style="color: grey;">
+			本程序由王小伢兴趣爱好编写，</br> 是全球首款支持webide的开发及运行框架，</br>支持单机，伪集群，集群，SOA部署，</br>支持code
+			first，db first，template first开发模式，支持java php net多种流行语言，</br>云端保存，多处开发，支持企业云部署，一个账号，随时随地打开浏览器即可开发应用，丰富的在线插件及文档，</br>社群问题回答，模板涵盖电商、企业官网、在线教育、企业erp，oa等热门系统，</br>支持在线模板交易，让优秀的程序员收获自己的财富
 		</p>
 	</div>
 	<div id="rename" class="popup_dia" style="width: 20%; height: 25%;">
@@ -78,10 +160,9 @@
 			<input type="text" class="popup_textin" id="filename" name="filename" />
 			<input type="hidden" class="popup_textin" id="parentpathname"
 				name="parentpathname" /> <input type="hidden" class="popup_textin"
-				id="oldfilename" name="oldfilename" />
-				 <input type="hidden" class="popup_textin"
-				id="oldfiletype" name="oldfiletype" />
-				
+				id="oldfilename" name="oldfilename" /> <input type="hidden"
+				class="popup_textin" id="oldfiletype" name="oldfiletype" />
+
 		</p>
 
 		<p>
@@ -90,13 +171,14 @@
 		</p>
 
 	</div>
-	
-		<div id="previewhtml" class="popup_dia" style="width: 30%; height: 20%;">
+
+	<div id="previewhtml" class="popup_dia"
+		style="width: 30%; height: 20%;">
 		<div class="popup_title">
 			<span>由于浏览器限制弹窗，请点击查看</span> <span onclick="popclose('previewhtml')"
 				class="popup_close">×</span>
 		</div>
-		<div id="previewbtn" style="text-align:center;color:grey;"></div>
+		<div id="previewbtn" style="text-align: center; color: grey;"></div>
 
 	</div>
 	<div id="runaction" class="popup_dia" style="width: 20%; height: 40%;">
@@ -152,21 +234,23 @@
 	</div>
 	<div id="apppower" class="popup_dia" style="width: 50%; height: 40%;">
 		<div class="popup_title">
-			<span>设置app开发权限</span> <span onclick="popclose('apppower')" class="popup_close">×</span>
+			<span>设置app开发权限</span> <span onclick="popclose('apppower')"
+				class="popup_close">×</span>
 		</div>
 		<p>
 			<input type="hidden" class="popup_textin" id="apppower_appname"
 				name="apppower_appname" placeholder="请输入控制器名称" />
-			<textarea class="popup_textin" id="apppower_text" style="height:60%;"
-				name="apppower_text" placeholder="请输入开发人员账号，并用|分割" ></textarea>
+			<textarea class="popup_textin" id="apppower_text"
+				style="height: 60%;" name="apppower_text"
+				placeholder="请输入开发人员账号，并用|分割"></textarea>
 		</p>
-	
+
 		<p>
 			<input type="button" value="确 定" class="popup_btn"
 				onclick="setapppower()" />
 		</p>
 	</div>
-	
+
 	<div id="login" class="popup_dia" style="width: 30%; height: 40%;">
 		<div class="popup_title">
 			<span>登录</span> <span onclick="popclose('login')" class="popup_close">×</span>
@@ -263,7 +347,7 @@
 	</div>
 	<div id="editorpannel">
 		<!-- <div onclick="alert(editor.getValue());">title-关闭</div> -->
-		<div id="dir">
+		<div id="dir" class="scrollbar">
 			<div class="dir_title">
 				<span id="php_tree_tab" class="dir_s_tab">动态</span><span
 					id="static_tree_tab" class="dir_tab">静态</span> <span
@@ -273,14 +357,173 @@
 
 			<div id="dong_tree" class="tree"></div>
 			<div id="jing_tree" class="tree" style="display: none;"></div>
-			<div class="scrollbar"></div>
+
 
 		</div>
 		<div id="file_tab">
 			<ul></ul>
 		</div>
-		<div id="editor"></div>
+		<div id="editor" class="scrollbar"></div>
 
+	</div>
+	<div id="wikipannel">
+		<div style="padding: 5px 15px;">
+
+			<div class="bfwmenu">
+				<h2>
+					wiki文档<span class="add_btn" onclick="addwikiclass()">+</span> <span class="close_btn"
+						onclick="hidewiki()">×</span>
+				</h2>
+				<div class="bfw_content scrollbar">
+					<ul>
+						<li class="parent-menu">数据库资料<span class="add_btn"
+							onclick="popup($('#addwikipage'))">+</span></li>
+						<li class="selected_li">文档教材</li>
+						<li>文档教材</li>
+						<li class="parent-menu">开发参数 <span class="del_btn"
+							onclick="deldwikipage(1)">-</span></li>
+						<li>文档教材</li>
+						<li>文档教材</li>
+						<li>文档教材</li>
+						<li>文档教材</li>
+						<li class="parent-menu">开发参数</li>
+						<li>文档教材</li>
+						<li>文档教材</li>
+						<li>文档教材</li>
+						<li>文档教材</li>
+
+					</ul>
+				</div>
+
+			</div>
+			<div class="bfwbody scrollbar">
+
+				<div class="doc_body">
+					sdfsfsfsdfs
+					<p>sdfsf</p>
+					s
+					<p>sdfsf</p>
+					s
+					<p>sdfsf</p>
+					s
+					<p>sdfsf</p>
+					s
+					<p>sdfsf</p>
+					s
+					<p>sdfsf</p>
+					s
+					<p>sdfsf</p>
+					s
+					<p>sdfsf</p>
+					s
+					<p>sdfsf</p>
+					s
+					<p>sdfsf</p>
+					s
+					<p>sdfsf</p>
+					s
+					<p>sdfsf</p>
+					s
+					<p>sdfsf</p>
+					s
+					<p>sdfsf</p>
+					s
+					<p>sdfsf</p>
+					s
+					<p>sdfsf</p>
+				</div>
+
+			</div>
+		</div>
+	</div>
+	<div id="jobpannel">
+		<div style="padding: 15px;">
+			<span class="close_btn" onclick="hideediter();">×</span>
+			<div class="bfwmenu">
+				<h2>
+					任务墙<span class="add_btn" onclick="addjob()">+</span> <span
+						class="close_btn" onclick="hidejob()">×</span>
+				</h2>
+				<ul>
+					<li>全部</li>
+					<li class="selected_li">正在进行中</li>
+					<li>已完成</li>
+					<li>我的任务</li>
+				</ul>
+			</div>
+			<div class="bfwbody scrollbar ">
+				<div class="note">
+					<ul class="card">
+						<li><a>
+								<h2>王博:</h2>
+								<p>账号面膜注册士大夫沙等士大夫沙是的饭卡手动阀可是劳动纠纷历史课飞机螺丝钉解放可是老大!</p>
+						</a></li>
+						<li><a>
+								<h2>Baici Liu:</h2>
+								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
+						</a></li>
+						<li><a>
+								<h2>Baici Liu:</h2>
+								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
+						</a></li>
+						<li><a href="">
+								<h2>Baici Liu:</h2>
+								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
+						</a></li>
+						<li><a>
+								<h2>Baici Liu:</h2>
+								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
+						</a></li>
+						<li><a href="">
+								<h2>Baici Liu:</h2>
+								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
+						</a></li>
+						<li><a>
+								<h2>Baici Liu:</h2>
+								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
+						</a></li>
+						<li><a>
+								<h2>Baici Liu:</h2>
+								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
+						</a></li>
+
+						<li><a>
+								<h2>Baici Liu:</h2>
+								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
+						</a></li>
+
+						<li><a>
+								<h2>Baici Liu:</h2>
+								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
+						</a></li>
+						<li><a>
+								<h2>Baici Liu:</h2>
+								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
+						</a></li>
+						<li><a>
+								<h2>Baici Liu:</h2>
+								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
+						</a></li>
+						<li><a>
+								<h2>Baici Liu:</h2>
+								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
+						</a></li>
+						<li><a>
+								<h2>Baici Liu:</h2>
+								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
+						</a></li>
+						<li><a>
+								<h2>Baici Liu:</h2>
+								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
+						</a></li>
+						<li><a>
+								<h2>Baici Liu:</h2>
+								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
+						</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
 	</div>
 	<div class="footer">
 		Power by BFW<sup><?=VERSION?></sup>[SOA framework]

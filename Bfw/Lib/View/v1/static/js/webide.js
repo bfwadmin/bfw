@@ -34,9 +34,9 @@ contex_menu = {
 			text : '新建',
 			// icon : '/?getstatic=/folder.png',
 			action : function(node) {
-				
+
 				if(node.tag=="html"||node.tag=="css"||node.tag=="js"){
-					    var fname=prompt("请输入文件名，不能包含后缀","test"); 
+					    var fname=prompt("请输入文件名，不能包含后缀","test");
 						if (fname != null && fname != "" && namecheck(fname)) {
 							var url = "";
 							if (is_staticfile) {
@@ -54,11 +54,11 @@ contex_menu = {
 								'?webide=1&getstatic=/file.png',file,
 								'context2');
 						        jing_tree.selectNode(newnode);
-						        
+
 						        openfile( getfilepath(newnode)+"\\"+file, project_name);
-		
+
 							});
-					    } 
+					    }
 				}
 
 			},
@@ -74,12 +74,12 @@ contex_menu = {
 						url = "?webide=1&isstatic=1&delfiles="+
 							getfilepath(node)+"\\" +node.tag + "&parent=" + project_name;
 					} else {
-						url = "?webide=1&delfiles=" + getfilepath(node)+"\\" +node.tag 
+						url = "?webide=1&delfiles=" + getfilepath(node)+"\\" +node.tag
 								+ "&parent=" + project_name;
 					}
 					ajax(url, function(data) {
 						jing_tree.removeNode(node);
-						//editor.setValue("");
+						// editor.setValue("");
 						// refleshdir(project_name);
 					});
 				}
@@ -95,7 +95,7 @@ contex_menu = {
 					$("#parentpathname").val(getfilepath(node));
 					$("#oldfilename").val(pathinfo[0]);
 					$("#oldfiletype").val(pathinfo[1]);
-					
+
 					popup($('#rename'));
 				}
 
@@ -111,7 +111,7 @@ contex_menu = {
 					var inhtml="";
 
 						inhtml+="<p><a href='"+data+"/"+project_name+getfilepath(node)+"/"+node.tag+"' target='_blank'>查看</a></p>";
-					//}
+					// }
 				    $("#previewbtn").html(inhtml);
 					popup($('#previewhtml'));
 
@@ -125,7 +125,7 @@ contex_menu = {
 		opennode : function(node) {
 			console.log(node.tag);
 			openfile(getfilepath(node)+"\\"+node.tag, project_name);
-			
+
 		},
 		foldermenu : [
 				{
@@ -257,7 +257,7 @@ contex_menu = {
 					text : '运行',
 					// icon : '/?getstatic=/folder.png',
 					action : function(node) {
-						
+
 						var url = "?webide=1&getcontrolact=" + node.parent.tag+"\\"+node.tag
 								+ "&parent=" + project_name;
 						ajax(url, function(data) {
@@ -268,7 +268,7 @@ contex_menu = {
 							}
 						    $("#actionlist").html(inhtml);
 							popup($('#runaction'));
-							
+
 							// refleshdir(project_name);
 						});
 					},
@@ -285,10 +285,29 @@ contex_menu = {
 							$("#parentpathname").val(getfilepath(node));
 							$("#oldfilename").val(pathinfo[0]);
 							$("#oldfiletype").val(pathinfo[1]);
-							
+
 							popup($('#rename'));
 						}
 					},
+				},
+				{
+					type : "Common",
+
+					text : '查看版本',
+					// icon : '/?getstatic=/folder.png',
+					action : function(node) {
+						var url = "";
+						if (is_staticfile) {
+							url = "?webide=1&isstatic=1&getfilelog="+
+								getfilepath(node)+"\\" +node.tag + "&parent=" + project_name;
+						} else {
+							url = "?webide=1&getfilelog=" + getfilepath(node)+"\\" +node.tag
+									+ "&parent=" + project_name;
+						}
+						ajax(url, function(data) {
+
+						});
+					}
 				},
 				{
 					type : "Common",
@@ -301,12 +320,12 @@ contex_menu = {
 								url = "?webide=1&isstatic=1&delfiles="+
 									getfilepath(node)+"\\" +node.tag + "&parent=" + project_name;
 							} else {
-								url = "?webide=1&delfiles=" + getfilepath(node)+"\\" +node.tag 
+								url = "?webide=1&delfiles=" + getfilepath(node)+"\\" +node.tag
 										+ "&parent=" + project_name;
 							}
 							ajax(url, function(data) {
 								dong_tree.removeNode(node);
-								//editor.setValue("");
+								// editor.setValue("");
 								// refleshdir(project_name);
 							});
 						}
@@ -315,7 +334,7 @@ contex_menu = {
 	}
 };
 function createmodule(node,cont){
-	  var fname=prompt("请输入文件名，不能前缀","Home"); 
+	  var fname=prompt("请输入文件名，不能前缀","Home");
 		if (fname != null && fname != "" && namecheck(fname)) {
 			var url = "";
 			if (is_staticfile) {
@@ -335,7 +354,7 @@ function createmodule(node,cont){
 		        openfile( getfilepath(newnode)+"\\"+file, project_name);
 
 			});
-	    } 
+	    }
 }
 function RunOnBeforeUnload() {
 	window.onbeforeunload = function() {
@@ -360,6 +379,91 @@ function reset() {
 	editor_arr = [];
 
 };
+function addwikipage(){
+	ajax("?webide=1&addwikipage=1", function(data) {
+		alert(addwikipage);
+		popclose('addwikipage');
+
+	});
+};
+function deldwikipage(id){
+	if(confirm('确定删除？')){
+	ajax("?webide=1&addwikipage=1", function(data) {
+		alert(addwikipage);
+		popclose('addwikipage');
+
+	});
+	}
+};
+function hidewiki(){
+	$("#wikipannel").hide();
+};
+function hidejob(){
+	$("#jobpannel").hide();
+};
+function addjob(){
+	popup($("#addjobpage"));
+};
+
+function notify(msg) {
+    showMsgNotification('You have new information',msg);
+
+};
+function showMsgNotification(title, msg, icon) {
+        var options = {
+            body: msg,
+            icon: icon||"image_url"
+        };
+        var Notification = window.Notification || window.mozNotification || window.webkitNotification;
+        if (Notification && Notification.permission === "granted") {
+            var instance = new Notification(title, options);
+            instance.onclick = function() {
+                // Something to do
+            };
+            instance.onerror = function() {
+                // Something to do
+            };
+            instance.onshow = function() {
+                // Something to do
+// setTimeout(instance.close, 3000);
+                setTimeout(function () {
+                    instance.close();
+                },3000)
+                console.log(instance.body)
+            };
+            instance.onclose = function() {
+                // Something to do
+            };
+            console.log(instance)
+        } else if (Notification && Notification.permission !== "denied") {
+            Notification.requestPermission(function(status) {
+                if (Notification.permission !== status) {
+                    Notification.permission = status;
+                }
+                // If the user said okay
+                if (status === "granted") {
+                    var instance = new Notification(title, options);
+                    instance.onclick = function() {
+                        // Something to do
+                    };
+                    instance.onerror = function() {
+                        // Something to do
+                    };
+                    instance.onshow = function() {
+                        // Something to do
+                        setTimeout(instance.close, 3000);
+                    };
+                    instance.onclose = function() {
+                        // Something to do
+                    };
+                } else {
+                    return false
+                }
+            });
+        } else {
+            return false;
+        }
+    };
 function rename(){
 	var newfilename=$("#filename").val();
 	if(newfilename!=""){
@@ -368,11 +472,11 @@ function rename(){
 			url = "?webide=1&isstatic=1&renamefile="
 					+ $("#parentpathname").val()+"\\"+$("#oldfilename").val() + "&parent=" + project_name+"&newname="+$("#parentpathname").val()+"\\"+newfilename+"&filetype="+$("#oldfiletype").val();
 		} else {
-			url = "?webide=1&renamefile=" 
+			url = "?webide=1&renamefile="
 				+ $("#parentpathname").val()+"\\"+$("#oldfilename").val() + "&parent=" + project_name+"&newname="+$("#parentpathname").val()+"\\"+newfilename+"&filetype="+$("#oldfiletype").val();
 		}
 		ajax(url, function(data) {
-			
+
 			// 关闭打开的旧文件
 			// tree.removeNode(node);
 			// editor.setValue("");
@@ -387,7 +491,7 @@ function init_complete(){
  "$this->Alert('')",
  "$this->Success('')",
  ];
-	
+
 };
 function openeditor(file, filedata) {
 
@@ -405,7 +509,7 @@ function openeditor(file, filedata) {
 				$(this).addClass("file_selected");
 				if($("#file_tab ul li").eq(0).attr("id")!=$(this).attr("id")){
 					  $("#file_tab ul li").eq(0).before($(this));
-				}			  
+				}
 				$("#" + editor_arr[i].editorid).show();
 				return;
 			}
@@ -439,7 +543,7 @@ function openeditor(file, filedata) {
 		// editor.session.setMode("ace/mode/php");
 		editor.setFontSize(18);
 		editor.setOption("wrap", "free");
-		
+
 		editor.commands.addCommand({
 			name : "showKeyboardShortcuts",
 			bindKey : {
@@ -505,12 +609,12 @@ function openeditor(file, filedata) {
 					identifierRegexps: [/[^\s]+/],
 					getCompletions: function(editor, session, pos, prefix, callback) {
 						console.info("myCompleter prefix:", prefix);
-						
+
 						var lastpr=prefix.substring(prefix.length-2);
 						console.info("myCompleter prefix:", lastpr);
 		                if(lastpr=="::"){
 		            		var entrynew = prefix.substring(0,prefix.indexOf("::"));
-		            		if (typeof bfw_method_list[entrynew] == "undefined") { 
+		            		if (typeof bfw_method_list[entrynew] == "undefined") {
 								console.log(entrynew+"不存在");
 							}else{
 								addns(editor,bfw_method_list[entrynew].method.namespace);
@@ -518,8 +622,8 @@ function openeditor(file, filedata) {
 		    				callback(
 									null,
 									bfw_method_list[entrynew].method.staticname.map((entry,index) => {
-										
-										
+
+
 										return {
 											docHTML:bfw_method_list[entrynew].method.staticdoc[index],
 											value:prefix+entry,
@@ -538,10 +642,10 @@ function openeditor(file, filedata) {
 							}
 							console.log(bfw_method_list);
 							console.log(entrynew);
-							if (typeof bfw_method_list[entrynew] == "undefined") { 
+							if (typeof bfw_method_list[entrynew] == "undefined") {
 								console.log(entrynew+"不存在");
 							}else{
-								//console.log(bfw_method_list[entrynew].method.name);
+								// console.log(bfw_method_list[entrynew].method.name);
 								addns(editor,bfw_method_list[entrynew].method.namespace);
 								console.log("namspace::"+bfw_method_list[entrynew].method.namespace);
 								callback(
@@ -555,7 +659,7 @@ function openeditor(file, filedata) {
 										})
 									);
 							}
-							
+
 						}else{
 							var lindex=prefix.indexOf("(");
 							var newprefix=prefix;
@@ -574,7 +678,7 @@ function openeditor(file, filedata) {
 											 entrynew = entry.substring(0,entry.indexOf("::"));
 								     	}
 										var doc_c="";
-										if (typeof bfw_method_list[entrynew] == "undefined") { 
+										if (typeof bfw_method_list[entrynew] == "undefined") {
 											console.log(entrynew+"不存在");
 										}else{
 											doc_c=bfw_method_list[entrynew].doc;
@@ -583,15 +687,15 @@ function openeditor(file, filedata) {
 											   docHTML:doc_c,
 												value:entry,
 												meta: "bfw class"
-					
+
 										};
 									})
 								);
 						}
-						
+
 					}
 				};
-			    //editor.completers = [myCompleter];
+			    // editor.completers = [myCompleter];
 				langTools.addCompleter(myCompleter);
 		} else if (stuff == ".css") {
 			editor.session.setMode("ace/mode/css");
@@ -605,20 +709,23 @@ function openeditor(file, filedata) {
 			editor.session.setMode("ace/mode/php");
 		}
 		editor.setValue(filedata);
-		//editor.focus();
+		// editor.focus();
 	} else if (stuff == '.png' || stuff == '.jpeg' || stuff == '.jpg'
 			|| stuff == '.gif') {
 		$("#editor").append(
 				"<pre   id='" + editorid + "'  style='text-align:center;'><img  class='img_show'  src='"
 						+ filedata + "' /></pre>");
 	} else if (getfilename(file) == 'welcome.bfw') {
-	//	$("#editor")
-		//		.append(
-			//			"<pre  id='"
-				//				+ editorid
-				//				+ "' ><div class='wellcome_show' >全球首款支持webide的开发及运行框架，</br>支持单机，伪集群，集群，SOA部署，</br>支持code first，db first，template first开发模式，支持java php net多种流行语言，</br>云端保存，多处开发，支持企业云部署，一个账号，随时随地打开浏览器即可开发应用，丰富的在线插件及文档，</br>社群问题回答，模板涵盖电商、企业官网、在线教育、企业erp，oa等热门系统，</br>支持在线模板交易，让优秀的程序员收获自己的财富</div></pre>");
+	// $("#editor")
+		// .append(
+			// "<pre id='"
+				// + editorid
+				// + "' ><div class='wellcome_show'
+				// >全球首款支持webide的开发及运行框架，</br>支持单机，伪集群，集群，SOA部署，</br>支持code
+				// first，db first，template first开发模式，支持java php
+				// net多种流行语言，</br>云端保存，多处开发，支持企业云部署，一个账号，随时随地打开浏览器即可开发应用，丰富的在线插件及文档，</br>社群问题回答，模板涵盖电商、企业官网、在线教育、企业erp，oa等热门系统，</br>支持在线模板交易，让优秀的程序员收获自己的财富</div></pre>");
 	} else {
-		
+
 	}
 
 	editor_arr.push({
@@ -639,17 +746,17 @@ function addns(editor,ns){
 		for (var i = 0; i < editor_arr.length; i++) {
 			if (editor == editor_arr[i].editor) {
 				if($.inArray(ns, editor_arr[i].namespace)>=0){
-					
+
 				}else{
 					editor_arr[i].namespace.push(ns);
 				}
-				
+
 				console.log(editor_arr[i]);
-			
+
 				break;
 			}
 		}
-	}	
+	}
 };
 function closefile(f) {
 	if (editor_arr.length > 0) {
@@ -683,7 +790,7 @@ function showapppower(p){
 function setapppower(){
 	var powers=$("#apppower_text").val();
 	var p=$("#apppower_appname").val();
-	//$("#apppower_appname").val(p);
+	// $("#apppower_appname").val(p);
 	ajax("?setapppower="+p+"&webide=1&powers="+powers+"&targetappname="+p, function(data) {
 		popclose("apppower");
 	});
@@ -698,10 +805,10 @@ function getpro() {
 				pro_html += "	<li  class='pro_item'  ><span data='" + obj[i].name + "' class='pron_item_name'>"
 						+obj[i].name+ "</span> " +
 								"" +
-								"<p><a>打开</a><a onclick='showapppower(\""+obj[i].name+"\");'>权限</a><a>快照</a><a onclick='delpro(\""+obj[i].name+"\");'>删除</a></p></li>";
+								"<p><a onclick='getlog(\""+obj[i].name+"\")'>日志</a><a onclick='showapppower(\""+obj[i].name+"\");'>权限</a><a onclick='versoncontrol(\""+obj[i].name+"\");'>版本</a><a onclick='delpro(\""+obj[i].name+"\");'>删除</a></p></li>";
 			}
 			if (obj[i].type=="team") {
-				pro_html += "	<li  class='pro_item'  ><span data='" + obj[i].name + "' class='pron_item_name'>"
+				pro_html += "	<li  class='pro_item team_item'  ><span>"
 						+obj[i].name+ "</span> " +
 								"" +
 								"<p><a href='/Cloud/"+obj[i].url+"/?webide=1&targetappname="+ obj[i].name+"' target='_blank'>进入</a></p></li>";
@@ -709,6 +816,61 @@ function getpro() {
 		}
 		$("#latest_pro").html(pro_html);
 	}, "get", "");
+};
+function getlog(p){
+	var pro_html = "";
+	ajax("?getcommitlog="+p+"&webide=1&targetappname="+p, function(data) {
+		var obj = eval('(' + data + ')');
+		if(obj.length>0){
+			for (var i = 0; i < obj.length; i++) {
+				pro_html += "<li><p>" + obj[i].atime + "</p><p>"+obj[i].file+":"+ obj[i].memo+" </p> </li>";
+
+			}
+		}
+
+		$("#commitloglist").html(pro_html);
+		popup($("#commitlog"));
+
+	});
+}
+function versoncontrol(p){
+	var pro_html = "";
+	$("#appversion_appname").val(p);
+	ajax("?getappversion="+p+"&webide=1&targetappname="+p, function(data) {
+		var obj = eval('(' + data + ')');
+		if(obj.length>0){
+			for (var i = 0; i < obj.length; i++) {
+				pro_html += "<li><p>" + obj[i].atime + "</p><p>"+ obj[i].memo+" <input onclick='rollback("+obj[i].id+");' type='button' value='回滚到此版本' /></p> </li>";
+
+			}
+		}
+
+
+		$("#appversonlist").html(pro_html);
+		popup($("#appversoncontrol"));
+
+	});
+
+};
+function addversion(){
+	ajax("?addappversion="+$("#appversion_appname").val()+"&webide=1&memo=123123&targetappname="+$("#appversion_appname").val(), function(data) {
+		if(data=="ok"){
+			alert("提交成功");
+			popclose("appversoncontrol");
+		}
+
+	});
+};
+function rollback(v){
+	if(confirm("确定回滚到此版本")){
+		ajax("?setappversion="+$("#appversion_appname").val()+"&webide=1&v="+v+"&targetappname="+$("#appversion_appname").val(), function(data) {
+			if(data=="ok"){
+				alert("提交成功");
+				popclose("appversoncontrol");
+			}
+
+		});
+	}
 };
 function getcloudpro() {
 	var pro_html = "";
@@ -740,7 +902,7 @@ function openfile(f, p) {
 		if (stuff == ".png" || stuff == ".jpeg" || stuff == ".jpg"
 				|| stuff == ".gif") {
 			openeditor(file, "?isstatic=1&webide=1&getfiles=" + f + "&parent="
-					+ p);
+					+ p+"&targetappname="+p);
 		} else {
 			if (is_staticfile) {
 				ajax("?webide=1&isstatic=1&getfiles=" + f + "&parent=" + p,
@@ -837,7 +999,7 @@ function initjingdir(url) {
 		for (var i = 0; i < obj.length; i++) {
 			var objt = eval(obj[i]);
 			if (objt.type == 1) {
-	
+
 				treenode(objt.data,jing_tree.createNode(objt.name, false,
 						'?webide=1&getstatic=/folder.png', null, objt.name,
 						cont),cont);
@@ -868,24 +1030,24 @@ function savefile(editor) {
 	} else {
 		url = "?webide=1&isstatic=1&savefiles=" + editor.file
 	}
-	
+
 	var nowpos=editor.editor.selection.getCursor();
 	console.log(nowpos);
 	if (editor.namespace.length > 0) {
 		editor.editor.gotoLine(3);
 		for (var i = 0; i < editor.namespace.length; i++) {
 			if(editor.editor.getValue().indexOf(editor.namespace[i])>=0){
-				
+
 			}else{
 				editor.editor.insert("use "+editor.namespace[i]+";");
 			}
-			
+
 		}
 		editor.namespace=[];
 	}
 	editor.editor.moveCursorTo(nowpos.row, nowpos.column);
 	console.log(editor.namespace);
-	//return;
+	// return;
 	ajax(url, function(data) {
 		if (data == "ok") {
 			editor.filechanged = false;
@@ -946,7 +1108,7 @@ function login() {
 		return;
 	}
 	ajax('/?webide=1&login=' + username + "|" + pwd, function(str) {
-		//alert(str)
+		// alert(str)
 		var ret = eval('(' + str + ')');
 		if(ret.err){
 			alert(ret.data);
@@ -981,7 +1143,7 @@ function logout(){
 			$("#logined").hide();
 			$("#unlogin").show();
 		}
-		//alert(str)
+		// alert(str)
 	});
 };
 function mysqlconf() {
@@ -1015,28 +1177,28 @@ function getbfwclassfunc(p){
 		if(obj instanceof Object){
 			console.log(obj['class']);
 			bfw_tag_list=bfw_sys_tag_list.concat(obj['class']);
-			//omerge(bfw_tag_list,obj['class']);
+			// omerge(bfw_tag_list,obj['class']);
 			console.log(bfw_tag_list);
 			bfw_method_list=$.extend(bfw_sys_method_list,obj['method']);
 			console.log(bfw_method_list);
 		}
-		//bfw_tag_list=bfw_tag_list.concat(obj['class']);
+		// bfw_tag_list=bfw_tag_list.concat(obj['class']);
 
-		//bfw_method_list=bfw_method_list.concat(obj['method']);
+		// bfw_method_list=bfw_method_list.concat(obj['method']);
 	});
-	
+
 };
 function omerge(o,n){
 	   for (var p in n){
 	        if(n.hasOwnProperty(p) && (!o.hasOwnProperty(p) ))
 	            o[p]=n[p];
 	    }
-};   
+};
 function getsysclassfunc(){
 	ajax('?webide=1&getsysclass', function(data) {
 		var obj = eval('(' + data + ')');
 		bfw_sys_tag_list=obj['class'];
-		//console.log(bfw_tag_list);
+		// console.log(bfw_tag_list);
 		bfw_sys_method_list=obj['method'];
 	});
 };
@@ -1060,7 +1222,7 @@ function popclose(popupName) {
 function delpro(p){
 	if(confirm("确定删除？")){
 		ajax('?webide=1&delapp=' + p, function(data) {
-			//var obj = eval('(' + data + ')');
+			// var obj = eval('(' + data + ')');
 			getpro();
 		});
 	}
@@ -1115,14 +1277,28 @@ function creatpro() {
 				}, "get", "");
 	}
 };
+function addwikiclass(){
+    var fname=prompt("请输入类别名","开发参数");
+	if (fname != null && fname != "" && namecheck(fname)) {
+		ajax('?webide=1&addwikiclass=' + fname,
+				function(str) {
+					if (str == "ok") {
+						//getpro();
+						//popclose("newprodia");
+					} else {
+						//alert(str)
+					}
+				}, "get", "");
+	}
+};
 function ajax(url, fnSucc, method, data) {
 	if(url.indexOf("targetappname")>=0){
-		
+
 	}else{
 		url=url+"&targetappname="+project_name;
 	}
 
-	
+
 	if (window.XMLHttpRequest) {
 		var oAjax = new XMLHttpRequest();
 	} else {
@@ -1165,6 +1341,7 @@ $(function() {
 	getpro();
 	getsysclassfunc();
 	$("#loadding").hide();
+	//notify("ddddd");
 	$("#pro_nav_tab li").live("click", function() {
 		$("#pro_nav_tab li").removeClass("tab_selected");
 		$(this).addClass("tab_selected");
