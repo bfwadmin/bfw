@@ -379,12 +379,64 @@ function reset() {
 	editor_arr = [];
 
 };
-function addwikipage(){
-	ajax("?webide=1&addwikipage=1", function(data) {
-		alert(addwikipage);
-		popclose('addwikipage');
+function showwiki(){
+	ajax("?webide=1&getwikiclass=1", function(data) {
+		var obj = eval('(' + data + ')');
+		var pro_html="";
+		var classname="";
+		var classarr=[];
+		for (var i = 0; i < obj.length; i++) {
+			if(classname!=obj[i].classname){
+				classarr.push(obj[i].classname);
+			}
+			classname=obj[i].classname;
+		}
+		console.log(classarr);
+		for (var i = 0; i < classarr.length; i++) {
+			pro_html += "<li class='parent-menu'>"+classarr[i]+"<span class='add_btn' onclick=\"popup($('#addwikipage'))\">+</span></li>";
+			for (var j = 0; j < obj.length; j++) {
+				if(classarr[i]==obj[j].classname){
+					pro_html += "<li id='sel_li"+obj[j].id+"' onclick='openwikipage("+obj[j].id+")'>"+obj[j].title+"<span class='del_btn' onclick=\"deldwikipage("+obj[j].id+")\">-</span></li>";
+				}
+			}
+
+		}
+		$("#wikimenu").html(pro_html);
+		console.log(obj);
+		$('#wikipannel').show();
 
 	});
+
+};
+function openwikipage(id){
+	$('#wikipannel li').removeClass('selected_li');
+
+	$("#sel_li"+id).addClass('selected_li');
+	ajax("?webide=1&getwikipage="+id, function(data) {
+		var obj = eval('(' + data + ')');
+		$("#wikibodydetail").html(obj[0]['cont']);
+	});
+
+
+};
+function addwikipage(){
+	var wikiname=$("#wikipagename").val();
+	var wikiclass=$("#wikiclassname").val();
+	var wikibody=$("#wikibodytext").val();
+	if(wikiname==""||wikiclass==""||wikibody==""){
+		alert("请填写完整后提交");
+		return;
+	}
+	ajax("?webide=1&addwikipage=1", function(data) {
+		var obj = eval('(' + data + ')');
+		if(obj.err){
+			alert(obj.data);
+		}else{
+			popclose('addwikipage');
+			showwiki();
+		}
+
+	}, "post", "title=" +encodeURIComponent(wikiname)+"&classname="+encodeURIComponent(wikiclass)+"&cont="+encodeURIComponent(wikibody));
 };
 function deldwikipage(id){
 	if(confirm('确定删除？')){
@@ -805,7 +857,7 @@ function getpro() {
 				pro_html += "	<li  class='pro_item'  ><span data='" + obj[i].name + "' class='pron_item_name'>"
 						+obj[i].name+ "</span> " +
 								"" +
-								"<p><a onclick='getlog(\""+obj[i].name+"\")'>日志</a><a onclick='showapppower(\""+obj[i].name+"\");'>权限</a><a onclick='versoncontrol(\""+obj[i].name+"\");'>版本</a><a onclick='delpro(\""+obj[i].name+"\");'>删除</a></p></li>";
+								"<p><a onclick='getlog(\""+obj[i].name+"\")'>日志</a><a onclick='showapppower(\""+obj[i].name+"\");'>权限</a><a onclick='versoncontrol(\""+obj[i].name+"\");'>版本</a><a onclick='delpro(\""+obj[i].name+"\");'>删除</a><a>部署</a></p></li>";
 			}
 			if (obj[i].type=="team") {
 				pro_html += "	<li  class='pro_item team_item'  ><span>"
@@ -1236,26 +1288,7 @@ function creatpro() {
 		alert("请选择模板");
 		return;
 	}
-// var uname = localStorage.getItem("user");
-// var dhost = localStorage.getItem("host");
-// var dport = localStorage.getItem("port");
-// var dpwd = localStorage.getItem("pwd");
-// if (uname == null) {
-// uname = "root";
-// // localStorage.setItem(cmdarr[2],cmdarr[3]);
-// }
-// if (dhost == null) {
-// dhost = "127.0.0.1";
-// // localStorage.setItem(cmdarr[2],cmdarr[3]);
-// // alert("请先设置数据库连接信息");
-// }
-// if (dport == null) {
-// dport = 3306;
-// }
-// if (dpwd == null) {
-// dpwd = "";
-// }
-// var dbinfo = dhost + "|" + dport + "|" + uname + "|" + dpwd;
+
 	if (tempid != "empty") {
 		ajax('?webide=1&initapp=' + $("#proname").val() + "&tempid=" + tempid, function(str) {
 			if (str == "ok") {
@@ -1277,19 +1310,36 @@ function creatpro() {
 				}, "get", "");
 	}
 };
-function addwikiclass(){
-    var fname=prompt("请输入类别名","开发参数");
-	if (fname != null && fname != "" && namecheck(fname)) {
-		ajax('?webide=1&addwikiclass=' + fname,
-				function(str) {
-					if (str == "ok") {
-						//getpro();
-						//popclose("newprodia");
-					} else {
-						//alert(str)
-					}
-				}, "get", "");
+function addjob(){
+	var jobname=$("#jobname").val();
+	var jobcont=$("#jobcont").val();
+	var starttime="2012-12-12 16:20:23";
+	var endtime="2012-12-12 16:20:23";
+	if(jobname==""||jobcont==""){
+		alert("请填写完整后提交");
+		return;
 	}
+	ajax("?webide=1&addjob=1", function(data) {
+		var obj = eval('(' + data + ')');
+		if(obj.err){
+			alert(obj.data);
+		}else{
+			popclose('addjobpage');
+			showjoblist();
+		}
+
+	}, "post", "title=" +encodeURIComponent(jobname)+"&starttime="+encodeURIComponent(starttime)+"&endtime="+encodeURIComponent(endtime)+"&cont="+encodeURIComponent(jobcont));
+};
+function showjoblist(){
+	ajax("?webide=1&listjob=1", function(data) {
+		var obj = eval('(' + data + ')');
+		var pro_html="";
+		for (var j = 0; j < obj.length; j++) {
+			pro_html += "<li id='job_li"+obj[j].id+"' onclick='openjobdetail("+obj[j].id+")'><a><h2>"+obj[j].username+":</h2><p>"+obj[j].title+"</p></a></li>";
+		}
+		$("#joblistview").html(pro_html);
+	});
+
 };
 function ajax(url, fnSucc, method, data) {
 	if(url.indexOf("targetappname")>=0){
@@ -1298,7 +1348,7 @@ function ajax(url, fnSucc, method, data) {
 		url=url+"&targetappname="+project_name;
 	}
 
-
+	$("#mask").show();
 	if (window.XMLHttpRequest) {
 		var oAjax = new XMLHttpRequest();
 	} else {
@@ -1328,6 +1378,7 @@ function ajax(url, fnSucc, method, data) {
 				}
 			}
 		}
+		$("#mask").hide();
 	};
 };
 
@@ -1341,7 +1392,7 @@ $(function() {
 	getpro();
 	getsysclassfunc();
 	$("#loadding").hide();
-	//notify("ddddd");
+	// notify("ddddd");
 	$("#pro_nav_tab li").live("click", function() {
 		$("#pro_nav_tab li").removeClass("tab_selected");
 		$(this).addClass("tab_selected");

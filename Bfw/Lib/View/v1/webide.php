@@ -19,7 +19,7 @@
 <body onload="RunOnBeforeUnload()">
 	<div id="mask"
 		class="pos-abs v-fullscreen opacity-7 color-black zindex-99999 dis-hide">
-		<div id="notice">loading</div>
+		<div id="notice" style="text-align:center;"><img src="?webide=1&getstatic=/loading.gif"/><p style="font-size:12px;padding:0;color:grey;margin:3px;">请求中,请稍后</p></div>
 	</div>
 	<header>
 		<ul>
@@ -33,7 +33,7 @@
 			<li>模板商城</li>
 			<li>文档教程</li>
 			<?php if(DEV_PLACE=="cloud"){?>
-			<li onclick="$('#wikipannel').show();">WIKI</li>
+			<li onclick="showwiki()">WIKI</li>
 			<?php }?>
 			<li>我的任务</li>
 			<li onclick="popup($('#aboutus'));">关于我们</li>
@@ -44,6 +44,7 @@
 						<a href="/Cloud/<?=$uid?>/?webide=1">我的中心</a>
 					</p>
 					<p>我的日记</p>
+					<p>我的bug</p>
 					<p onclick="$('#jobpannel').show()">我的任务</p>
 					<p>我的博客</p>
 					<p onclick="logout();">退出</p>
@@ -61,25 +62,24 @@
 		</div>
 
 	</div>
-	<div id="addjobpage" class="popup_dia"
-		style="width: 50%; height: 50%;">
+	<div id="addjobpage" class="popup_dia" style="width: 50%; height: 50%;">
 		<div class="popup_title">
 			<span>新增任务</span> <span onclick="popclose('addjobpage')"
 				class="popup_close">×</span>
 		</div>
 		<p>
-			<input type="text" placeholder="任务名称" class="popup_textin" id="jobname"
-				name="jobname" />
+			<input type="text" placeholder="任务名称" class="popup_textin"
+				id="jobname" name="jobname" />
 		</p>
 		<p>
 
-			<textarea class="popup_textin" id="wikibody_text"
-				style="height: 60%;" name="wikibody_text" placeholder="请输入任务简介"></textarea>
+			<textarea class="popup_textin" id="jobcont"
+				style="height: 60%;" name="jobcont" placeholder="请输入任务简介"></textarea>
 		</p>
 
 		<p>
 			<input type="button" value="提 交" class="popup_btn"
-				onclick="addwikipage()" />
+				onclick="addjob()" />
 		</p>
 	</div>
 	<div id="commitlog" class="popup_dia" style="width: 60%; height: 60%;">
@@ -127,13 +127,17 @@
 				class="popup_close">×</span>
 		</div>
 		<p>
-			<input type="text" placeholder="文档名称" class="popup_textin" id="wikipagename"
-				name="wikipagename" />
+			<input type="text" placeholder="文档名称" class="popup_textin"
+				id="wikipagename" name="wikipagename" />
+		</p>
+		<p>
+			<input type="text" placeholder="分类" class="popup_textin"
+				id="wikiclassname" name="wikiclassname" />
 		</p>
 		<p>
 
-			<textarea class="popup_textin" id="wikibody_text"
-				style="height: 75%;" name="wikibody_text" placeholder="请输入"></textarea>
+			<textarea class="popup_textin" id="wikibodytext" style="height: 65%;"
+				name="wikibodytext" placeholder="请输入"></textarea>
 		</p>
 
 		<p>
@@ -307,7 +311,7 @@
 				onclick="mysqlconf()" />
 		</p>
 	</div>
-	<div id="newprodia" class="popup_dia">
+	<div id="newprodia" class="popup_dia" style="color: grey;">
 		<div class="popup_title">
 			<span>新建项目</span> <span onclick="popclose('newprodia')"
 				class="popup_close">×</span>
@@ -316,7 +320,18 @@
 		<input type="text" class="popup_textin" id="proname" name="proname"
 			placeholder="请输入项目名称" />
 
-		<div style="margin: 5px 5px 0 5px;">从模板创建</div>
+		<div id="lang_choose" style="padding: 10px;">
+			开发语言:<label for="php_lang"> <input type="radio" name="dev_lang"
+				id="php_lang" checked>PHP
+			</label> <label for="java_lang"> <input type="radio" name="dev_lang"
+				id="java_lang">JAVA
+			</label> <label for="c_lang"> <input type="radio" name="dev_lang"
+				id="c_lang">C#
+			</label>
+		</div>
+
+
+		<div style="margin: 5px 5px 0 10px;">从模板创建</div>
 		<hr></hr>
 		<ul class="temp_ul" id="choose_temp">
 			<li tempid="empty">空白</li>
@@ -371,26 +386,11 @@
 
 			<div class="bfwmenu">
 				<h2>
-					wiki文档<span class="add_btn" onclick="addwikiclass()">+</span> <span class="close_btn"
-						onclick="hidewiki()">×</span>
+					wiki文档<span class="add_btn" onclick="popup($('#addwikipage'))">+</span>
+					<span class="close_btn" onclick="hidewiki()">×</span>
 				</h2>
 				<div class="bfw_content scrollbar">
-					<ul>
-						<li class="parent-menu">数据库资料<span class="add_btn"
-							onclick="popup($('#addwikipage'))">+</span></li>
-						<li class="selected_li">文档教材</li>
-						<li>文档教材</li>
-						<li class="parent-menu">开发参数 <span class="del_btn"
-							onclick="deldwikipage(1)">-</span></li>
-						<li>文档教材</li>
-						<li>文档教材</li>
-						<li>文档教材</li>
-						<li>文档教材</li>
-						<li class="parent-menu">开发参数</li>
-						<li>文档教材</li>
-						<li>文档教材</li>
-						<li>文档教材</li>
-						<li>文档教材</li>
+					<ul id="wikimenu">
 
 					</ul>
 				</div>
@@ -399,38 +399,19 @@
 			<div class="bfwbody scrollbar">
 
 				<div class="doc_body">
-					sdfsfsfsdfs
-					<p>sdfsf</p>
-					s
-					<p>sdfsf</p>
-					s
-					<p>sdfsf</p>
-					s
-					<p>sdfsf</p>
-					s
-					<p>sdfsf</p>
-					s
-					<p>sdfsf</p>
-					s
-					<p>sdfsf</p>
-					s
-					<p>sdfsf</p>
-					s
-					<p>sdfsf</p>
-					s
-					<p>sdfsf</p>
-					s
-					<p>sdfsf</p>
-					s
-					<p>sdfsf</p>
-					s
-					<p>sdfsf</p>
-					s
-					<p>sdfsf</p>
-					s
-					<p>sdfsf</p>
-					s
-					<p>sdfsf</p>
+				<h3>九九空间理论框架离开家<span>编辑</span></h3>
+
+				<div>u总会在看 2012313-123123-123</div>
+					<div id="wikibodydetail"></div>
+					<div id="wikiloglist">
+					<ul>
+<li>2013-123-123 1232-3 由wangbo提交  <input type="button" value="回退" /></li>
+<li>2013-123-123 1232-3 由wangbo提交  <input type="button" value="回退" /></li>
+<li>2013-123-123 1232-3 由wangbo提交  <input type="button" value="回退" /></li>
+<li>2013-123-123 1232-3 由wangbo提交  <input type="button" value="回退" /></li>
+<li>2013-123-123 1232-3 由wangbo提交  <input type="button" value="回退" /></li>
+					</ul>
+					</div>
 				</div>
 
 			</div>
@@ -438,10 +419,10 @@
 	</div>
 	<div id="jobpannel">
 		<div style="padding: 15px;">
-			<span class="close_btn" onclick="hideediter();">×</span>
+
 			<div class="bfwmenu">
 				<h2>
-					任务墙<span class="add_btn" onclick="addjob()">+</span> <span
+					任务墙<span class="add_btn" onclick="popup($('#addjobpage'))">+</span> <span
 						class="close_btn" onclick="hidejob()">×</span>
 				</h2>
 				<ul>
@@ -453,11 +434,8 @@
 			</div>
 			<div class="bfwbody scrollbar ">
 				<div class="note">
-					<ul class="card">
-						<li><a>
-								<h2>王博:</h2>
-								<p>账号面膜注册士大夫沙等士大夫沙是的饭卡手动阀可是劳动纠纷历史课飞机螺丝钉解放可是老大!</p>
-						</a></li>
+					<ul class="card" id="joblistview">
+
 						<li><a>
 								<h2>Baici Liu:</h2>
 								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>

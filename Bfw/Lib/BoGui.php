@@ -221,6 +221,14 @@ class BoGui
         return APPSELF == "/Cloud/{$_uid}/index.php";
     }
 
+    private function checkisempty($_p)
+    {
+        if (isset($_p) && trim($_p) != "") {
+            return false;
+        }
+        return true;
+    }
+
     public function Run()
     {
         if (isset($_GET['getstatic'])) {
@@ -233,7 +241,7 @@ class BoGui
                 header('Content-type: text/javascript');
                 echo file_get_contents(BFW_LIB . DS . "Lib" . DS . "View/v1/static/js/" . $_file);
             }
-            if (substr($_file, strlen($_file) - 4) == ".png" || substr($_file, strlen($_file) - 4) == ".jpg") {
+            if (substr($_file, strlen($_file) - 4) == ".png" || substr($_file, strlen($_file) - 4) == ".jpg" || substr($_file, strlen($_file) - 4) == ".gif") {
                 header('Content-Type: image/jpeg');
                 echo file_get_contents(BFW_LIB . DS . "Lib" . DS . "View/v1/static/images/" . $_file);
             }
@@ -413,6 +421,56 @@ class BoGui
 
                 exit();
             }
+        }
+        if (isset($_GET['addwikipage'])) {
+            if ($this->checkisempty($_POST['classname']) || $this->checkisempty($_POST['title']) || $this->checkisempty($_POST['cont'])) {
+                echo json_encode([
+                    'err' => true,
+                    "data" => "请填写完整"
+                ]);
+                exit();
+            }
+            $_bwiki = new BoWiki();
+            if ($_bwiki->addwikipage($_POST['classname'], $_POST['title'], $_POST['cont'], $_uid)) {
+                echo json_encode([
+                    'err' => false,
+                    "data" => ""
+                ]);
+            }
+            exit();
+        }
+        if (isset($_GET['listjob'])) {
+            $_bjob = new BoJob();
+            echo json_encode($_bjob->listjob($_uid,"going"));
+            exit();
+        }
+        if (isset($_GET['addjob'])) {
+            if ($this->checkisempty($_POST['title']) || $this->checkisempty($_POST['cont']) || $this->checkisempty($_POST['starttime'])|| $this->checkisempty($_POST['endtime'])) {
+                echo json_encode([
+                    'err' => true,
+                    "data" => "请填写完整"
+                ]);
+                exit();
+            }
+            $_bjob = new BoJob();
+            if ($_bjob->addjob($_POST['title'], $_POST['cont'],$_POST['starttime'],$_POST['endtime'], $_uid)) {
+                echo json_encode([
+                    'err' => false,
+                    "data" => ""
+                ]);
+            }
+            exit();
+        }
+        if (isset($_GET['getwikipage'])) {
+            $_bwiki = new BoWiki();
+            echo json_encode($_bwiki->getwikipage($_GET['getwikipage']));
+            exit();
+        }
+        //
+        if (isset($_GET['getwikiclass'])) {
+            $_bwiki = new BoWiki();
+            echo json_encode($_bwiki->getwikiclass());
+            exit();
         }
         // 获得app的开发权限
         if (isset($_GET['getapppower'])) {
