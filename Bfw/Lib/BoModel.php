@@ -144,18 +144,20 @@ class BoModel
             }
             // $this->_tbpre = Bfw::Config("Db", "tbpre");
             $_m_n = str_replace("App\\" . DOMIAN_VALUE . "\\Model\\Model_", "", get_class($this));
-            
+
             if (isset($this->_model_table_map[$_m_n])) {
                 $this->_tablename = $this->_model_table_map[$_m_n];
             } else {
                 if ($this->_tbpre == null) {
                     $this->_tbpre = TB_PRE;
                 }
+                if (isset($_conf['tb_name_ci']) && $_conf['tb_name_ci'] == true) {
+                    //$this->_tablename = $this->_tbpre . $_m_n;
+                    $_m_n = strtolower($_m_n);
+                }
                 $this->_tablename = $this->_tbpre . $_m_n;
             }
-            if (isset($_conf['tb_name_ci']) && $_conf['tb_name_ci'] == true) {
-                $_m_n = strtolower($_m_n);
-            }
+
         }
         if ($this->_dbhandle == null) {
             if (isset($this->_connarray)) {
@@ -189,7 +191,7 @@ class BoModel
             // $this->_olddbhandle = $this->_dbhandle;
             $this->_dbhandle = DbFactory::GetInstance($_connarray);
         }
-        
+
         if ($_table != "") {
             array_push($this->_oldtablename, $this->_tablename);
             // $this->_oldtablename = $this->_tablename;
@@ -211,7 +213,7 @@ class BoModel
         if (! empty($this->_oldisview)) {
             $this->_isview = array_pop($this->_oldisview);
         }
-        
+
         if (! empty($this->_oldprikey)) {
             $this->_prikey = array_pop($this->_oldprikey);
         }
@@ -237,7 +239,7 @@ class BoModel
     /**
      * 插入一条数据
      *
-     * @param array $_data            
+     * @param array $_data
      * @param string $_returnid
      *            是否返回主键id
      */
@@ -253,7 +255,7 @@ class BoModel
     /**
      * 插入一条数据，有就更新,主键不能为数据库自增
      *
-     * @param array $_data            
+     * @param array $_data
      *
      *
      */
@@ -269,7 +271,7 @@ class BoModel
     /**
      * 更新一条记录
      *
-     * @param array $_data            
+     * @param array $_data
      */
     public function Update($_data)
     {
@@ -298,9 +300,9 @@ class BoModel
     /**
      * 批量更新
      *
-     * @param array $_wherestr            
-     * @param array $_wherearr            
-     * @param array $_data            
+     * @param array $_wherestr
+     * @param array $_wherearr
+     * @param array $_data
      */
     private function MUpdate($_wherestr, $_wherearr, $_data)
     {
@@ -314,8 +316,8 @@ class BoModel
     /**
      * 批量删除
      *
-     * @param array $_wherestr            
-     * @param array $_wherearr            
+     * @param array $_wherestr
+     * @param array $_wherearr
      */
     private function MDelete($_wherestr, $_wherearr)
     {
@@ -373,8 +375,8 @@ class BoModel
     /**
      * 获取总数
      *
-     * @param string $_wherestr            
-     * @param array $_wherearr            
+     * @param string $_wherestr
+     * @param array $_wherearr
      * @return number
      */
     public function Count($_wherestr, $_wherearr)
@@ -403,7 +405,7 @@ class BoModel
     /**
      * 设置事务隔离级别
      *
-     * @param number $level            
+     * @param number $level
      * @return bool
      */
     public function SetIsoLevel($level)
@@ -446,8 +448,8 @@ class BoModel
     /**
      * 执行sql语句
      *
-     * @param string $_sql            
-     * @param array $_val            
+     * @param string $_sql
+     * @param array $_val
      * @return RetMsg
      */
     public function ExecuteNonQuery($_sql, $_val = null)
@@ -463,8 +465,8 @@ class BoModel
 
     /**
      *
-     * @param string $_sql            
-     * @param array $_val            
+     * @param string $_sql
+     * @param array $_val
      * @return RetMsg
      */
     public function ExecuteReader($_sql, $_val = null)
@@ -481,7 +483,7 @@ class BoModel
     /**
      * 当前页
      *
-     * @param number $_n            
+     * @param number $_n
      * @return BoModel
      */
     function PageNum($_n)
@@ -504,7 +506,7 @@ class BoModel
     /**
      * 分页大小
      *
-     * @param number $_n            
+     * @param number $_n
      * @return BoModel
      */
     function PageSize($_n)
@@ -522,7 +524,7 @@ class BoModel
     function Field($_str)
     {
         $this->_fieldstr = $_str;
-        
+
         return $this;
     }
 
@@ -567,7 +569,7 @@ class BoModel
     /**
      * 表的union操作
      *
-     * @param string $_sql            
+     * @param string $_sql
      * @return \Lib\BoModel
      */
     function Union($_sql, $_isall = false)
@@ -588,7 +590,7 @@ class BoModel
     /**
      * 从对象
      *
-     * @param string $_m            
+     * @param string $_m
      * @return BoModel
      */
     function From($_m)
@@ -607,8 +609,8 @@ class BoModel
 
     /**
      * 批量更新
-     * 
-     * @param unknown $_data            
+     *
+     * @param unknown $_data
      */
     function MutiUpdate($_data)
     {
@@ -617,7 +619,7 @@ class BoModel
 
     /**
      *
-     * @param 排序 $_str            
+     * @param 排序 $_str
      * @return BoModel
      */
     function OrderBy($_str)
@@ -634,7 +636,7 @@ class BoModel
     function Select()
     {
         $_sql = "select " . $this->_fieldstr . " from ";
-        
+
         $_sql .= $this->_tablename . " ";
         if ($this->_alias != "") {
             $_sql .= " as " . $this->_alias . " ";
@@ -645,7 +647,7 @@ class BoModel
                 $_sql .= " on " . $_item['on'];
             }
         }
-        
+
         if (is_array($this->_unionarr)) {
             foreach ($this->_unionarr as $_item) {
                 if (count($_item) == 2) {
@@ -677,7 +679,7 @@ class BoModel
     function Total()
     {
         $_sql = "select count(*) as num from ";
-        
+
         $_sql .= $this->_tablename . " ";
         if (is_array($this->_joinarr)) {
             foreach ($this->_joinarr as $_item) {
@@ -685,7 +687,7 @@ class BoModel
                 $_sql .= " on " . $_item['on'];
             }
         }
-        
+
         if (is_array($this->_unionarr)) {
             foreach ($this->_unionarr as $_item) {
                 if (count($_item) == 2) {
@@ -705,7 +707,7 @@ class BoModel
         if ($_ret['err']) {
             return $_ret;
         }
-        
+
         return Bfw::RetMsg(false, $_ret['data'][0]['num']);
     }
 
@@ -723,7 +725,7 @@ class BoModel
     /**
      * 模型名转表名
      *
-     * @param string $_m            
+     * @param string $_m
      * @return string
      */
     private function GetTableName($_m)
@@ -741,7 +743,7 @@ class BoModel
     /**
      * 解析sql表名标签
      *
-     * @param string $_m            
+     * @param string $_m
      * @return string
      */
     private function GetTableNameByTag($_m)
