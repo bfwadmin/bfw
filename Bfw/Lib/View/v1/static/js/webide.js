@@ -393,7 +393,7 @@ function showwiki(){
 		}
 		console.log(classarr);
 		for (var i = 0; i < classarr.length; i++) {
-			pro_html += "<li class='parent-menu'>"+classarr[i]+"<span class='add_btn' onclick=\"popup($('#addwikipage'))\">+</span></li>";
+			pro_html += "<li class='parent-menu'>"+classarr[i]+"<span class='add_btn' onclick=\"showaddwikipage('"+classarr[i]+"');\">+</span></li>";
 			for (var j = 0; j < obj.length; j++) {
 				if(classarr[i]==obj[j].classname){
 					pro_html += "<li id='sel_li"+obj[j].id+"' onclick='openwikipage("+obj[j].id+")'>"+obj[j].title+"<span class='del_btn' onclick=\"deldwikipage("+obj[j].id+")\">-</span></li>";
@@ -407,6 +407,10 @@ function showwiki(){
 
 	});
 
+};
+function showaddwikipage(p){
+	$("#wikiclassname").val(p);
+	popup($('#addwikipage'));
 };
 function openwikipage(id){
 	$('#wikipannel li').removeClass('selected_li');

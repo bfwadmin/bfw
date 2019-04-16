@@ -399,10 +399,12 @@
 			<div class="bfwbody scrollbar">
 
 				<div class="doc_body">
-				<h3>九九空间理论框架离开家<span>编辑</span></h3>
+				<h3>文档标题<span class="edit-btn">编辑</span></h3>
 
-				<div>u总会在看 2012313-123123-123</div>
-					<div id="wikibodydetail"></div>
+				<div><span class="writer">作者</span> <span class="write-time"> 时间</span></div>
+					<div id="wikibodydetail">
+					这里显示文档的内容
+					</div>
 					<div id="wikiloglist">
 					<ul>
 <li>2013-123-123 1232-3 由wangbo提交  <input type="button" value="回退" /></li>
@@ -436,68 +438,7 @@
 				<div class="note">
 					<ul class="card" id="joblistview">
 
-						<li><a>
-								<h2>Baici Liu:</h2>
-								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
-						</a></li>
-						<li><a>
-								<h2>Baici Liu:</h2>
-								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
-						</a></li>
-						<li><a href="">
-								<h2>Baici Liu:</h2>
-								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
-						</a></li>
-						<li><a>
-								<h2>Baici Liu:</h2>
-								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
-						</a></li>
-						<li><a href="">
-								<h2>Baici Liu:</h2>
-								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
-						</a></li>
-						<li><a>
-								<h2>Baici Liu:</h2>
-								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
-						</a></li>
-						<li><a>
-								<h2>Baici Liu:</h2>
-								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
-						</a></li>
 
-						<li><a>
-								<h2>Baici Liu:</h2>
-								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
-						</a></li>
-
-						<li><a>
-								<h2>Baici Liu:</h2>
-								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
-						</a></li>
-						<li><a>
-								<h2>Baici Liu:</h2>
-								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
-						</a></li>
-						<li><a>
-								<h2>Baici Liu:</h2>
-								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
-						</a></li>
-						<li><a>
-								<h2>Baici Liu:</h2>
-								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
-						</a></li>
-						<li><a>
-								<h2>Baici Liu:</h2>
-								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
-						</a></li>
-						<li><a>
-								<h2>Baici Liu:</h2>
-								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
-						</a></li>
-						<li><a>
-								<h2>Baici Liu:</h2>
-								<p>小米的饥饿营销真是太坑爹了！ball shit!</p>
-						</a></li>
 					</ul>
 				</div>
 			</div>

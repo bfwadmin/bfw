@@ -84,9 +84,25 @@ a {
 	font-size: 16px;
 	line-height: 30px;
 }
-.doc_body h3{
+#wikibodydetail{
+	color: #d1d1d1;
+	background:#404040;
+	padding:10px;
+}
+#wikiloglist{
+	color: #d1d1d1;
+	margin-top:10px;
+	padding:10px;
+	background:#404040;
+}
+#wikiloglist ul{
 	padding:0;
-	margin:0 0;
+	margin:0;
+	list-style:none;
+}
+.doc_body h3{
+	padding:5px 0;
+	margin:0;
 	border-bottom:1px dashed grey;
 }
 .parent-menu {
@@ -392,7 +408,13 @@ a {
 	height: 30px;
 	overflow: hidden;
 }
-
+.edit-btn{
+	cursor:pointer;
+	float:right;
+}
+.writer,.write-time{
+	font-size:14px;
+}
 .navitem {
 	height: 60px;
 	width: 120px;
