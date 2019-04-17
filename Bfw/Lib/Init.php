@@ -67,7 +67,7 @@ try {
     defineinit("SUCCESS_PAGE", $_config_arr['Globle'], 'success_page', BFW_LIB."/Lib/View/v1/success.php"); // 成功页面
     defineinit("MSGBOX_PAGE", $_config_arr['Globle'], 'msgbox_page', BFW_LIB."/Lib/View/v1/msgbox.php"); // 提醒页面
     defineinit("ERROR_PAGE", $_config_arr['Globle'], 'error_page', BFW_LIB."/Lib/View/v1/error.php"); // 错误页面
-    
+
     $_defaultdom = "";
     $_defaultcont = "";
     $_defaultact = "";
@@ -83,7 +83,7 @@ try {
         $_defaultcont = isset($_config_arr['Globle']['host_runmode'][HOST_NAME]['cont']) ? $_config_arr['Globle']['host_runmode'][HOST_NAME]['cont'] : "";
         $_defaultact = isset($_config_arr['Globle']['host_runmode'][HOST_NAME]['act']) ? $_config_arr['Globle']['host_runmode'][HOST_NAME]['act'] : "";
         define("HOST_HIDE_DOM", $_defaultdom);
-        
+
         if (isset($_config_arr['Globle']['host_runmode'][HOST_NAME]['routetype'])) {
             define("ROUTETYPE", $_config_arr['Globle']['host_runmode'][HOST_NAME]['routetype']); // 路由模式 1 get 2 pathinfo
         } else {
@@ -142,7 +142,7 @@ try {
         }
         if (RUN_MODE == "C") {
             if (ROUTETYPE == 1) {
-                
+
                 $_intval[0] = isset($_GET[DOMIAN_NAME]) ? $_GET[DOMIAN_NAME] : $_intval[0];
                 $_intval[1] = isset($_GET[CONTROL_NAME]) ? $_GET[CONTROL_NAME] : $_intval[1];
                 $_intval[2] = isset($_GET[ACTION_NAME]) ? $_GET[ACTION_NAME] : $_intval[2];
@@ -164,7 +164,7 @@ try {
             }
         }
     }
-    
+
     defineinit("ALLOW_DOMIAN", $_config_arr['Globle'], 'allow_domian', "*");
     define("CONTROL_VALUE", $_intval[1]); // 控制器传值
     define("ACTION_VALUE", $_intval[2]); // 动作器传值
@@ -201,7 +201,7 @@ try {
     define("TEMPLATE_DIR", APP_ROOT . DS . "View" . DS . DOMIAN_VALUE . DS . CONTROL_VALUE); // 模板源文件路劲
     define("SMARTY_CONFIG_DIR", APP_ROOT . DS . "SmartyConfig"); // smarty 配置文件目录
                                                                  // Bfw::ConfigSet("Config", "map",array("dd"=>"dddd"));
-                                                                 
+
     // var_dump($_configdata);
                                                                  // die();
     defineinit("SERVICE_DOMIAN_VALUE", $_config_arr['App'], 'service_domian_value', DOMIAN_VALUE); // 域传值
@@ -217,7 +217,7 @@ try {
                                                                            // 代码生成设置
     defineinit("GEN_CODE", $_config_arr['App'], 'gen_code', false); // 运行时从数据库生成代码
     defineinit("CODE_TEMP_PATH", $_config_arr['App'], 'code_temp_path', 'CodeT'); // 代码模板文件 必须放在app下
-    
+
     defineinit("QUEUE_HANDLER_NAME", $_config_arr['App'], 'queue_handler_name', "QueueRedis"); // cache存储方式 FCache与MCache RCache
     if (QUEUE_HANDLER_NAME == "QueueRedis") {
         defineinit("QUEUE_REDIS_HOST", $_config_arr['App'], 'queue_redis_host', "127.0.0.1"); // 当handelr设为redis启用
@@ -258,11 +258,11 @@ try {
         defineinit("CACHE_ZK_PORT", $_config_arr['App'], 'cache_zk_ip', 2181);
     }
     define("CACHE_UPDATE_INTVAL_TIME", 15);
-    
+
     defineinit("CACHE_DEPENDCY_PRE", $_config_arr['App'], 'cache_dependcy_pre', "cache_dependcy_"); // 依赖缓存pre
     defineinit("CACHE_DEPENDCY_KEY", $_config_arr['App'], 'cache_dependcy_key', " 2X!2342XDSFSSS"); // 依赖缓存key
     defineinit("LOCK_HANDLER_NAME", $_config_arr['App'], 'lock_handler_name', "LockCache"); // Lock分为CacheLock FLock MemLock
-    
+
     if (LOCK_HANDLER_NAME == "LockRedis") {
         defineinit("LOCK_REDIS_IP", $_config_arr['App'], 'lock_redis_ip', "127.0.0.1");
         defineinit("LOCK_REDIS_PORT", $_config_arr['App'], 'lock_redis_ip', 6379);
@@ -280,7 +280,7 @@ try {
         defineinit("LOCK_MEMS_PCONNECT", $_config_arr['App'], 'lock_mem_pconnect', true); //
         defineinit("LOCK_MEM_TIMEOUT", $_config_arr['App'], 'lock_mem_timeout', 5); //
     }
-    
+
     defineinit("LOCK_WAIT_TIME", $_config_arr['App'], 'lock_wait_time', 1); // 单位秒 一百万微秒=1秒
     defineinit("LOCK_TIMEOUT", $_config_arr['App'], 'lock_timeout', 2); // 服务锁调用超时时间单位秒
     defineinit("CLIENT_TIMEOUT", $_config_arr['App'], 'client_timeout', 10); // 客户消费服务时间单位秒
@@ -302,7 +302,7 @@ try {
     defineinit("DEFAULT_IMG_URL", $_config_arr['App'], 'default_img_url', STATIC_FILE_PATH . "/statics/images/common/common_avatar.png");
     // 秘钥设置
     defineinit("SECRIT_KEY", $_config_arr['App'], 'secrit_key', "wW!@#"); // KEY
-    
+
     defineinit("ROOT_DOMIAN", $_config_arr['App'], 'root_domian', "local.com"); // domian
     defineinit("CONTENT_IMG_WIDTH", $_config_arr['App'], 'content_img_width', 600); // 内容页图片长度
                                                                                     // 通信相关设置
@@ -338,13 +338,13 @@ try {
     defineinit("SESSION_COOKIE_DOMIAN", $_config_arr['App'], 'session_cookie_domian', HOST_NAME); // session cookie域
     defineinit("SESSION_COOKIE_EXPIRE", $_config_arr['App'], 'session_cookie_expire', 3600 * 10); // 过期时间
     defineinit("SESSION_ID_NAME", $_config_arr['App'], 'session_id_name', "BFWID"); // sessionid
-    
+
     defineinit("USER_ID", $_config_arr['App'], 'user_id', "uid"); // session用户id
     defineinit("ROLE_ID", $_config_arr['App'], 'role_id', "kindid"); // session角色id
                                                                      // define("USER_ADDINFO", "uadd"); // session附加信息id
     defineinit("ADMINUSER_ID", $_config_arr['App'], 'adminuser_id', "adminuid"); // admin session用户id
     defineinit("ADMINROLE_ID", $_config_arr['App'], 'adminrole_id', "adminkindid"); // admin session角色id
-    
+
     defineinit("APP_NAME", $_config_arr['App'], 'app_name', "BFW"); // admin session角色id
                                                                     // token验证设置
     defineinit("FORM_TOKEN_NAME", $_config_arr['App'], 'form_token_name', "tokenhash"); // form标板token验证名
@@ -412,7 +412,7 @@ if (RUN_MODE == "S") {
     }
     echo Core::LoadClass('Lib\\RPC\\' . RPC_WAY)->pack($_data);
 } else {
-    
+
     if (RUN_MODE == "C") {
         if (strtolower(PHP_SAPI) != "cli") {
             if (WEB_DEBUG && DEBUG_IP == IP) {
@@ -476,7 +476,7 @@ function autoloadclient($class)
             }
         }
     } else {
-        
+
         if (substr($_classname, 0, strpos($_classname, DS)) == "Plugin") {
             // 下载插件
             // echo "download";

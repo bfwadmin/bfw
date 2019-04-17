@@ -1147,6 +1147,7 @@ function hideediter() {
 	}
 	$("#editorpannel").hide();
 	$(".popup_dia").hide();
+	$("#project-menu").hide();
 	proreset();
 };
 function dbconfshow() {
@@ -1221,6 +1222,7 @@ function openpro(p) {
 	if (p == ".") {
 		popup($("#newprodia"));
 	} else {
+		$("#project-menu").show();
 		refleshdir(p);
 		getbfwclassfunc(p);
 		openfile("\\readme.bfw", p);

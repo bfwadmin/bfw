@@ -19,34 +19,46 @@
 <body onload="RunOnBeforeUnload()">
 	<div id="mask"
 		class="pos-abs v-fullscreen opacity-7 color-black zindex-99999 dis-hide">
-		<div id="notice" style="text-align:center;"><img src="?webide=1&getstatic=/loading.gif"/><p style="font-size:12px;padding:0;color:grey;margin:3px;">请求中,请稍后</p></div>
+		<div id="notice" style="text-align: center;">
+			<img src="?webide=1&getstatic=/loading.gif" />
+			<p style="font-size: 12px; padding: 0; color: grey; margin: 3px;">请求中,请稍后</p>
+		</div>
 	</div>
 	<header>
 		<ul>
 			<li class="logo">BFW STUDIO<span class="logo_vers">v1.0</span></li>
+			<li class="navitem dis-hide" id="project-menu">
+				<div>
+					<p>
+						项目
+					</p>
+					<p>提交模板</p>
+					<p>版本管理</p>
+					<p>项目部署</p>
+					<p>权限管理</p>
+					<p>修改日志</p>
 
-			<li onclick="dbconfshow();">开发设置</li>
+				</div>
+			</li>
 			<?php if(DEV_PLACE=="local"){?>
 			<li>云端存储</li>
 			<?php }?>
 			<li>提交问题</li>
 			<li>模板商城</li>
 			<li>文档教程</li>
-			<?php if(DEV_PLACE=="cloud"){?>
-			<li onclick="showwiki()">WIKI</li>
-			<?php }?>
-			<li>我的任务</li>
 			<li onclick="popup($('#aboutus'));">关于我们</li>
 
 			<li class="navitem"  id="logined" style="float:right;<?php if($uid==""){?>display:none;<?php }?>">
 				<div>
 					<p>
-						<a href="/Cloud/<?=$uid?>/?webide=1">我的中心</a>
+						<a href="/Cloud/<?=$uid?>/?webide=1">我的项目</a>
 					</p>
-					<p>我的日记</p>
-					<p>我的bug</p>
+					<p onclick="showwiki()">WIKI文档</p>
 					<p onclick="$('#jobpannel').show()">我的任务</p>
+					<p>我的bug</p>
+					<p>我的日记</p>
 					<p>我的博客</p>
+					<p>代码片段</p>
 					<p onclick="logout();">退出</p>
 				</div>
 			</li>
@@ -73,13 +85,12 @@
 		</p>
 		<p>
 
-			<textarea class="popup_textin" id="jobcont"
-				style="height: 60%;" name="jobcont" placeholder="请输入任务简介"></textarea>
+			<textarea class="popup_textin" id="jobcont" style="height: 60%;"
+				name="jobcont" placeholder="请输入任务简介"></textarea>
 		</p>
 
 		<p>
-			<input type="button" value="提 交" class="popup_btn"
-				onclick="addjob()" />
+			<input type="button" value="提 交" class="popup_btn" onclick="addjob()" />
 		</p>
 	</div>
 	<div id="commitlog" class="popup_dia" style="width: 60%; height: 60%;">
@@ -399,20 +410,22 @@
 			<div class="bfwbody scrollbar">
 
 				<div class="doc_body">
-				<h3>文档标题<span class="edit-btn">编辑</span></h3>
+					<h3>
+						文档标题<span class="edit-btn">编辑</span>
+					</h3>
 
-				<div><span class="writer">作者</span> <span class="write-time"> 时间</span></div>
-					<div id="wikibodydetail">
-					这里显示文档的内容
+					<div>
+						<span class="writer">作者</span> <span class="write-time"> 时间</span>
 					</div>
+					<div id="wikibodydetail">这里显示文档的内容</div>
 					<div id="wikiloglist">
-					<ul>
-<li>2013-123-123 1232-3 由wangbo提交  <input type="button" value="回退" /></li>
-<li>2013-123-123 1232-3 由wangbo提交  <input type="button" value="回退" /></li>
-<li>2013-123-123 1232-3 由wangbo提交  <input type="button" value="回退" /></li>
-<li>2013-123-123 1232-3 由wangbo提交  <input type="button" value="回退" /></li>
-<li>2013-123-123 1232-3 由wangbo提交  <input type="button" value="回退" /></li>
-					</ul>
+						<ul>
+							<li>2013-123-123 1232-3 由wangbo提交 <input type="button" value="回退" /></li>
+							<li>2013-123-123 1232-3 由wangbo提交 <input type="button" value="回退" /></li>
+							<li>2013-123-123 1232-3 由wangbo提交 <input type="button" value="回退" /></li>
+							<li>2013-123-123 1232-3 由wangbo提交 <input type="button" value="回退" /></li>
+							<li>2013-123-123 1232-3 由wangbo提交 <input type="button" value="回退" /></li>
+						</ul>
 					</div>
 				</div>
 
@@ -424,8 +437,8 @@
 
 			<div class="bfwmenu">
 				<h2>
-					任务墙<span class="add_btn" onclick="popup($('#addjobpage'))">+</span> <span
-						class="close_btn" onclick="hidejob()">×</span>
+					任务墙<span class="add_btn" onclick="popup($('#addjobpage'))">+</span>
+					<span class="close_btn" onclick="hidejob()">×</span>
 				</h2>
 				<ul>
 					<li>全部</li>
