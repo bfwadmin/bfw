@@ -99,7 +99,7 @@
 				class="popup_close">×</span>
 		</div>
 
-		<ul id="commitloglist">
+		<ul id="commitloglist" class="scrollbar" style="height:70%;overflow-y:scroll;">
 			<!-- 			<li><p>2019-11-11 23:30</p> -->
 			<!-- 				<p> -->
 			<!-- 					系统增加了功纳斯达克发链接 <input type="button" value="回滚到此版本" /> -->
@@ -118,7 +118,7 @@
 				class="popup_close">×</span>
 		</div>
 		<input type="hidden" id="appversion_appname" name="appversion_appname" />
-		<ul id="appversonlist">
+		<ul id="appversonlist" class="scrollbar" style="height:70%;overflow-y:scroll;">
 			<!-- 			<li><p>2019-11-11 23:30</p> -->
 			<!-- 				<p> -->
 			<!-- 					系统增加了功纳斯达克发链接 <input type="button" value="回滚到此版本" /> -->

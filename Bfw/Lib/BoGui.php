@@ -229,6 +229,14 @@ class BoGui
         return true;
     }
 
+    private function writefile($_filepath,$_data,$_uid){
+        if (file_put_contents($_filepath, $_data)) {
+            $this->commitlog("Demo", $_filepath, "save", "dddd", $_uid);
+            return true;
+        }
+        return false;
+    }
+
     public function Run()
     {
         if (isset($_GET['getstatic'])) {
@@ -658,13 +666,11 @@ class BoGui
         }
         if (isset($_GET['savefiles'])) {
             if (isset($_GET['isstatic'])) {
-                if (file_put_contents(APP_BASE . DS . STATIC_NAME . DS . str_replace("./", "", $_GET['savefiles']), $_POST["data"])) {
-                    $this->commitlog("Demo", $_GET['savefiles'], "save", "dddd", $_uid);
+                if ($this->writefile(APP_BASE . DS . STATIC_NAME . DS . str_replace("./", "", $_GET['savefiles']), $_POST["data"],$_uid)) {
                     echo "ok";
                 }
             } else {
-                if (file_put_contents(APP_ROOT . DS . "App" . DS . str_replace("./", "", $_GET['savefiles']), $_POST["data"])) {
-                    $this->commitlog("Demo", $_GET['savefiles'], "save", "dddd", $_uid);
+                if ($this->writefile(APP_ROOT . DS . "App" . DS . str_replace("./", "", $_GET['savefiles']), $_POST["data"],$_uid)) {
                     echo "ok";
                 }
             }
