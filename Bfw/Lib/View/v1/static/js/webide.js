@@ -3,6 +3,7 @@ var dong_tree = null;
 var jing_tree = null;
 var project_name = "";
 var editing_file = "";
+var editing_editor = {};
 var file_changed = false;
 var is_staticfile = false;
 var editor_arr = [];
@@ -12,6 +13,9 @@ var bfw_sys_tag_list= [];
 var bfw_sys_method_list=[];
 var bfw_tag_list= [];
 var bfw_method_list=[];
+var loadingstartshow=false;
+var loadingendshow=false;
+var syswait=null;
 var _bfw_config = {
 	baseurl : "",
 	routetype : "",
@@ -296,16 +300,18 @@ contex_menu = {
 					text : '查看版本',
 					// icon : '/?getstatic=/folder.png',
 					action : function(node) {
+						getlog(project_name);
+						return;
 						var url = "";
 						if (is_staticfile) {
-							url = "?webide=1&isstatic=1&getfilelog="+
-								getfilepath(node)+"\\" +node.tag + "&parent=" + project_name;
+							url = "?webide=1&isstatic=1&getcommitlog="+
+								getfilepath(node)+"\\" +node.tag + "&parent=" + project_name+"&targetappname="+project_name;
 						} else {
-							url = "?webide=1&getfilelog=" + getfilepath(node)+"\\" +node.tag
-									+ "&parent=" + project_name;
+							url = "?webide=1&getcommitlog=" + getfilepath(node)+"\\" +node.tag
+									+ "&parent=" + project_name+"&targetappname="+project_name;
 						}
 						ajax(url, function(data) {
-
+							getlog(p);
 						});
 					}
 				},
@@ -549,7 +555,7 @@ function init_complete(){
  ];
 
 };
-function openeditor(file, filedata) {
+function openeditor(file, filedata,hash) {
 
 	var ids = uniqid();
 	$("#file_tab ul").prepend(
@@ -640,9 +646,10 @@ function openeditor(file, filedata) {
 			enableLiveAutocompletion : true
 		});
 		editor.getSession().selection.on('changeCursor', function(e) {
-			console.log("chagge cuse");
+			console.log("changeCursor");
 		});
 		editor.getSession().selection.on('changeSelection', function(e) {
+			console.log("changeSelection");
 			var selecttext=editor.session.getTextRange(editor.getSelectionRange());
 			console.log(selecttext);
 		});
@@ -785,7 +792,7 @@ function openeditor(file, filedata) {
 	}
 
 	editor_arr.push({
-		"filedata":filedata,
+		"filehash":hash,
 		"filetype":stuff,
 		"file" : file,
 		"editor" : editor,
@@ -794,7 +801,8 @@ function openeditor(file, filedata) {
 		"id":ids,
 		"filechanged" : false,
 		"type" : is_staticfile ? 2 : 1,
-		"namespace":[]
+		"namespace":[],
+		"confict":{"resolvemethod":"","serverdata":"","serverhash":""}
 	});
 };
 function addns(editor,ns){
@@ -875,7 +883,7 @@ function getpro() {
 };
 function getlog(p){
 	var pro_html = "";
-	ajax("?getcommitlog="+p+"&webide=1&targetappname="+p, function(data) {
+	ajax("?getcommitlog="+filename+"&webide=1&targetappname="+p, function(data) {
 		var obj = eval('(' + data + ')');
 		if(obj.length>0){
 			for (var i = 0; i < obj.length; i++) {
@@ -963,12 +971,22 @@ function openfile(f, p) {
 			if (is_staticfile) {
 				ajax("?webide=1&isstatic=1&getfiles=" + f + "&parent=" + p,
 						function(data) {
-							openeditor(file, data);
+							var obj = eval('(' + data + ')');
+							if(obj.err){
+								alert(obj.data);
+								return;
+							}
+							openeditor(file, obj.data,obj.filehash);
 						});
 			} else {
 				ajax("?webide=1&getfiles=" + f + "&parent=" + p,
 						function(data) {
-							openeditor(file, data);
+							var obj = eval('(' + data + ')');
+							if(obj.err){
+								alert(obj.data);
+								return;
+							}
+							openeditor(file, obj.data,obj.filehash);
 						});
 			}
 		}
@@ -1079,39 +1097,147 @@ function refleshdir(p) {
 	$("#editorpannel").show();
 
 };
-function savefile(editor) {
+function resolvebyserverv(){
+	var filepath=$("#confictfilepath").val();
+	if (editor_arr.length > 0) {
+		for (var i = 0; i < editor_arr.length; i++) {
+			if (editor_arr[i].file==filepath) {
+				editor_arr[i].confict.resolvemethod="server";
+				//savefile(editor_arr[i]);
+				break;
+			}
+		}
+	}
+
+};
+function resolvebymev(){
+	var filepath=$("#confictfilepath").val();
+	if (editor_arr.length > 0) {
+		for (var i = 0; i < editor_arr.length; i++) {
+			if (editor_arr[i].file==filepath) {
+				editor_arr[i].confict.resolvemethod="me";
+
+				//savefile(editor_arr[i]);
+
+				break;
+			}
+		}
+	}
+};
+function checkmodify(editor){
+	console.log("check modify");
+	console.log(editor_arr);
+	console.log(editor);
 	var url = "";
 	if (editor.type == 1) {
-		url = "?webide=1&savefiles=" + editor.file;
+		url = "?webide=1&checkfilesmod=" + editor.file+"&filehash="+editor.filehash;
 	} else {
-		url = "?webide=1&isstatic=1&savefiles=" + editor.file
+		url = "?webide=1&isstatic=1&checkfilesmod=" + editor.file+"&filehash="+editor.filehash;
 	}
-
-	var nowpos=editor.editor.selection.getCursor();
-	console.log(nowpos);
-	if (editor.namespace.length > 0) {
-		editor.editor.gotoLine(3);
-		for (var i = 0; i < editor.namespace.length; i++) {
-			if(editor.editor.getValue().indexOf(editor.namespace[i])>=0){
-
-			}else{
-				editor.editor.insert("use "+editor.namespace[i]+";");
-			}
-
-		}
-		editor.namespace=[];
-	}
-	editor.editor.moveCursorTo(nowpos.row, nowpos.column);
-	console.log(editor.namespace);
-	// return;
 	ajax(url, function(data) {
-		if (data == "ok") {
-			editor.filechanged = false;
-			$("#filechanged_"+ editor.id).html("");
-			$.Bfw.toastshow("保存成功");
-			getbfwclassfunc(project_name);
+		var obj = eval('(' + data + ')');
+		if(obj.err){
+			alert(obj.data);
+		}else{
+			if(obj.data){
+				$("#confictfilepath").val(editor.file);
+				$("#confictnotice").html(obj.diff);
+				editor.confict.serverdata=obj.serverdata;
+				editor.confict.serverhash=obj.serverhash;
+				popup($("#confictshow"));
+			}else{
+				editor.confict.resolvemethod="me";
+			}
 		}
 	}, "post", "data=" +encodeURIComponent(editor.editor.getValue()) );
+
+};
+
+function savefilereal(editor){
+	if(editor.confict.resolvemethod=="server"){
+		editor.filechanged = false;
+		editor.editor.setValue(editor.confict.serverdata);
+		$("#filechanged_"+ editor.id).html("");
+		editor.confict.resolvemethod="";
+		editor.filehash=editor.confict.serverhash;
+		//$.Bfw.toastshow("保存成功");
+		getbfwclassfunc(project_name);
+		popclose("confictshow");
+	}
+	if(editor.confict.resolvemethod=="me"){
+
+		var url = "";
+		if (editor.type == 1) {
+			url = "?webide=1&savefiles=" + editor.file;
+		} else {
+			url = "?webide=1&isstatic=1&savefiles=" + editor.file
+		}
+		var nowpos=editor.editor.selection.getCursor();
+		console.log(nowpos);
+		if (editor.namespace.length > 0) {
+			editor.editor.gotoLine(3);
+			for (var i = 0; i < editor.namespace.length; i++) {
+				if(editor.editor.getValue().indexOf(editor.namespace[i])>=0){
+
+				}else{
+					editor.editor.insert("use "+editor.namespace[i]+";");
+				}
+
+			}
+			editor.namespace=[];
+		}
+		editor.editor.moveCursorTo(nowpos.row, nowpos.column);
+		console.log(editor.namespace);
+		// return;
+		ajax(url, function(data) {
+			var obj = eval('(' + data + ')');
+			if(obj.err){
+				alert(obj.data);
+			}else{
+				editor.filechanged = false;
+				$("#filechanged_"+ editor.id).html("");
+				editor.confict.resolvemethod="";
+				editor.filehash=obj.data;
+				$.Bfw.toastshow("保存成功");
+				popclose("confictshow");
+				getbfwclassfunc(project_name);
+			}
+		}, "post", "data=" +encodeURIComponent(editor.editor.getValue()) );
+
+	}
+
+};
+function closeconfictshow(){
+	popclose('confictshow');
+	clearInterval(syswait);
+};
+function savefile(editor) {
+
+	checkmodify(editor);
+	editing_editor=editor;
+	  syswait = setInterval(function(){
+		 // console.log(editing_editor);
+		  console.log("check");
+	        if(editing_editor.confict.resolvemethod!=""){
+
+	        	  clearInterval(syswait);
+	        	  savefilereal(editing_editor);
+	        }
+	    },50);
+
+	console.log("check after");
+	console.log(editor.confict);
+
+};
+function throttle(method,delay){
+    var timer=null;
+    return function(){
+        var context=this, args=arguments;
+        clearTimeout(timer);
+        timer=setTimeout(function(){
+            method.apply(context,args);
+        },delay);
+    }
 };
 function proreset() {
 	project_name = "";
@@ -1347,14 +1473,17 @@ function showjoblist(){
 	});
 
 };
+
 function ajax(url, fnSucc, method, data) {
+	console.log(url);
 	if(url.indexOf("targetappname")>=0){
 
 	}else{
 		url=url+"&targetappname="+project_name;
 	}
+	throttle(function(){loadingstartshow=true;$("#mask").fadeIn(100);},1000);
 
-	$("#mask").show();
+
 	if (window.XMLHttpRequest) {
 		var oAjax = new XMLHttpRequest();
 	} else {
@@ -1384,7 +1513,15 @@ function ajax(url, fnSucc, method, data) {
 				}
 			}
 		}
-		$("#mask").hide();
+
+		//throttle(function(){$("#mask").fadeOut(30);},30);
+	//	if(loadingstartshow==true){
+			$("#mask").fadeOut(100);
+		//}
+
+		//loadingshow=false;
+		//setTimeout(function(){},3000);
+
 	};
 };
 

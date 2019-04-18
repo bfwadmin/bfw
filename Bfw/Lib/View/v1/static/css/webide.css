@@ -48,7 +48,7 @@ a {
 
 .bfw_content {
 	overflow-y: scroll;
-	height:94%;
+	height: 94%;
 }
 
 .bfwmenu {
@@ -76,7 +76,7 @@ a {
 
 .bfwmenu ul li {
 	padding: 10px;
-	cursor:pointer;
+	cursor: pointer;
 }
 
 .doc_body {
@@ -84,27 +84,32 @@ a {
 	font-size: 16px;
 	line-height: 30px;
 }
-#wikibodydetail{
+
+#wikibodydetail {
 	color: #d1d1d1;
-	background:#404040;
-	padding:10px;
+	background: #404040;
+	padding: 10px;
 }
-#wikiloglist{
+
+#wikiloglist {
 	color: #d1d1d1;
-	margin-top:10px;
-	padding:10px;
-	background:#404040;
+	margin-top: 10px;
+	padding: 10px;
+	background: #404040;
 }
-#wikiloglist ul{
-	padding:0;
-	margin:0;
-	list-style:none;
+
+#wikiloglist ul {
+	padding: 0;
+	margin: 0;
+	list-style: none;
 }
-.doc_body h3{
-	padding:5px 0;
-	margin:0;
-	border-bottom:1px dashed grey;
+
+.doc_body h3 {
+	padding: 5px 0;
+	margin: 0;
+	border-bottom: 1px dashed grey;
 }
+
 .parent-menu {
 	font-weight: bold;
 }
@@ -273,8 +278,42 @@ a {
 	background: #2596cc;
 	padding: 10px 5px;
 }
-.selected_li{
+
+.selected_li {
+	color: #2596cc;
+}
+
+.diff td {
+	vertical-align: top;
+	white-space: pre;
+	white-space: pre-wrap;
+	font-family: monospace;
+}
+.thead_who{
+	position:fixed;
+	background:black;
+	padding:10px;
+	width:100%;
+}
+.ver_other,.ver_me{
+	width:50%;
+	font-szie:18px;
+	font-weight:bold;
+}
+.ver_other{
 	color:#2596cc;
+}
+.ver_me{
+	color:green;
+}
+.diff td.diffDeleted {
+	background: #FFE0E0;
+	color:black;
+}
+
+.diff td.diffInserted {
+	background: #E0FFE0;
+	color:black;
 }
 
 .popup_dia {
@@ -408,13 +447,16 @@ a {
 	height: 30px;
 	overflow: hidden;
 }
-.edit-btn{
-	cursor:pointer;
-	float:right;
+
+.edit-btn {
+	cursor: pointer;
+	float: right;
 }
-.writer,.write-time{
-	font-size:14px;
+
+.writer, .write-time {
+	font-size: 14px;
 }
+
 .navitem {
 	height: 60px;
 	width: 120px;

@@ -229,7 +229,8 @@ class BoGui
         return true;
     }
 
-    private function writefile($_filepath,$_data,$_uid){
+    private function writefile($_filepath, $_data, $_uid)
+    {
         if (file_put_contents($_filepath, $_data)) {
             $this->commitlog("Demo", $_filepath, "save", "dddd", $_uid);
             return true;
@@ -449,11 +450,11 @@ class BoGui
         }
         if (isset($_GET['listjob'])) {
             $_bjob = new BoJob();
-            echo json_encode($_bjob->listjob($_uid,"going"));
+            echo json_encode($_bjob->listjob($_uid, "going"));
             exit();
         }
         if (isset($_GET['addjob'])) {
-            if ($this->checkisempty($_POST['title']) || $this->checkisempty($_POST['cont']) || $this->checkisempty($_POST['starttime'])|| $this->checkisempty($_POST['endtime'])) {
+            if ($this->checkisempty($_POST['title']) || $this->checkisempty($_POST['cont']) || $this->checkisempty($_POST['starttime']) || $this->checkisempty($_POST['endtime'])) {
                 echo json_encode([
                     'err' => true,
                     "data" => "请填写完整"
@@ -461,7 +462,7 @@ class BoGui
                 exit();
             }
             $_bjob = new BoJob();
-            if ($_bjob->addjob($_POST['title'], $_POST['cont'],$_POST['starttime'],$_POST['endtime'], $_uid)) {
+            if ($_bjob->addjob($_POST['title'], $_POST['cont'], $_POST['starttime'], $_POST['endtime'], $_uid)) {
                 echo json_encode([
                     'err' => false,
                     "data" => ""
@@ -534,12 +535,18 @@ class BoGui
             exit();
         }
         if (isset($_GET['getfiles'])) {
+            $_filename="";
             if (isset($_GET['isstatic'])) {
-                echo file_get_contents(APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['getfiles']));
-            } else {
-                echo file_get_contents(APP_ROOT . DS . "App" . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['getfiles']));
-            }
+                $_filename=APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['getfiles']);
 
+            } else {
+                $_filename=APP_ROOT . DS . "App" . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['getfiles']);
+            }
+            if(file_exists($_filename)){
+                echo json_encode(['err'=>false,"data"=>file_get_contents($_filename),"filehash"=>md5_file($_filename)]);
+            }else{
+                echo json_encode(['err'=>true,"data"=>"文件不存在"]);
+            }
             exit();
         }
         if (isset($_GET['delfiles'])) {
@@ -664,14 +671,46 @@ class BoGui
 
             exit();
         }
-        if (isset($_GET['savefiles'])) {
+        if (isset($_GET['checkfilesmod'])) {
+            $_filename = "";
             if (isset($_GET['isstatic'])) {
-                if ($this->writefile(APP_BASE . DS . STATIC_NAME . DS . str_replace("./", "", $_GET['savefiles']), $_POST["data"],$_uid)) {
-                    echo "ok";
+                $_filename = APP_BASE . DS . STATIC_NAME . DS . str_replace("./", "", $_GET['checkfilesmod']);
+            } else {
+                $_filename = APP_ROOT . DS . "App" . DS . str_replace("./", "", $_GET['checkfilesmod']);
+            }
+            if (file_exists($_filename)) {
+                if (md5_file($_filename) == $_GET['filehash']) {
+                    echo json_encode([
+                        'err' => false,
+                        "data" => false
+                    ]);
+                } else {
+                    $_olddata=file_get_contents($_filename);
+                    $diff = \Plugin\Diff::compare($_olddata, $_POST["data"]);
+                    echo json_encode([
+                        'err' => false,
+                        "data" => true,
+                        "diff" => \Plugin\Diff::toTable($diff),
+                        "serverdata" => $_olddata,
+                        "serverhash"=>md5_file($_filename)
+                    ]);
                 }
             } else {
-                if ($this->writefile(APP_ROOT . DS . "App" . DS . str_replace("./", "", $_GET['savefiles']), $_POST["data"],$_uid)) {
-                    echo "ok";
+                echo json_encode([
+                    'err' => true,
+                    "data" => "文件不存在"
+                ]);
+            }
+            exit();
+        }
+        if (isset($_GET['savefiles'])) {
+            if (isset($_GET['isstatic'])) {
+                if ($this->writefile(APP_BASE . DS . STATIC_NAME . DS . str_replace("./", "", $_GET['savefiles']), $_POST["data"], $_uid)) {
+                    echo json_encode(['err'=>false,"data"=>md5_file(APP_BASE . DS . STATIC_NAME . DS . str_replace("./", "", $_GET['savefiles']))]);
+                }
+            } else {
+                if ($this->writefile(APP_ROOT . DS . "App" . DS . str_replace("./", "", $_GET['savefiles']), $_POST["data"], $_uid)) {
+                    echo json_encode(['err'=>false,"data"=>md5_file(APP_ROOT . DS . "App" . DS . str_replace("./", "", $_GET['savefiles']))]);
                 }
             }
             exit();

@@ -18,7 +18,7 @@
 </head>
 <body onload="RunOnBeforeUnload()">
 	<div id="mask"
-		class="pos-abs v-fullscreen opacity-7 color-black zindex-99999 dis-hide">
+		class="pos-abs v-fullscreen color-black " style="z-index:999998;opacity:0.2;">
 		<div id="notice" style="text-align: center;">
 			<img src="?webide=1&getstatic=/loading.gif" />
 			<p style="font-size: 12px; padding: 0; color: grey; margin: 3px;">请求中,请稍后</p>
@@ -29,9 +29,7 @@
 			<li class="logo">BFW STUDIO<span class="logo_vers">v1.0</span></li>
 			<li class="navitem dis-hide" id="project-menu">
 				<div>
-					<p>
-						项目
-					</p>
+					<p>项目</p>
 					<p>提交模板</p>
 					<p>版本管理</p>
 					<p>项目部署</p>
@@ -67,12 +65,35 @@
 		</ul>
 	</header>
 	<div id="loadding"
-		style="position: absolute; z-index: 1111; top: 0; left: 0; background: black; color: #44a6ff; height: 100vh; width: 100%;">
+		style="position: absolute; z-index: 999999; top: 0; left: 0; background: black; color: #44a6ff; height: 100vh; width: 100%;">
 		<div style="text-align: center; margin: 45vh auto;">
 			<div style="font-size: 42px; font-weight: bold;">BFW STUDIO</div>
 			<div style="color: #3c3c3c; padding-top: 10px;">made develop easier</div>
 		</div>
 
+	</div>
+	<div id="confictshow" class="popup_dia"
+		style="width: 80%; height: 80%;">
+		<div class="popup_title">
+			<span>文件冲突提醒</span> <span onclick="closeconfictshow()"
+				class="popup_close">×</span>
+		</div>
+		<input type="hidden" id="confictfilepath" name="confictfilepath" />
+		<div style="height: 30px; clear: both;">
+			<div style="width: 50%;  float: left;">云端别人的</div>
+			<div style="width: 50%;  float: left;">本地我的</div>
+		</div>
+		<div id="confictnotice" class="scrollbar"
+			style="height: 70%; overflow-y: scroll;"></div>
+		<p>
+			<input type="button" value="使用本地我的版本提交" class="popup_btn"
+				onclick="resolvebymev()" />
+		</p>
+		<p>
+
+			<input type="button" value="使用云端别人版本" class="popup_btn"
+				onclick="resolvebyserverv()" style="background:grey;" />
+		</p>
 	</div>
 	<div id="addjobpage" class="popup_dia" style="width: 50%; height: 50%;">
 		<div class="popup_title">
@@ -99,7 +120,8 @@
 				class="popup_close">×</span>
 		</div>
 
-		<ul id="commitloglist" class="scrollbar" style="height:70%;overflow-y:scroll;">
+		<ul id="commitloglist" class="scrollbar"
+			style="height: 70%; overflow-y: scroll;">
 			<!-- 			<li><p>2019-11-11 23:30</p> -->
 			<!-- 				<p> -->
 			<!-- 					系统增加了功纳斯达克发链接 <input type="button" value="回滚到此版本" /> -->
@@ -118,7 +140,8 @@
 				class="popup_close">×</span>
 		</div>
 		<input type="hidden" id="appversion_appname" name="appversion_appname" />
-		<ul id="appversonlist" class="scrollbar" style="height:70%;overflow-y:scroll;">
+		<ul id="appversonlist" class="scrollbar"
+			style="height: 70%; overflow-y: scroll;">
 			<!-- 			<li><p>2019-11-11 23:30</p> -->
 			<!-- 				<p> -->
 			<!-- 					系统增加了功纳斯达克发链接 <input type="button" value="回滚到此版本" /> -->

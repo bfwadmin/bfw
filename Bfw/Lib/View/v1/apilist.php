@@ -12,11 +12,11 @@ function builderurl($c, $a, $d)
         }
         $_baseurl .= $_urlarr['path'];
     }
-    
+
     $routype = isset($_GET['route']) ? $_GET['route'] : 0;
     if ($routype == 0) {
         return $_baseurl . "?" . DOMIAN_NAME . "=" . $d . "&" . CONTROL_NAME . "=" . $c . "&" . ACTION_NAME . "=" . $a;
-    } else 
+    } else
         if ($routype == 2) {
             return $_baseurl . $c . "/" . $a;
         } else {
@@ -58,7 +58,7 @@ function apidebug(urlid,event){
 	document.getElementById("responsepannel").value="";
 	document.getElementById("apidebugpanel").style.top=ypos+"px";
 	document.getElementById("apidebugpanel").style.display="block";
-	
+
 }
 function changeuincode(){
 	  document.getElementById("responsepannel").value=unescape( document.getElementById("responsepannel").value.replace(/\\u/g, "%u"));
@@ -216,7 +216,7 @@ p {
 
 #mulu ul li a .selected{
 	color:blue;
-	
+
 }
 #mulu ul li h4 {
 	padding:0px;
@@ -232,7 +232,7 @@ p {
 	color: #d1d1d1;
 }
 #mulu::-webkit-scrollbar {
-        width: 10px;  
+        width: 10px;
         height: 1px;
     }
 #mulu::-webkit-scrollbar-thumb {
@@ -245,10 +245,21 @@ p {
         border-radius: 10px;
         background: #EDEDED;
     }
+    .topbtn{
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+    background: #EDEDED;
+    color: grey;
+    padding: 5px;
+    text-decoration: none;
+    font-size: 14px;
+    }
 </style>
 
 
 <body>
+<a href="#top" target="_self" class="topbtn">回顶</a>
 	<div id="apidebugpanel">
 		<div
 			style="padding: 3px; height: 40px; clear: both; font-weight: bold;">
@@ -274,19 +285,20 @@ p {
 		<ul>
 		<?php foreach($con_act_array as $key=>$val){ ?>
 		<li><h4><a href="#an_<?=$key?>"><?=$val[0]['doccomment'][0]?></a></h4>
-	   
+
 		<?php   foreach ($val as $item) {?>
 		<p>
 					<a class="selected"  href="#ac_<?=$key?>_<?=$item[0]?>"><?=$item[1]?></a>
 				</p>
-		
+
 		<?php }?>
-		
+
 		</li>
 		<?php }?>
 		</ul>
 	</div>
 	<div id="summary">
+	  <a name="top" />
 		<h1 style="color: #2596cc; padding-left: 20px;"><?=DOMIAN_VALUE?>接口文档</h1>
 		<div style="padding: 5px 24px; color: #8b8b8b;"><?=$readmedata?></div>
 				<?php foreach($con_act_array as $key=>$val){ ?>
@@ -319,11 +331,11 @@ p {
                 $i ++;
             }
         }
-        
+
         ?>
 		</div>
 				<?php } ?>
-		
+
 				 <div style="margin: 0; text-align: center; color: white;">
 			Power by BFW<sup><?=VERSION?></sup>[SOA framework]
 		</div>

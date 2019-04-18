@@ -40,7 +40,7 @@ try {
     define("AYC_CACHE_NAME", "ayscachelist"); // 当前ip
     define("URL", UrlUtil::geturl()); // 当前url
     define("JSON_PRETTY", isset($_SERVER['HTTP_JSONPRETTY']) ? true : false);
-    define("IS_AJAX_REQUEST", isset($_SERVER['HTTP_X_REQUESTED_WITH']) || isset($_SERVER['HTTP_BFWAJAX'])||isset($_POST['bfwajax'])||isset($_GET['bfwajax']) ? true : false); // 判断是否是ajax请求
+    define("IS_AJAX_REQUEST", isset($_SERVER['HTTP_X_REQUESTED_WITH']) || isset($_SERVER['HTTP_BFWAJAX']) || isset($_POST['bfwajax']) || isset($_GET['bfwajax']) ? true : false); // 判断是否是ajax请求
     define("SERVER_NAME", isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : ""); // 服务器域名
     define("SERVER_PORT", isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : ""); // 服務器
     define("APPSELF", isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : ''); // 当前脚本名称
@@ -64,9 +64,9 @@ try {
     defineinit("DOMIAN_NAME", $_config_arr['Globle'], 'domian_name', "dom"); // 域名称
     defineinit("ACTION_NAME", $_config_arr['Globle'], 'action_name', "act"); // 动作器名称
     defineinit("ROUTER_NAME", $_config_arr['Globle'], 'router_name', "r"); // 路由参数名称
-    defineinit("SUCCESS_PAGE", $_config_arr['Globle'], 'success_page', BFW_LIB."/Lib/View/v1/success.php"); // 成功页面
-    defineinit("MSGBOX_PAGE", $_config_arr['Globle'], 'msgbox_page', BFW_LIB."/Lib/View/v1/msgbox.php"); // 提醒页面
-    defineinit("ERROR_PAGE", $_config_arr['Globle'], 'error_page', BFW_LIB."/Lib/View/v1/error.php"); // 错误页面
+    defineinit("SUCCESS_PAGE", $_config_arr['Globle'], 'success_page', BFW_LIB . "/Lib/View/v1/success.php"); // 成功页面
+    defineinit("MSGBOX_PAGE", $_config_arr['Globle'], 'msgbox_page', BFW_LIB . "/Lib/View/v1/msgbox.php"); // 提醒页面
+    defineinit("ERROR_PAGE", $_config_arr['Globle'], 'error_page', BFW_LIB . "/Lib/View/v1/error.php"); // 错误页面
 
     $_defaultdom = "";
     $_defaultcont = "";
@@ -76,7 +76,7 @@ try {
         if (RUN_MODE == "D") {
             defineinit("DEV_PLACE", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'devplace', "local"); // 开发地点 云端或本地 local cloud
             defineinit("DEV_DEMO_URL", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'devdemourl', "http://a.exm.com/Cloud/"); // 开发地点 云端或本地 local cloud
-            defineinit("DEV_USERDB_DIR", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'devuserdbdir', APP_ROOT.DS."Data".DS); // 云开发用户注册数据库
+            defineinit("DEV_USERDB_DIR", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'devuserdbdir', APP_ROOT . DS . "Data" . DS); // 云开发用户注册数据库
             defineinit("DEV_USERCOOKIE_NAME", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'devusercookiename', "bfw_id"); // 云开发用户注册数据库
         }
         $_defaultdom = isset($_config_arr['Globle']['host_runmode'][HOST_NAME]['dom']) ? $_config_arr['Globle']['host_runmode'][HOST_NAME]['dom'] : "";
@@ -354,11 +354,11 @@ try {
     define("UNIX_TIME", time()); // 当前时间戳，整形
     if (in_array(RUN_MODE, [
         'C',
-        'M',
+        'M'
     ]) && strtolower(PHP_SAPI) != "cli") {
-       // ini_set('session.gc_maxlifetime', SESSION_COOKIE_EXPIRE);
-       // ini_set('session.gc_probability', 0);
-       // ini_set('session.gc_divisor', 100);
+        // ini_set('session.gc_maxlifetime', SESSION_COOKIE_EXPIRE);
+        // ini_set('session.gc_probability', 0);
+        // ini_set('session.gc_divisor', 100);
         session_name(SESSION_ID_NAME);
         session_set_cookie_params(SESSION_COOKIE_EXPIRE, "/", SESSION_COOKIE_DOMIAN, false, true);
         $_sessionpath = "Lib\\Session\\" . SESSION_HANDLER_NAME . "::";
@@ -462,9 +462,13 @@ function autoloadclient($class)
     $_classname = str_replace("\\", DS, str_replace(".", DS, $class));
     if (substr($_classname, 0, 3) == "Lib") {
         $classpath = BFW_LIB . DS . $_classname . ".php";
-    } else {
-        $classpath = APP_ROOT . DS . $_classname . ".php";
-    }
+    } else
+        if (substr($_classname, 0, strpos($_classname, DS)) == "Plugin") {
+            $classpath = PLUGIN_DIR . DS . substr($_classname, strpos($_classname, DS)) . ".php";
+        } else {
+            $classpath = APP_ROOT . DS . $_classname . ".php";
+        }
+    // echo $classpath;
     if (file_exists($classpath)) {
         include_once $classpath;
         if (defined("WEB_DEBUG")) {
@@ -476,12 +480,13 @@ function autoloadclient($class)
             }
         }
     } else {
-
         if (substr($_classname, 0, strpos($_classname, DS)) == "Plugin") {
+
             // 下载插件
             // echo "download";
             // return autoloadclient($class);
         }
+
         throw new Exception(BoConfig::Config("Sys", "webapp", "System")['class_not_found'] . $class);
     }
 }
