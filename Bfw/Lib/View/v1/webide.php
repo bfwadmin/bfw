@@ -17,8 +17,8 @@
 </style>
 </head>
 <body onload="RunOnBeforeUnload()">
-	<div id="mask"
-		class="pos-abs v-fullscreen color-black " style="z-index:999998;opacity:0.2;">
+	<div id="mask" class="pos-abs v-fullscreen color-black "
+		style="z-index: 999998; opacity: 0.2;">
 		<div id="notice" style="text-align: center;">
 			<img src="?webide=1&getstatic=/loading.gif" />
 			<p style="font-size: 12px; padding: 0; color: grey; margin: 3px;">请求中,请稍后</p>
@@ -30,7 +30,7 @@
 			<li class="navitem dis-hide" id="project-menu">
 				<div>
 					<p>项目</p>
-					<p>提交模板</p>
+					<p onclick="popup($('#addtemplate'))">提交模板</p>
 					<p>版本管理</p>
 					<p>项目部署</p>
 					<p>权限管理</p>
@@ -80,8 +80,8 @@
 		</div>
 		<input type="hidden" id="confictfilepath" name="confictfilepath" />
 		<div style="height: 30px; clear: both;">
-			<div style="width: 50%;  float: left;">云端别人的</div>
-			<div style="width: 50%;  float: left;">本地我的</div>
+			<div style="width: 50%; float: left;">云端别人的</div>
+			<div style="width: 50%; float: left;">本地我的</div>
 		</div>
 		<div id="confictnotice" class="scrollbar"
 			style="height: 70%; overflow-y: scroll;"></div>
@@ -92,7 +92,33 @@
 		<p>
 
 			<input type="button" value="使用云端别人版本" class="popup_btn"
-				onclick="resolvebyserverv()" style="background:grey;" />
+				onclick="resolvebyserverv()" style="background: grey;" />
+		</p>
+	</div>
+	<div id="addtemplate" class="popup_dia"
+		style="width: 50%; height: 50%;">
+		<div class="popup_title">
+			<span>模板提交</span> <span onclick="popclose('addtemplate')"
+				class="popup_close">×</span>
+		</div>
+		<p>
+			<input type="text" placeholder="模板名称" class="popup_textin"
+				id="templatename" name="templatename" />
+		</p>
+		<p>
+
+			<textarea class="popup_textin" id="templatedesc" style="height: 30%;"
+				name="templatedesc" placeholder="模板简介"></textarea>
+		</p>
+		<p>
+			<input type="text" placeholder="价格，0为免费" class="popup_textin"
+				id="templateprice" style="width: 45%;" name="templateprice" />
+		    <input
+				type="text" placeholder="价格，0为免费" class="popup_textin"
+				id="templateauther" style="width: 45%;" name="templateauther" />
+		</p>
+		<p>
+			<input type="button" value="提 交" class="popup_btn" onclick="" />
 		</p>
 	</div>
 	<div id="addjobpage" class="popup_dia" style="width: 50%; height: 50%;">
