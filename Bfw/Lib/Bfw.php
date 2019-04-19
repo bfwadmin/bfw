@@ -4,15 +4,19 @@ namespace Lib;
 use Lib\Util\StringUtil;
 use Lib\Util\CryptionUtil;
 
+/**
+ * @author wangbo
+ * 辅助类
+ */
 class Bfw
 {
 
     /**
      * 加载小部件
      *
-     * @param string $_name            
-     * @param object $_data            
-     * @param string $_domian            
+     * @param string $_name
+     * @param object $_data
+     * @param string $_domian
      */
     public static function Widget($_name, $_data = null, $_domian = DOMIAN_VALUE)
     {
@@ -23,9 +27,9 @@ class Bfw
     /**
      * if判断
      *
-     * @param object $_v            
-     * @param object $_true_v            
-     * @param object $_false_v            
+     * @param object $_v
+     * @param object $_true_v
+     * @param object $_false_v
      */
     public static function IIF($_v, $_true_v, $_false_v)
     {
@@ -36,12 +40,12 @@ class Bfw
         }
     }
 
-   
+
 
     /**
      * 过滤重复数据
      *
-     * @param string $str            
+     * @param string $str
      * @return mixed
      */
     public static function FilterRedirectPara($str)
@@ -58,7 +62,7 @@ class Bfw
     /**
      * 导入类
      *
-     * @param string $path            
+     * @param string $path
      * @throws Exception
      */
     public static function import($path)
@@ -84,8 +88,8 @@ class Bfw
     /**
      * url解析 routetype为 2时可用
      *
-     * @param string $_url            
-     * @param bool $_decode            
+     * @param string $_url
+     * @param bool $_decode
      */
     public static function UrlCode($_url, $_decode = false)
     {
@@ -192,7 +196,7 @@ class Bfw
     /**
      * 解密url
      *
-     * @param string $str            
+     * @param string $str
      * @return string
      */
     public static function BoDecodeUrl($str)
@@ -205,7 +209,7 @@ class Bfw
     /**
      * 加密url
      *
-     * @param string $str            
+     * @param string $str
      * @return string
      */
     public static function BoUrlStr($str)
@@ -220,8 +224,8 @@ class Bfw
     /**
      * 返回choosedata中key
      *
-     * @param array $_choosedata            
-     * @param string $_val            
+     * @param array $_choosedata
+     * @param string $_val
      * @return string
      */
     public static function SelectVal($_val, $_choosedata)
@@ -282,8 +286,8 @@ class Bfw
     /**
      * 获取验证数组 发送给浏览器用的
      *
-     * @param string $_vname            
-     * @param string $_domian            
+     * @param string $_vname
+     * @param string $_domian
      */
     public static function GetValidateArray($_vname, $_domian = DOMIAN_VALUE)
     {

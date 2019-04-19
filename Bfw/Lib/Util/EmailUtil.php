@@ -1,15 +1,13 @@
 <?php
 namespace Lib\Util;
 /**
- * 
- * @author 王业坤 QQ:417471191
- * 
- *
+ * @author wangbo
+ * 邮箱辅助类
  */
 class EmailUtil {
 	/**
 	 * 发送邮件
-	 * 
+	 *
 	 * @param unknown $to
 	 *        	发送地址
 	 * @param unknown $content
@@ -33,15 +31,15 @@ class EmailUtil {
 		$mail->Subject = $subject; // 邮件主题
 		$content=$content."<br/>本邮件为系统邮件，请勿回复！";
 		$mail->Body = $content;
-		
+
 		if(!$mail->Send())
 		{
 			throw new Exception("发送邮件失败 ！联系系统管理员QQ:417471191。\r\n出错信息：$mail->ErrorInfo");
-		}else 
+		}else
 		{
 			return true;
 		}
-		
+
 	}
 }
 

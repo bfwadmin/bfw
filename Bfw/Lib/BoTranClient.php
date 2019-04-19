@@ -4,6 +4,10 @@ namespace Lib;
 use Lib\Bfw;
 use Lib\Util\HttpUtil;
 
+/**
+ * @author wangbo
+ * 接口调用
+ */
 class BoTranClient
 {
 
@@ -22,7 +26,7 @@ class BoTranClient
     private $_selectedindex = - 1;
 
     private $_serviceid = "";
-    
+
     private  static $_instance;
 
     public function Init($urlarr, $_domian, $_servicename){
@@ -52,12 +56,12 @@ class BoTranClient
             $this->_url_arr = $_urs;
             if (count($this->_url_arr) != 0) {
                 $_getindex = 0;
-                
+
                 if (count($this->_url_arr) >= 1) {
                     $_weight = array();
                     $_weight_inpipe = array();
                     $i = 0;
-                    
+
                     foreach ($this->_url_arr as $_item) {
                         if ($i != $this->_selectedindex) {
                             $_weight[$i] = isset($_item["weight"]) ? $_item["weight"] : 1;
@@ -70,7 +74,7 @@ class BoTranClient
                         $this->_selectedindex = Bfw::Routeroll($_weight);
                     }
                 }
-                
+
                 // $this->_selectedindex = $_getindex;
                 $_server_arr = $this->_url_arr[$this->_selectedindex];
                 if (isset($_server_arr['serviceurl'])) {
@@ -137,10 +141,10 @@ class BoTranClient
         if (WEB_DEBUG) {
             BoDebug::Info("[$this->_servicename][$method]start to post data to " . $this->_serviceurl);
         }
-        
+
         $response = curl_exec($ch);
         //echo $response;
-        
+
         // $response = trim($response, "\xEF\xBB\xBF");
         if (WEB_DEBUG) {
             $_finish_time = microtime(true);
@@ -149,7 +153,7 @@ class BoTranClient
         if (curl_errno($ch)) {
             $_errmsg = curl_error($ch);
             curl_close($ch);
-            
+
             // Bfw::SLogR(BoReqStatusEnum::BFW_S_FAIL, "url:{$this->_serviceurl},postdata:{$postdata},err:{$_errmsg}", $this->_serviceid);
             return array(
                 "bo_err" => true,
@@ -204,7 +208,7 @@ class BoTranClient
             $this->FindRoute($_method);
             if ($_oldindex != $this->_selectedindex) {
                 // 举报错误
-                
+
                 if ($this->_serviceid != "") {
                     $_url = SERVICE_REG_CENTER_URL . "?cont=service&dom=bfw&act=report&serviceid=" . $this->_serviceid;
                     HttpUtil::HttpGet($_url);

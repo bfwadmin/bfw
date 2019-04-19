@@ -1,6 +1,10 @@
 <?php
 namespace Lib;
 
+/**
+ * @author wangbo
+ * 全局内存类
+ */
 class Registry
 {
 

@@ -1,11 +1,15 @@
 <?php
 namespace Lib\Util;
+/**
+ * @author wangbo
+ * DES解密辅助类
+ */
 class DesCryptUtil {
 	private $key="!@#%176f";
 	function __construct($key) {
 		$this->key = $key;
 	}
-	 
+
 	function encrypt($string) {
 	      $input = str_replace("\n", "", $input);
         $input = str_replace("\t", "", $input);
@@ -34,7 +38,7 @@ class DesCryptUtil {
         mcrypt_module_close($td);
         return trim(chop($decrypted_data));
 	}
-	
+
 }
 
 ?>

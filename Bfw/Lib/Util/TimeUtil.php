@@ -1,5 +1,9 @@
 <?php
 namespace Lib\Util;
+/**
+ * @author wangbo
+ * 时间辅助类
+ */
 class TimeUtil
 {
 

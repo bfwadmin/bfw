@@ -1,6 +1,10 @@
 <?php
 namespace Lib;
 
+/**
+ * @author wangbo
+ * 服务调用错误状态
+ */
 class BoReqStatusEnum
 {
 

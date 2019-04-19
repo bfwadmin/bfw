@@ -6,6 +6,10 @@ use Lib\Db\DbFactory;
 use Lib\Util\ArrayUtil;
 use Lib\Exception\DbException;
 
+/**
+ * @author wangbo
+ * 模型类
+ */
 class BoModel
 {
 

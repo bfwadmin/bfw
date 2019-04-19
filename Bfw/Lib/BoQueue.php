@@ -1,6 +1,10 @@
 <?php
 namespace Lib;
 
+/**
+ * @author wangbo
+ * 队列类
+ */
 class BoQueue
 {
 

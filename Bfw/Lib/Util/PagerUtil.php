@@ -2,6 +2,10 @@
 namespace Lib\Util;
 
 use Lib\Bfw;
+/**
+ * @author wangbo
+ * 分页辅助类
+ */
 class PagerUtil
 {
 
@@ -12,11 +16,11 @@ class PagerUtil
         $_everypageData = array();
         $_pageData['totalsum'] = $sums;
         $_pageData['currentpage'] = $page + 1;
-        
+
         $pages = ceil(($sums - 0.5) / $pagesize) - 1;
         $pages = $pages >= 0 ? $pages : 0;
         $_pageData['totalpage'] = $pages;
-        
+
         if ($pages > 0) {
             $prepage = ($page > 0) ? $page - 1 : 0;
             $nextpage = ($page < $pages) ? $page + 1 : $pages;
@@ -32,7 +36,7 @@ class PagerUtil
                     "urltype" => "prev",
                     "url" => self::GetPageUrl($url, $page-1, $pageid)
                 );
-            
+
             for ($i = $startpage; $i <= $endpage; $i ++) {
                 if ($i == $page)
                     $_everypageData[] = array(
@@ -49,9 +53,9 @@ class PagerUtil
                         "current" => false
                     );
             }
-            
+
             if ($endpage < $pages)
-                
+
                 if ($page < $pages)
                     $_everypageData[] = array(
                         "urltype" => "last",
@@ -62,12 +66,12 @@ class PagerUtil
                         "urltype" => "next",
                         "url" => self::GetPageUrl($url, $page+1, $pageid)
                     );
- 
+
         }
         $_pageData['pagedata'] = $_everypageData;
         return $_pageData;
     }
-    
+
     // 1、表示是否分页动态url 2、静态分页
     private static function GetPageUrl($_url, $_page, $_pageid = "page")
     {

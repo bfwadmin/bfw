@@ -1,12 +1,16 @@
 <?php
 namespace Lib;
 
+/**
+ * @author wangbo
+ * 创始人类
+ */
 class WangBo
 {
     /**
      * 锁定
      *
-     * @param string $_key            
+     * @param string $_key
      */
     protected function Lock($_key)
     {
@@ -18,7 +22,7 @@ class WangBo
     /**
      * 解除锁
      *
-     * @param string $_key            
+     * @param string $_key
      */
     protected function UnLock($_key)
     {
@@ -30,8 +34,8 @@ class WangBo
     /**
      * 设置或获取session值
      *
-     * @param string $_key            
-     * @param string $_val            
+     * @param string $_key
+     * @param string $_val
      * @return bool
      */
     protected function Session($_key, $_val = "", $_expire = 0)
@@ -42,7 +46,7 @@ class WangBo
     /**
      * 清除缓存
      *
-     * @param string $key            
+     * @param string $key
      * @return bool
      */
     protected function ClearCache($key)
@@ -53,9 +57,9 @@ class WangBo
     /**
      * 设置缓存
      *
-     * @param string $key            
-     * @param object $val            
-     * @param number $second            
+     * @param string $key
+     * @param object $val
+     * @param number $second
      * @return bool
      */
     protected function SetCache($key, $val, $second = 1800)
@@ -66,7 +70,7 @@ class WangBo
     /**
      * 获取缓存
      *
-     * @param string $key            
+     * @param string $key
      * @return object 如果失败返回null
      */
     protected function GetCache($key)
@@ -102,7 +106,7 @@ class WangBo
      * 重定向
      * $this->ReDirect("路径地址");
      *
-     * @param string $url            
+     * @param string $url
      */
     protected function ReDirect($url)
     {
@@ -116,7 +120,7 @@ class WangBo
     /**
      * 销毁session值
      *
-     * @param string $_key            
+     * @param string $_key
      * @return bool
      */
     protected function DestorySess($_key = null)
@@ -139,7 +143,7 @@ class WangBo
     /**
      * 输出页面缓存
      *
-     * @param number $_seconds            
+     * @param number $_seconds
      */
     protected function Expire($_seconds = 3600)
     {
@@ -149,7 +153,7 @@ class WangBo
     /**
      * 输出json数组
      *
-     * @param array $arr            
+     * @param array $arr
      */
     protected function Json($arr)
     {
@@ -160,7 +164,7 @@ class WangBo
     /**
      * 执行js
      *
-     * @param string $code            
+     * @param string $code
      */
     protected function RunJs($code)
     {
@@ -170,7 +174,7 @@ class WangBo
     /**
      * 模型实例化
      *
-     * @param string $_cname            
+     * @param string $_cname
      */
     protected function Model($_cname = CONTROL_VALUE)
     {
@@ -180,7 +184,7 @@ class WangBo
     /**
      * dao实例化
      *
-     * @param string $_cname            
+     * @param string $_cname
      */
     protected function Dao($_cname = CONTROL_VALUE)
     {
@@ -194,7 +198,7 @@ class WangBo
     /**
      * 控制器实例化
      *
-     * @param string $_cname            
+     * @param string $_cname
      */
     protected function Con($_cname)
     {
@@ -205,7 +209,7 @@ class WangBo
      * 成功提示
      * $this->Success("出现错误");
      *
-     * @param string $str            
+     * @param string $str
      */
     protected function Success($str)
     {
@@ -245,8 +249,8 @@ class WangBo
      * 提醒
      * $this->Alert("成功",array(array("返回首页","http://www.baidu.com","_blank"),array("返回搜索","http://www.baidu.com","_blank")));
      *
-     * @param string $msg            
-     * @param array $but            
+     * @param string $msg
+     * @param array $but
      */
     protected function Alert($msg, $but = null)
     {
@@ -313,7 +317,7 @@ class WangBo
      * 出错提示
      * $this->Error("出现错误");
      *
-     * @param string $str            
+     * @param string $str
      */
     protected function Error($str)
     {
@@ -329,7 +333,7 @@ class WangBo
         } elseif (RESPONSE_JSON || IS_AJAX_REQUEST) {
             $this->Json(Bfw::RetMsg(true, $str));
         } else {
-            
+
             Core::S("but_msg", $str);
             BoRes::View($this->isMobile() ? "error_m" : "error", "System", "v1");
         }
@@ -339,7 +343,7 @@ class WangBo
     /**
      * 向浏览器发送http code
      *
-     * @param numbner $_httpcode            
+     * @param numbner $_httpcode
      */
     protected function HttpStatus($_httpcode)
     {

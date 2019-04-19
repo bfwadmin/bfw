@@ -3,6 +3,10 @@ namespace Lib;
 
 use Lib\Bfw;
 
+/**
+ * @author wangbo
+ * 服务类
+ */
 class BoService
 {
 
@@ -72,7 +76,7 @@ class BoService
     {
         return $this->_modelins != null ? $this->_modelins->RollBack() : Bfw::RetMsg(true, "model bind empty");
     }
-    
+
     // 执行sql
     // 返回是否执行成功
     protected function ExecuteNonQuery($_sql, $_val)
@@ -96,8 +100,8 @@ class BoService
     /**
      * 算选过滤数组
      *
-     * @param array $_filterarr            
-     * @param array $_data            
+     * @param array $_filterarr
+     * @param array $_data
      * @return unknown[][]
      */
     protected function filterData($_filterarr, &$_data)
@@ -106,7 +110,7 @@ class BoService
         foreach ($_filterarr as $_item) {
             $_sub = [];
             foreach ($_item as $_key) {
-                if (isset($_data[$_key])) 
+                if (isset($_data[$_key]))
                 {
                     $_sub[$_key] = $_data[$_key];
                 }
@@ -119,8 +123,8 @@ class BoService
     /**
      * 判断数据结构
      *
-     * @param array $_data            
-     * @param array $_datastruct            
+     * @param array $_data
+     * @param array $_datastruct
      */
     protected function checkDataStruct($_data, $_datastruct, $_notempty = false)
     {

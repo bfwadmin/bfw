@@ -2,6 +2,10 @@
 namespace Lib;
 
 
+/**
+ * @author wangbo
+ * 小部件类
+ */
 class BoWidget
 {
 

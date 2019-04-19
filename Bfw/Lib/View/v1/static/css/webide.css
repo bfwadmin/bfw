@@ -61,6 +61,7 @@ a {
 .bfwmenu h2 {
 	padding: 4px 10px;
 	margin: 0;
+	color:#cbcbcb;
 }
 
 .add_btn, .del_btn {
@@ -289,31 +290,36 @@ a {
 	white-space: pre-wrap;
 	font-family: monospace;
 }
-.thead_who{
-	position:fixed;
-	background:black;
-	padding:10px;
-	width:100%;
+
+.thead_who {
+	position: fixed;
+	background: black;
+	padding: 10px;
+	width: 100%;
 }
-.ver_other,.ver_me{
-	width:50%;
-	font-szie:18px;
-	font-weight:bold;
+
+.ver_other, .ver_me {
+	width: 50%;
+	font-szie: 18px;
+	font-weight: bold;
 }
-.ver_other{
-	color:#2596cc;
+
+.ver_other {
+	color: #2596cc;
 }
-.ver_me{
-	color:green;
+
+.ver_me {
+	color: green;
 }
+
 .diff td.diffDeleted {
 	background: #FFE0E0;
-	color:black;
+	color: black;
 }
 
 .diff td.diffInserted {
 	background: #E0FFE0;
-	color:black;
+	color: black;
 }
 
 .popup_dia {
@@ -394,19 +400,43 @@ a {
 	margin: 0;
 	list-style: none;
 	clear: both;
-	height: 100px;
+	border-bottom: 1px solid #2596cc;
+	height: 40px;
 }
 
 .temp_ul li {
-	width: 100px;
 	height: 40px;
 	float: left;
 	color: white;
-	border: 1px solid #2596cc;
-	padding: 10px;
-	margin: 10px;
 	cursor: pointer;
+	padding: 10px;
 	text-align: center;
+}
+
+.temp_d_ul {
+	padding: 0;
+	margin: 0;
+	list-style: none;
+	clear: both;
+	height: 230px;
+	overflow-y: scroll;
+	width: auto;
+}
+.imgshow{
+	height:150px;
+	overflow:hidden;
+}
+.temp_d_ul li {
+	height: 200px;
+	width: 45%;
+	margin: 10px; float : left;
+	color: white;
+	border: 1px solid #2596cc;
+	cursor: pointer;
+	padding: 10px;
+	text-align: center;
+	float: left;
+	text-align:center;
 }
 
 .tempselected {
@@ -544,6 +574,14 @@ header ul li {
 
 header ul li:hover {
 	background: #232323;
+	color: #2596cc;
+}
+
+header ul li a {
+	color: #cbcbcb;
+}
+
+header ul li a:hover {
 	color: #2596cc;
 }
 

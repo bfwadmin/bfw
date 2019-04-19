@@ -1,6 +1,10 @@
 <?php
 namespace Lib;
 use Lib\Util\ArrayUtil;
+/**
+ * @author wangbo
+ * 验证器父类
+ */
 class BoValidate
 {
 

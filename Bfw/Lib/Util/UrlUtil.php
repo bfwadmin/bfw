@@ -3,9 +3,21 @@ namespace Lib\Util;
 
 use Lib\Bfw;
 
+/**
+ * @author wangbo
+ * url辅助类
+ */
 class UrlUtil
 {
 
+    /**
+     * @param unknown $data
+     * @param unknown $cont
+     * @param unknown $act
+     * @param unknown $para
+     * @param string $idname
+     * @return string
+     */
     public static function buildacturl(&$data, $cont, $act, $para, $idname = "id")
     {
         for ($i = 0; $i < count($data); $i ++) {
@@ -17,9 +29,9 @@ class UrlUtil
     /**
      * 添加url
      *
-     * @param string $_key            
-     * @param string $_val            
-     * @param string $_url            
+     * @param string $_key
+     * @param string $_val
+     * @param string $_url
      * @return string
      */
     public static function addpara($_key, $_val, $_url)
@@ -105,7 +117,7 @@ class UrlUtil
     public static function getip()
     {
         $cip = "";
-        
+
         if (! empty($_SERVER["HTTP_CLIENT_IP"])) {
             $cip = $_SERVER["HTTP_CLIENT_IP"];
         } elseif (! empty($_SERVER["HTTP_X_FORWARDED_FOR"])) {

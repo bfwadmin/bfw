@@ -3,6 +3,10 @@ namespace Lib;
 
 use Lib\Exception\CoreException;
 
+/**
+ * @author wangbo
+ * 响应类
+ */
 class BoRes
 {
 
@@ -30,14 +34,14 @@ class BoRes
 
     /**
      *
-     * @param string $id            
+     * @param string $id
      * @param number $_expiretime
      *            过期时间
      * @param string $_dependency
      *            缓存依赖 仅限cache类型的依赖
      * @return boolean
      */
-    
+
     // 显示视图
     // Core::V("视图名称", 域,控制器名称，数据)
     public static function View($viewname, $domain, $contval = CONTROL_VALUE, $_data = null)
@@ -95,7 +99,7 @@ class BoRes
                 $_wantcache = true;
             }
         }
-        
+
         if ($_wantcache || $_cacheexpire) {
             self::GlobalSet("page_cache_data", [
                 "id" => $id,

@@ -3,10 +3,14 @@ namespace Lib;
 
 use Lib\Exception\CoreException;
 
+/**
+ * @author wangbo
+ * 核心类
+ */
 class Core
 {
     private static $_autiuloadfunc=null;
-    
+
     // 获取类的变量
     // Core::ClassFields("类");
     public static function ClassFields($class)
@@ -25,7 +29,7 @@ class Core
     {
         Registry::getInstance()->set($key, $val);
     }
-    
+
     // 获取全局变量
     // Core::G("变量名");
     public static function G($key)
@@ -47,7 +51,7 @@ class Core
         $validate_model->_input_array = &$_sarray;
         return $validate_model->validateArray();
     }
-    
+
     // 加载类
     // Core::LoadClass("类名","参数");
     public static function LoadClass($class, $para = null)
@@ -69,7 +73,7 @@ class Core
             throw new CoreException(BoConfig::Config("Sys", "webapp", "System")['class_not_found'] . $class);
         }
     }
-    
+
     // 导入类
     // Core::ImportClass("类名");
     public static function ImportClass($class)
@@ -88,7 +92,7 @@ class Core
             throw new CoreException(BoConfig::Config("Sys", "webapp", "System")['class_not_found'] . $class);
         }
     }
-    
+
     /**
      * 卸载autoload函数
      */

@@ -1,6 +1,10 @@
 <?php
 namespace Lib;
 
+/**
+ * @author wangbo
+ * 检测目录权限
+ */
 class BoCheck
 {
 

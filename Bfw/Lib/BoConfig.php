@@ -5,16 +5,20 @@ use Lib\Registry;
 use Lib\Util\ArrayUtil;
 use Lib\Exception\CoreException;
 
+/**
+ * @author wangbo
+ * 配置
+ */
 class BoConfig
 {
 
     /**
      * 修改配置文件
      *
-     * @param unknown $_file            
-     * @param unknown $_key            
-     * @param unknown $_infoarr            
-     * @param string $_domian            
+     * @param unknown $_file
+     * @param unknown $_key
+     * @param unknown $_infoarr
+     * @param string $_domian
      */
     public static function ConfigSet($_file, $_key, $_infoarr, $_domian = DOMIAN_VALUE)
     {
@@ -50,8 +54,8 @@ class BoConfig
     /**
      * 获取自定义数组
      *
-     * @param string $_file            
-     * @param string $_key            
+     * @param string $_file
+     * @param string $_key
      * @return Ambigous <>|NULL
      */
     public static function Config($_file, $_key, $_domian = DOMIAN_VALUE)
@@ -83,7 +87,7 @@ class BoConfig
      *
      * @param string $key
      *            key键名
-     * @param bool $htmlentity是否实体化            
+     * @param bool $htmlentity是否实体化
      * @return object
      */
     public static function GlobalGet($key, $htmlentity = false)
@@ -102,8 +106,8 @@ class BoConfig
     /**
      * 设置全局变量值
      *
-     * @param string $key            
-     * @param object $val            
+     * @param string $key
+     * @param object $val
      */
     public static function GlobalSet($key, $val)
     {

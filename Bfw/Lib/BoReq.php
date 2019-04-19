@@ -3,6 +3,10 @@ namespace Lib;
 
 use Lib\Registry;
 
+/**
+ * @author wangbo
+ * http请求类
+ */
 class BoReq
 {
 
@@ -25,7 +29,7 @@ class BoReq
                 return htmlspecialchars(Bfw::UrlCode($_key_arr[$key], true));
             }
         }
-    
+
         if (isset($_GET[$key]) && is_string($_GET[$key])) {
             return htmlspecialchars($_GET[$key]);
         }
@@ -40,10 +44,10 @@ class BoReq
         if (isset($_COOKIE[$key]) && is_string($_COOKIE[$key])) {
             return htmlspecialchars($_COOKIE[$key]);
         }
-    
+
         return "";
     }
-    
+
     public static function IsWexin()
     {
         if (strpos($_SERVER['HTTP_USER_AGENT'], 'MicroMessenger') !== false) {
@@ -51,7 +55,7 @@ class BoReq
         }
         return false;
     }
-    
+
     public static function IsMobile()
     {
         return preg_match("/(android|avantgo|blackberry|bolt|boost|cricket|docomo|fone|hiptop|mini|mobi|palm|phone|pie|symbian|tablet|up\\.browser|up\\.link|webos|wos)/i", $_SERVER["HTTP_USER_AGENT"]);
@@ -90,7 +94,7 @@ class BoReq
         }
         return $rtn;
     }
-    
+
     /**
      * 获取get请求变量值
      * $this->GET("变量名");
@@ -114,7 +118,7 @@ class BoReq
         }
         return $rtn;
     }
-    
+
     /**
      * 获取post变量值
      * $this->POST("变量名");
@@ -149,7 +153,7 @@ class BoReq
         }
         return $rtn;
     }
-    
+
     /**
      * 判断是否有post传输的值
      *

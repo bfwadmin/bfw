@@ -5,16 +5,25 @@ use Lib\Util\FileUtil;
 use Lib\Util\HttpUtil;
 use Lib\Util\StringUtil;
 
+/**
+ * @author wangbo
+ * 项目管理
+ */
 class BoApp
 {
 
     private $_mode = 0;
 
+    private $_usermode = "local";
+
     private $_pdo = null;
-
-    private $_version_pdo = null;
-
     const UNSERVICENUM = 3;
+
+    public function __construct($_mode = 0)
+    {
+        $this->_mode = $_mode;
+    }
+
 
     private function initdb()
     {
@@ -27,138 +36,6 @@ class BoApp
             userpwd TEXT,
             token TEXT,
            regtime TEXT)");
-    }
-
-    private function initversion_db($_appname)
-    {
-        if ($this->_version_pdo == null) {
-            $this->_version_pdo = new \PDO('sqlite:' . DATA_DIR . $_appname . '_appversion.db');
-        }
-        $this->_version_pdo->exec("CREATE TABLE IF NOT EXISTS appversion (
-            id INTEGER PRIMARY KEY,
-            appname TEXT,
-            memo TEXT,
-            username TEXT,
-            usertoken TEXT,
-            versionpath TEXT,
-           atime TEXT);CREATE TABLE IF NOT EXISTS commitlog (
-            id INTEGER PRIMARY KEY,
-            appname TEXT,
-            memo TEXT,
-            file TEXT,
-            username TEXT,
-            usertoken TEXT,
-            actiontype TEXT,
-           atime TEXT)");
-    }
-
-    public function __construct($_mode = 0)
-    {
-        $this->_mode = $_mode;
-    }
-
-    public function commitlog($_appname, $_file, $_type, $_memo,$_usertoken)
-    {
-        $this->initversion_db($_appname);
-        $time = date('Y-m-d H:i:s');
-        $_username = "wanbo";
-        $sql = "INSERT INTO commitlog (username,appname,memo,usertoken,atime,actiontype,file) VALUES (:username,:appname,:memo,:usertoken,:atime,:actiontype,:file)";
-        $stmt = $this->_version_pdo->prepare($sql);
-        if ($stmt) {
-            //$token = StringUtil::guid();
-            $stmt->bindParam(':username', $_username);
-            $stmt->bindParam(':appname', $_appname);
-            $stmt->bindParam(':atime', $time);
-            $stmt->bindParam(':memo', $_memo);
-            $stmt->bindParam(':usertoken', $_usertoken);
-            $stmt->bindParam(':actiontype', $_type);
-            $stmt->bindParam(':file', $_file);
-            $stmt->execute();
-            $stmt->closeCursor();
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public function getcommitlog($_appname,$_pagesize,$_pagenum)
-    {
-        $this->initversion_db($_appname);
-        // $time = date('Y-m-d H:i:s');
-        $sql = "SELECT * FROM commitlog where appname=:appname";
-        $stmt = $this->_version_pdo->prepare($sql);
-        $_data = [];
-        if ($stmt) {
-            $stmt->bindParam(':appname', $_appname);
-            $stmt->execute();
-            $_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            $stmt->closeCursor();
-        }
-        return $_data;
-    }
-    public function getappversion($_appname)
-    {
-        $this->initversion_db($_appname);
-        // $time = date('Y-m-d H:i:s');
-        $sql = "SELECT atime,memo,id FROM appversion where appname=:appname";
-        $stmt = $this->_version_pdo->prepare($sql);
-        $_data = [];
-        if ($stmt) {
-            $stmt->bindParam(':appname', $_appname);
-            $stmt->execute();
-            $_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            $stmt->closeCursor();
-        }
-        return $_data;
-    }
-
-    public function setappversion($_appname, $_v, $_usertoken)
-    {
-        $this->initversion_db($_appname);
-        $sql = "SELECT versionpath FROM appversion where id=:id";
-        $stmt = $this->_version_pdo->prepare($sql);
-        // $_data = [];
-        if ($stmt) {
-            $stmt->bindParam(':id', $_v);
-            $stmt->execute();
-            $_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            $stmt->closeCursor();
-            return [
-                'err' => false,
-                "data" => $_data[0]['versionpath']
-            ];
-        } else {
-            return [
-                'err' => true,
-                "data" => "not exist"
-            ];
-        }
-    }
-
-    public function addappversion($_appname, $_memo, $_usertoken)
-    {
-        $this->initversion_db($_appname);
-        $time = date('Y-m-d H:i:s');
-        $_username = "wanbo";
-        $sql = "INSERT INTO appversion (username,appname,memo,usertoken,atime,versionpath) VALUES (:username,:appname,:memo,:usertoken,:atime,:versionpath)";
-        $stmt = $this->_version_pdo->prepare($sql);
-        if ($stmt) {
-            $token = StringUtil::guid();
-            $stmt->bindParam(':username', $_username);
-            $stmt->bindParam(':appname', $_appname);
-            $stmt->bindParam(':atime', $time);
-            $stmt->bindParam(':memo', $_memo);
-            $stmt->bindParam(':usertoken', $_usertoken);
-            $stmt->bindParam(':versionpath', $_username);
-            $stmt->execute();
-            $stmt->closeCursor();
-            // FileUtil::CreatDir(APP_BASE . DS . "Cloud" . DS . $token);
-            // FileUtil::copydir(APP_ROOT . DS . "CodeT" . DS . "cloud", APP_BASE . DS . "Cloud" . DS . $token);
-
-            return true;
-        } else {
-            return false;
-        }
     }
 
     public function listapp()
@@ -500,67 +377,93 @@ class BoApp
 
     private function auth($_uname, $_pwd)
     {
-        $this->initdb();
-        $sql = "SELECT token FROM user where username=:username and userpwd=:userpwd ";
-        $stmt = $this->_pdo->prepare($sql);
-        $_data = [];
-        if ($stmt) {
-            $stmt->bindParam(':username', $_uname);
-            $stmt->bindParam(':userpwd', $_pwd);
-            $stmt->execute();
-            $_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            $stmt->closeCursor();
+        if ($this->_usermode == "local") {
+            $this->initdb();
+            $sql = "SELECT token FROM user where username=:username and userpwd=:userpwd ";
+            $stmt = $this->_pdo->prepare($sql);
+            $_data = [];
+            if ($stmt) {
+                $stmt->bindParam(':username', $_uname);
+                $stmt->bindParam(':userpwd', $_pwd);
+                $stmt->execute();
+                $_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+            } else {
+                return false;
+                // var_dump($this->_pdo->errorInfo());
+            }
+            if (empty($_data)) {
+                return false;
+            } else {
+                return $_data[0]['token'];
+                // return true;
+            }
         } else {
-            return false;
-            // var_dump($this->_pdo->errorInfo());
+            $data = HttpUtil::HttpGet(BFWUSER_HOST_URL . "?act=auth&uname=" . $_uname . "&upwd=" . $_pwd);
+            if ($data["err"]) {
+                return false;
+            }
+            if ($data['data'] == "err") {
+                return false;
+            }
+            return $data['data'];
         }
-        if (empty($_data)) {
-            return false;
-        } else {
-            return $_data[0]['token'];
-            // return true;
-        }
+
         return false;
     }
 
     private function reg($_uname, $_pwd)
     {
-        $this->initdb();
-        $time = date('Y-m-d H:i:s');
-        $sql = "SELECT id FROM user where username=:username";
-        $stmt = $this->_pdo->prepare($sql);
-        $_data = [];
-        if ($stmt) {
-            $stmt->bindParam(':username', $_uname);
-            $stmt->execute();
-            $_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            $stmt->closeCursor();
-        } else {
-            return false;
-            // var_dump($this->_pdo->errorInfo());
-        }
-        if (empty($_data)) {
-            $sql = "INSERT INTO user (username,userpwd,regtime,token) VALUES (:username,:userpwd,:regtime,:token)";
+        if ($this->_usermode == "local") {
+            $this->initdb();
+            $time = date('Y-m-d H:i:s');
+            $sql = "SELECT id FROM user where username=:username";
             $stmt = $this->_pdo->prepare($sql);
+            $_data = [];
             if ($stmt) {
-                $token = StringUtil::guid();
                 $stmt->bindParam(':username', $_uname);
-                $stmt->bindParam(':userpwd', $_pwd);
-                $stmt->bindParam(':regtime', $time);
-                $stmt->bindParam(':token', $token);
                 $stmt->execute();
+                $_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
                 $stmt->closeCursor();
-                FileUtil::CreatDir(APP_BASE . DS . "Cloud" . DS . $token);
-                FileUtil::copydir(APP_ROOT . DS . "CodeT" . DS . "cloud", APP_BASE . DS . "Cloud" . DS . $token);
-
-                return $token;
             } else {
                 return false;
                 // var_dump($this->_pdo->errorInfo());
             }
-        } else {
-            return false;
+            if (empty($_data)) {
+                $sql = "INSERT INTO user (username,userpwd,regtime,token) VALUES (:username,:userpwd,:regtime,:token)";
+                $stmt = $this->_pdo->prepare($sql);
+                if ($stmt) {
+                    $token = StringUtil::guid();
+                    $stmt->bindParam(':username', $_uname);
+                    $stmt->bindParam(':userpwd', $_pwd);
+                    $stmt->bindParam(':regtime', $time);
+                    $stmt->bindParam(':token', $token);
+                    $stmt->execute();
+                    $stmt->closeCursor();
+                    FileUtil::CreatDir(APP_BASE . DS . "Cloud" . DS . $token);
+                    FileUtil::copydir(APP_ROOT . DS . "CodeT" . DS . "cloud", APP_BASE . DS . "Cloud" . DS . $token);
+
+                    return $token;
+                } else {
+                    return false;
+
+                }
+            } else {
+                return false;
+            }
+        }else{
+            $data = HttpUtil::HttpGet(BFWUSER_HOST_URL . "?act=reg&uname=" . $_uname . "&upwd=" . $_pwd);
+            if ($data["err"]) {
+                return false;
+            }
+            if ($data['data'] == "err") {
+                return false;
+            }
+            FileUtil::CreatDir(APP_BASE . DS . "Cloud" . DS . $data['data']);
+            FileUtil::copydir(APP_ROOT . DS . "CodeT" . DS . "cloud", APP_BASE . DS . "Cloud" . DS . $data['data']);
+            return $data['data'];
         }
+
         return false;
     }
 

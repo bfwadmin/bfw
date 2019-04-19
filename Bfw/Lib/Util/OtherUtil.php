@@ -1,6 +1,10 @@
 <?php
 namespace Lib\Util;
 
+/**
+ * @author wangbo
+ * 其他辅助类
+ */
 class OtherUtil
 {
 
@@ -40,7 +44,7 @@ class OtherUtil
         }
         return $ret;
     }
-    
+
     // 向iphone用户推送信息
     /**
      *

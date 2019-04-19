@@ -5,6 +5,10 @@ use Lib\Bfw;
 use Lib\BoCache;
 use Lib\Core;
 
+/**
+ * @author wangbo
+ * html辅助类
+ */
 class HtmlUtil
 {
 
@@ -14,7 +18,7 @@ class HtmlUtil
         if (is_array($_attr)) {
             foreach ($_attr as $_a => $_v) {
                 if (is_array($_v)) {
-                    
+
                     if ($_a === "style") {
                         foreach ($_v as $_k1 => $_v1) {
                             $_out .= $_k1 . ':' . $_v1 . ';';
@@ -36,8 +40,8 @@ class HtmlUtil
     /**
      * 添加class
      *
-     * @param array $_option            
-     * @param string $_classname            
+     * @param array $_option
+     * @param string $_classname
      * @return unknown
      */
     public static function AddClass($_option, $_classname)
@@ -49,8 +53,8 @@ class HtmlUtil
     /**
      * 移除class
      *
-     * @param array $_option            
-     * @param string $_classname            
+     * @param array $_option
+     * @param string $_classname
      * @return unknown
      */
     public static function RemoveClass($_option, $_classname)
@@ -62,8 +66,8 @@ class HtmlUtil
     /**
      * 添加css样式
      *
-     * @param array $_option            
-     * @param string $_style            
+     * @param array $_option
+     * @param string $_style
      * @return unknown
      */
     public static function AddStyle($_option, $_style)
@@ -75,8 +79,8 @@ class HtmlUtil
     /**
      * 移除css样式
      *
-     * @param array $_option            
-     * @param array $_stylename            
+     * @param array $_option
+     * @param array $_stylename
      * @return string
      */
     public static function RemoveStyle($_option, $_stylename)
@@ -96,8 +100,8 @@ class HtmlUtil
     /**
      * 加载css
      *
-     * @param string $_path            
-     * @param array $_option            
+     * @param string $_path
+     * @param array $_option
      * @return string
      */
     public static function ImportCss($_path, $_option = null)
@@ -108,8 +112,8 @@ class HtmlUtil
     /**
      * 加载js文件
      *
-     * @param string $_path            
-     * @param array $_option            
+     * @param string $_path
+     * @param array $_option
      * @return string
      */
     public static function ImportJs($_path, $_option = null)
@@ -120,8 +124,8 @@ class HtmlUtil
     /**
      * 提前加载js文件
      *
-     * @param string $_path            
-     * @param array $_option            
+     * @param string $_path
+     * @param array $_option
      * @return string
      */
     public static function PreJs($_path, $_option = null)
@@ -132,8 +136,8 @@ class HtmlUtil
     /**
      * 提前 加载css
      *
-     * @param string $_path            
-     * @param array $_option            
+     * @param string $_path
+     * @param array $_option
      * @return string
      */
     public static function Precss($_path, $_option = null)
@@ -144,9 +148,9 @@ class HtmlUtil
     /**
      * 输出button
      *
-     * @param string $_name            
-     * @param string $_val            
-     * @param array $_option            
+     * @param string $_name
+     * @param string $_val
+     * @param array $_option
      * @return string
      */
     public static function Button($_name, $_val, $_option = null)
@@ -157,9 +161,9 @@ class HtmlUtil
     /**
      * 输出input标签
      *
-     * @param string $_name            
-     * @param string $_val            
-     * @param array $_option            
+     * @param string $_name
+     * @param string $_val
+     * @param array $_option
      * @return string
      */
     public static function Input($_name, $_val, $_option = null)
@@ -170,9 +174,9 @@ class HtmlUtil
     /**
      * 输出textarea
      *
-     * @param string $_name            
-     * @param string $_val            
-     * @param array $_option            
+     * @param string $_name
+     * @param string $_val
+     * @param array $_option
      * @return string
      */
     public static function Textarea($_name, $_val, $_option = null)
@@ -183,9 +187,9 @@ class HtmlUtil
     /**
      * 输出html tag标签
      *
-     * @param string $_name            
-     * @param string $_html            
-     * @param array $_option            
+     * @param string $_name
+     * @param string $_html
+     * @param array $_option
      * @return string
      */
     public static function Tag($_name, $_html, $_option = null)
@@ -196,8 +200,8 @@ class HtmlUtil
     /**
      * 输出图片标签
      *
-     * @param string $_src            
-     * @param array $_option            
+     * @param string $_src
+     * @param array $_option
      * @return string
      */
     public static function Img($_src, $_option = null)
@@ -208,12 +212,12 @@ class HtmlUtil
     /**
      * 添加js代码
      *
-     * @param string $_code            
+     * @param string $_code
      * @param string $_dependmodule
      *            依赖js
      * @param string $_relatedcss
      *            依赖css
-     * @param array $_option            
+     * @param array $_option
      * @return string
      */
     public static function Script($_code, $_dependmodule = "", $_relatedcss = "", $_option = null)
@@ -224,8 +228,8 @@ class HtmlUtil
     /**
      * 输出js配置
      *
-     * @param array $_conifg            
-     * @param array $_option            
+     * @param array $_conifg
+     * @param array $_option
      * @return string
      */
     public static function Config($_conifg, $_option = null)
@@ -236,8 +240,8 @@ class HtmlUtil
     /**
      * 添加css代码
      *
-     * @param string $_code            
-     * @param array $_option            
+     * @param string $_code
+     * @param array $_option
      * @return string
      */
     public static function Style($_code, $_option = null)
@@ -258,7 +262,7 @@ class HtmlUtil
     /**
      * html去义化
      *
-     * @param string $text            
+     * @param string $text
      * @return string
      */
     public static function Decode($text)
@@ -269,7 +273,7 @@ class HtmlUtil
     /**
      * 恢复html
      *
-     * @param string $text            
+     * @param string $text
      * @return string
      */
     public static function Encode($text)
@@ -281,10 +285,10 @@ class HtmlUtil
      * Radio(名称，数据源，选择值，属性)
      * 返回radio标签
      *
-     * @param string $name            
-     * @param array $arr            
-     * @param string $val            
-     * @param array $_option            
+     * @param string $name
+     * @param array $arr
+     * @param string $val
+     * @param array $_option
      * @return string
      */
     public static function Radio($name, $arr, $val = "", $_option = null)
@@ -308,10 +312,10 @@ class HtmlUtil
      * 多选框
      * Checkbox(名称,数据源,选择值，属性)
      *
-     * @param string $name            
-     * @param array $arr            
-     * @param array $val            
-     * @param array $_option            
+     * @param string $name
+     * @param array $arr
+     * @param array $val
+     * @param array $_option
      * @return string
      */
     public static function Checkbox($name, $arr, $val = array(), $_option = null)
@@ -334,10 +338,10 @@ class HtmlUtil
     /**
      * 下拉列表Option(名称，数据源，选择值，属性))
      *
-     * @param string $name            
-     * @param array $arr            
-     * @param string $val            
-     * @param array $_option            
+     * @param string $name
+     * @param array $arr
+     * @param string $val
+     * @param array $_option
      * @return string
      */
     public static function Option($name, $arr, $val = "", $_option = null)
@@ -347,7 +351,7 @@ class HtmlUtil
             $html .= '<select  ' . self::ArrayToOption($_option) . '  name="' . $name . '">';
             foreach ($arr as $key => $value) {
                 if ($key == $val) {
-                    
+
                     $html .= '<option value="' . $key . '" selected >' . $value . '</option>';
                 } else {
                     $html .= '<option value="' . $key . '" >' . $value . '</option>';
@@ -361,10 +365,10 @@ class HtmlUtil
     /**
      * BeginForm(名称, form提交对象, 提交方式，属性)
      *
-     * @param string $name            
-     * @param string $action            
-     * @param string $method            
-     * @param array $_option            
+     * @param string $name
+     * @param string $action
+     * @param string $method
+     * @param array $_option
      * @return string
      */
     public static function BeginForm($name = "bfw_form", $action = "", $method = 'post', $_option = null)

@@ -1,6 +1,10 @@
 <?php
 namespace Lib;
 
+/**
+ * @author wangbo
+ * wiki文档类
+ */
 class BoWiki
 {
 

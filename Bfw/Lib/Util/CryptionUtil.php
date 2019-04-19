@@ -1,6 +1,10 @@
 <?php
 namespace Lib\Util;
 
+/**
+ * @author wangbo
+ * 加密辅助类
+ */
 class CryptionUtil
 {
     // private $securekey, $iv;

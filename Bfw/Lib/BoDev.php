@@ -1,6 +1,10 @@
 <?php
 namespace Lib;
 
+/**
+ * @author wangbo
+ * 开发模式
+ */
 class BoDev
 {
 

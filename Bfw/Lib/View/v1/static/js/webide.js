@@ -701,7 +701,14 @@ function openeditor(file, filedata,hash) {
 							if(prefix=="$this->"){
 								 entrynew = getfilename(editing_file).replace(/.php/g, "");
 							}else{
-								 entrynew = prefix.substring(0,prefix.indexOf("::"));
+								//锁定变量
+								if(prefix.indexOf("$")>=0){
+									//prefix+"="
+									//editor.getValue().
+								}else{
+									entrynew = prefix.substring(0,prefix.indexOf("::"));
+								}
+
 							}
 							console.log(bfw_method_list);
 							console.log(entrynew);
@@ -1397,11 +1404,10 @@ function popup(popupName) {
 	popupName.css({
 		"left" : _posiLeft + "px",
 		"top" : _posiTop + "px",
-		"display" : "block"
-	});// 设置position
+	}).fadeIn(300);// 设置position
 };
 function popclose(popupName) {
-	$("#" + popupName).hide();
+	$("#" + popupName).fadeOut(300);
 };
 function delpro(p){
 	if(confirm("确定删除？")){
@@ -1524,7 +1530,10 @@ function ajax(url, fnSucc, method, data) {
 
 	};
 };
-
+function showjoblistview(){
+	showjoblist();
+	$('#jobpannel').show();
+};
 $(function() {
 	if (window.navigator.userAgent.indexOf("Chrome") !== -1) {
 
@@ -1532,6 +1541,7 @@ $(function() {
 		alert("请用基于Chrome内核的浏览器打开");
 		return;
 	}
+	//var ue = UM.getEditor('wikibodytext');
 	getpro();
 	getsysclassfunc();
 	$("#loadding").hide();
@@ -1550,7 +1560,15 @@ $(function() {
 		}
 	});
 	$("#choose_temp li").live("click", function() {
-		$("#choose_temp li").removeClass("tempselected");
+		if($(this).index()!=0){
+			$("#choose_temp li").removeClass("tempselected");
+			$(this).addClass("tempselected");
+			tempid = $(this).attr("tempid");
+		}
+
+	});
+	$("#choose_d_temp li").live("click", function() {
+		$("#choose_d_temp li").removeClass("tempselected");
 		$(this).addClass("tempselected");
 		tempid = $(this).attr("tempid");
 	});

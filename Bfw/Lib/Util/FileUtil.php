@@ -1,13 +1,17 @@
 <?php
 namespace Lib\Util;
 
+/**
+ * @author wangbo
+ * 文件辅助类
+ */
 class FileUtil
 {
 
     /**
      * 获取目录文件列表
      *
-     * @param string $dir            
+     * @param string $dir
      * @return array
      */
     public static function getFileListByDir($dir)
@@ -26,7 +30,7 @@ class FileUtil
     /**
      * 创建目录
      *
-     * @param string $path            
+     * @param string $path
      * @return boolean
      */
     public static function CreatDir($path)
@@ -69,7 +73,7 @@ class FileUtil
     /**
      * 删除目录及文件
      *
-     * @param unknown $dirName            
+     * @param unknown $dirName
      * @return boolean
      */
     public static function delDirAndFile($dirName)
@@ -96,7 +100,7 @@ class FileUtil
             if ($filename != "." && $filename != "..") { // 文件夹文件名字为'.'和‘..’，不要对他们进行操作
                 if (is_dir($path . DS . $filename)) { // 如果读取的某个对象是文件夹，则递归
                     $zip->addEmptyDir($folder . DS . $filename);
-                    
+
                     self::addFileToZip($path . DS . $filename, $zip, $folder . DS . $filename);
                 } else { // 将文件加入zip对象
                     $zip->addFile($path . DS . $filename, $folder . DS . $filename);

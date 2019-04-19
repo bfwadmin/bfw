@@ -1,17 +1,21 @@
 <?php
 namespace Lib\Util;
 
+/**
+ * @author wangbo
+ * http辅助类
+ */
 class HttpUtil
 {
 
     /**
      * 异步发送，忽略服务的回应
      *
-     * @param string $host            
-     * @param number $port            
-     * @param string $path            
-     * @param array $data            
-     * @param number $timeout            
+     * @param string $host
+     * @param number $port
+     * @param string $path
+     * @param array $data
+     * @param number $timeout
      * @return array
      */
     public static function AsynPost($host, $port, $path, $data, $timeout)
@@ -23,7 +27,7 @@ class HttpUtil
                 "msg" => "$errstr($errno)"
             );
         }
-        
+
         $_data = http_build_query($data);
         $out = "POST {$path} HTTP/1.1\r\n";
         $out .= "Host: {$host}\r\n";
@@ -86,8 +90,8 @@ class HttpUtil
 
     /**
      * CURL 上传文件
-     * 
-     * @param $url 处理上传文件的url            
+     *
+     * @param $url 处理上传文件的url
      * @param array $post_data
      *            post 传递的参数
      * @param int $timeout

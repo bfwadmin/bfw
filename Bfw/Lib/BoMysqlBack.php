@@ -1,6 +1,10 @@
 <?php
 namespace Lib;
 
+/**
+ * @author wangbo
+ * mysql备份类
+ */
 class BoMysqlBack
 {
 
@@ -20,11 +24,11 @@ class BoMysqlBack
     /**
      * 初始化
      *
-     * @param string $host            
-     * @param string $username            
-     * @param string $password            
-     * @param string $database            
-     * @param string $charset            
+     * @param string $host
+     * @param string $username
+     * @param string $password
+     * @param string $database
+     * @param string $charset
      */
     function __construct($host = 'localhost', $username = 'root', $password = 'root', $database = 'yungou', $charset = 'utf8')
     {
@@ -60,14 +64,14 @@ class BoMysqlBack
      *
      * ------------------------------------------数据库备份start----------------------------------------------------------
      */
-    
+
     /**
      * 数据库备份
      * 参数：备份哪个表(可选),备份目录(可选，默认为backup),分卷大小(可选,默认2000，即2M)
      *
-     * @param $string $dir            
-     * @param int $size            
-     * @param $string $tablename            
+     * @param $string $dir
+     * @param int $size
+     * @param $string $tablename
      */
     function backup($tablename = '', $dir = './', $size = 20480)
     {
@@ -154,14 +158,14 @@ class BoMysqlBack
                 $sql .= $this->_insert_table_structure($tablename);
                 $data = mysql_query("select * from " . $tablename);
                 $num_fields = mysql_num_fields($data);
-                
+
                 // 循环每条记录
                 while ($record = mysql_fetch_array($data)) {
                     // 单条记录
                     $sql .= $this->_insert_record($tablename, $num_fields, $record);
                     // 如果大于分卷大小，则写入文件
                     if (strlen($sql) >= $size * 1000) {
-                        
+
                         $file = $filename . "_v" . $p . ".sql";
                         // 写入文件
                         if ($this->_write_file($sql, $file, $dir)) {
@@ -219,7 +223,7 @@ class BoMysqlBack
             $sql .= $this->_insert_table_structure($tablename);
             $data = mysql_query("select * from " . $tablename);
             $num_fields = mysql_num_fields($data);
-            
+
             // 循环每条记录
             while ($record = mysql_fetch_array($data)) {
                 // 单条记录
@@ -233,7 +237,7 @@ class BoMysqlBack
             }
         }
     }
-    
+
     // 及时输出信息
     private function _showMsg($msg, $err = false)
     {
@@ -269,14 +273,14 @@ class BoMysqlBack
         $value .= '--' . $this->ds . $this->ds;
         $value .= '-- -------------------------------------------------------';
         $value .= $this->ds . $this->ds;
-      
+
         return $value;
     }
 
     /**
      * 插入表结构
      *
-     * @param unknown_type $table            
+     * @param unknown_type $table
      * @return string
      */
     private function _insert_table_structure($table)
@@ -285,7 +289,7 @@ class BoMysqlBack
         $sql .= "--" . $this->ds;
         $sql .= "-- 表的结构" . $table . $this->ds;
         $sql .= "--" . $this->ds . $this->ds;
-        
+
         // 如果存在则删除表
         $sql .= "DROP TABLE IF EXISTS `" . $table . '`' . $this->sqlEnd . $this->ds;
         // 获取详细表信息
@@ -301,7 +305,7 @@ class BoMysqlBack
         $sql .= $this->ds;
         return $sql;
     }
-    
+
     private function _insert_db_structure($db)
     {
         $sql = '';
@@ -317,9 +321,9 @@ class BoMysqlBack
     /**
      * 插入单条记录
      *
-     * @param string $table            
-     * @param int $num_fields            
-     * @param array $record            
+     * @param string $table
+     * @param int $num_fields
+     * @param array $record
      * @return string
      */
     private function _insert_record($table, $num_fields, $record)
@@ -358,9 +362,9 @@ class BoMysqlBack
     /**
      * 写入文件
      *
-     * @param string $sql            
-     * @param string $filename            
-     * @param string $dir            
+     * @param string $sql
+     * @param string $filename
+     * @param string $dir
      * @return boolean
      */
     private function _write_file($sql, $filename, $dir)
@@ -390,13 +394,13 @@ class BoMysqlBack
      *
      * -------------------------------上：数据库导出-----------分割线----------下：数据库导入--------------------------------
      */
-    
+
     /**
      * 导入备份数据
      * 说明：分卷文件格式20120516211738_all_v1.sql
      * 参数：文件路径(必填)
      *
-     * @param string $sqlfile            
+     * @param string $sqlfile
      */
     function restore($sqlfile)
     {
@@ -502,7 +506,7 @@ class BoMysqlBack
     /**
      * 将sql导入到数据库（普通导入）
      *
-     * @param string $sqlfile            
+     * @param string $sqlfile
      * @return boolean
      */
     private function _import($sqlfile)
@@ -536,7 +540,7 @@ class BoMysqlBack
         fclose($f);
         return true;
     }
-    
+
     // 插入单条sql语句
     private function _insert_into($sql)
     {
@@ -549,13 +553,13 @@ class BoMysqlBack
     /*
      * -------------------------------数据库导入end---------------------------------
      */
-    
+
     // 关闭数据库连接
     private function close()
     {
         mysql_close($this->db);
     }
-    
+
     // 锁定数据库，以免备份或导入时出错
     private function lock($tablename, $op = "WRITE")
     {
@@ -564,7 +568,7 @@ class BoMysqlBack
         else
             return false;
     }
-    
+
     // 解锁
     private function unlock()
     {
@@ -573,7 +577,7 @@ class BoMysqlBack
         else
             return false;
     }
-    
+
     // 析构
     function __destruct()
     {

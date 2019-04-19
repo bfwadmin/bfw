@@ -52,6 +52,7 @@ try {
         include APP_ROOT . DS . "App" . DS . "Config.php";
     }
     defineinit("DEV_HOST_URL", $_config_arr['Globle'], 'dev_host_url', "http://bfwclouddeveloper/"); // 开发云端地址
+    defineinit("BFWUSER_HOST_URL", $_config_arr['Globle'], 'bfwuser_host_url', "http://a.exm.com/login.html"); // bfw'用户中心
     defineinit("STATIC_NAME", $_config_arr['Globle'], 'static_name', "static"); // 运行模式 S server C client M moniter
     defineinit("PAGE_SUFFIX", $_config_arr['Globle'], 'page_suffix', ""); // 后缀 routetype=2可用
     defineinit("SERVICE_M_USER", $_config_arr['Globle'], 'service_m_user', "admin"); // 服务监督中心管理账号

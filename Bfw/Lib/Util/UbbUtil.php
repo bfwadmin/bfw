@@ -1,18 +1,22 @@
 <?php
 namespace Lib\Util;
 
+/**
+ * @author wangbo
+ * ubb辅助类
+ */
 class UbbUtil
 {
 
     static function Tohtml($sUBB)
     {
         $sHtml = $sUBB;
-        
+
         global $emotPath, $cnum, $arrcode, $bUbb2htmlFunctionInit;
         $cnum = 0;
         $arrcode = array();
         $emotPath = '../xheditor_emot/';
-        
+
         if (! $bUbb2htmlFunctionInit) {
 
             function saveCodeArea($match)
@@ -23,12 +27,12 @@ class UbbUtil
                 return "[\tubbcodeplace_" . $cnum . "\t]";
             }
         }
-        $sHtml = preg_replace_callback('/\[code\s*(?:=\s*((?:(?!")[\s\S])+?)(?:"[\s\S]*?)?)?\]([\s\S]*?)\[\/code\]/i', 'saveCodeArea', $sHtml);   
+        $sHtml = preg_replace_callback('/\[code\s*(?:=\s*((?:(?!")[\s\S])+?)(?:"[\s\S]*?)?)?\]([\s\S]*?)\[\/code\]/i', 'saveCodeArea', $sHtml);
         $sHtml = preg_replace("/&/", '&amp;', $sHtml);
         $sHtml = preg_replace("/</", '&lt;', $sHtml);
         $sHtml = preg_replace("/>/", '&gt;', $sHtml);
         $sHtml = preg_replace("/\r?\n/", '<br />', $sHtml);
-        
+
         $sHtml = preg_replace("/\[(\/?)(b|u|i|s|sup|sub)\]/i", '<$1$2>', $sHtml);
         $sHtml = preg_replace('/\[color\s*=\s*([^\]"]+?)(?:"[^\]]*?)?\s*\]/i', '<span style="color:$1;">', $sHtml);
         if (! $bUbb2htmlFunctionInit) {
@@ -53,7 +57,7 @@ class UbbUtil
         $sHtml = preg_replace('/\[font\s*=\s*([^\]"]+?)(?:"[^\]]*?)?\s*\]/i', '<span style="font-family:$1;">', $sHtml);
         $sHtml = preg_replace('/\[back\s*=\s*([^\]"]+?)(?:"[^\]]*?)?\s*\]/i', '<span style="background-color:$1;">', $sHtml);
         $sHtml = preg_replace("/\[\/(color|size|font|back)\]/i", '</span>', $sHtml);
-        
+
         for ($i = 0; $i < 3; $i ++)
             $sHtml = preg_replace('/\[align\s*=\s*([^\]"]+?)(?:"[^\]]*?)?\s*\](((?!\[align(?:\s+[^\]]+)?\])[\s\S])*?)\[\/align\]/', '<p align="$1">$2</p>', $sHtml);
         $sHtml = preg_replace('/\[img\]\s*(((?!")[\s\S])+?)(?:"[\s\S]*?)?\s*\[\/img\]/i', '<img src="$1" alt="" />', $sHtml);
@@ -165,10 +169,10 @@ class UbbUtil
         $sHtml = preg_replace_callback('/\[list\s*(?:=\s*([^\]"]+))?(?:"[^\]]*?)?\s*\]/i', 'getUL', $sHtml);
         $sHtml = preg_replace("/\[\/list\]/i", '</ul>', $sHtml);
         $sHtml = preg_replace("/\[hr\/\]/i", '<hr />', $sHtml);
-        
+
         for ($i = 1; $i <= $cnum; $i ++)
             $sHtml = str_replace("[\tubbcodeplace_" . $i . "\t]", $arrcode[$i], $sHtml);
-        
+
         if (! $bUbb2htmlFunctionInit) {
 
             function fixText($match)
@@ -180,9 +184,9 @@ class UbbUtil
             }
         }
         $sHtml = preg_replace_callback('/(^|<\/?\w+(?:\s+[^>]*?)?>)([^<$]+)/i', 'fixText', $sHtml);
-        
+
         $bUbb2htmlFunctionInit = true;
-        
+
         return $sHtml;
     }
 }

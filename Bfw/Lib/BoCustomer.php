@@ -6,13 +6,17 @@ use Lib\Util\UrlUtil;
 use Lib\Util\ArrayUtil;
 use Lib\Util\HttpUtil;
 
+/**
+ * @author wangbo
+ * 消费者
+ */
 class BoCustomer extends Wangbo
 {
 
     /**
      * 验证格式是否正确
      *
-     * @param string $str            
+     * @param string $str
      * @return bool
      */
     private function ValidateStr($str)
@@ -72,7 +76,7 @@ class BoCustomer extends Wangbo
                             $_para[] = $_key_arr[$param->getName()];
                         } else {
                             if ($param->isOptional()) {
-                                
+
                                 $_para[] = $param->getDefaultValue();
                             } else {
                                 $_para[] = "";
@@ -89,7 +93,7 @@ class BoCustomer extends Wangbo
     {
         // 异步cache
         if (isset($_GET['updatecache'])) {}
-        
+
         // 服务端删除
         if (isset($_GET['notify'])) {
             if (isset($_GET['sername']) && isset($_GET['domname'])) {
@@ -111,7 +115,7 @@ class BoCustomer extends Wangbo
                 exit();
             }
         }
-        
+
         if (defined("ALLOW_DOMIAN")) {
             if (ALLOW_DOMIAN != "*" && strpos(strtolower(ALLOW_DOMIAN), strtolower(DOMIAN_VALUE)) === false) {
                 header('HTTP/1.1 404 Not Found');
@@ -121,7 +125,7 @@ class BoCustomer extends Wangbo
         }
         // client异步执行task
         global $argv;
-        
+
         if (strtolower(PHP_SAPI) === 'cli' && isset($argv[4])) {
             if ($argv[4] == "cache") {
                 $_queuename = "cache_list";
@@ -211,7 +215,7 @@ class BoCustomer extends Wangbo
         }
         // 消费端执行
         if ($this->ValidateStr($_controler) && $this->ValidateStr($_action) && $this->ValidateStr($_domian) && strtolower($_domian) != "system") {
-            
+
             if (! URL_CASE_SENS) {
                 $_domian = ucfirst($_domian);
                 $_controler = ucfirst($_controler);
@@ -235,7 +239,7 @@ class BoCustomer extends Wangbo
                             $_action . "_Before"
                         ), array());
                     }
-                    
+
                     if ($_pret) {
                         if (method_exists($_points, "Before")) {
                             $_pret = call_user_func_array(array(
@@ -344,7 +348,7 @@ class BoCustomer extends Wangbo
                             if (isset($_cinstance->_config['responsecharset'])) {
                                  $responsecharset = $_cinstance->_config['responsecharset'];
                             }
-                            
+
                         }
                         if ($expire > 0) {
                             $this->Expire($expire);
@@ -354,7 +358,7 @@ class BoCustomer extends Wangbo
                                 $_cinstance,
                                 $_action
                             ), $this->getPara("App\\{$_domian}\\Controler\\Controler_" . $_controler, $_action));
-                            
+
                             switch ($responseformat) {
                                 case "xml":
                                     header("Content-type: text/xml;charset={$responsecharset}");
@@ -367,7 +371,7 @@ class BoCustomer extends Wangbo
                                     }else{
                                         echo json_encode($ret);
                                     }
-                                  
+
                                     break;
                                 default:
                                     header("Content-type: {$responseformat};charset={$responsecharset}");

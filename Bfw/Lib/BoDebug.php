@@ -3,13 +3,17 @@ namespace Lib;
 
 use Lib\Registry;
 
+/**
+ * @author wangbo
+ * 调试类
+ */
 class BoDebug
 {
 
     /**
      * 调试信息输出
-     * 
-     * @param unknown $str            
+     *
+     * @param unknown $str
      */
     public static function Info($str)
     {
@@ -66,7 +70,7 @@ class BoDebug
         $_te = microtime(true);
         $_ts = &Registry::getInstance()->get("bo_nowtime_" . $_tag);
         $_tm = &Registry::getInstance()->get("bo_nowmemo_" . $_tag);
-        
+
         $_info = &Registry::getInstance()->get("debug_info");
         if ("" == $_ts) {
             $_info[] = array(
@@ -80,7 +84,7 @@ class BoDebug
             );
         }
         Registry::getInstance()->set("debug_info", $_info);
-        
+
         // LogR($_te . ":" . $msg . ",耗时" . round($_te - $_ts, 3) . "s");
     }
 
@@ -133,7 +137,7 @@ class BoDebug
     /**
      * 日志记录
      *
-     * @param string $word            
+     * @param string $word
      * @param string $tag
      *            标签
      * @param string $level

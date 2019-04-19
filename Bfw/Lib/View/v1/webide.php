@@ -29,21 +29,32 @@
 			<li class="logo">BFW STUDIO<span class="logo_vers">v1.0</span></li>
 			<li class="navitem dis-hide" id="project-menu">
 				<div>
-					<p>项目</p>
-					<p onclick="popup($('#addtemplate'))">提交模板</p>
-					<p>版本管理</p>
-					<p>项目部署</p>
-					<p>权限管理</p>
-					<p>修改日志</p>
-
+					<p>
+						<a>当前项目</a>
+					</p>
+					<p onclick="popup($('#addtemplate'))">
+						<a>提交模板</a>
+					</p>
+					<p onclick="versoncontrol(project_name)">
+						<a>版本管理</a>
+					</p>
+					<p onclick="versoncontrol(project_name)">
+						<a>项目部署</a>
+					</p>
+					<p onclick="showapppower(project_name)">
+						<a>权限管理</a>
+					</p>
+					<p onclick="getlog(project_name)">
+						<a>修改日志</a>
+					</p>
 				</div>
 			</li>
 			<?php if(DEV_PLACE=="local"){?>
 			<li>云端存储</li>
 			<?php }?>
-			<li>提交问题</li>
-			<li>模板商城</li>
-			<li>文档教程</li>
+			<li onclick="popup($('#askniuren'))">请教大牛</li>
+			<li><a href="/" target="_blank">模板商城</a></li>
+			<li><a href="/" target="_blank">文档教程</a></li>
 			<li onclick="popup($('#aboutus'));">关于我们</li>
 
 			<li class="navitem"  id="logined" style="float:right;<?php if($uid==""){?>display:none;<?php }?>">
@@ -51,13 +62,27 @@
 					<p>
 						<a href="/Cloud/<?=$uid?>/?webide=1">我的项目</a>
 					</p>
-					<p onclick="showwiki()">WIKI文档</p>
-					<p onclick="$('#jobpannel').show()">我的任务</p>
-					<p>我的bug</p>
-					<p>我的日记</p>
-					<p>我的博客</p>
-					<p>代码片段</p>
-					<p onclick="logout();">退出</p>
+					<p onclick="showwiki()">
+						<a>WIKI文档</a>
+					</p>
+					<p onclick="showjoblistview()">
+						<a>我的任务</a>
+					</p>
+					<p>
+						<a>我的bug</a>
+					</p>
+					<p>
+						<a>我的日记</a>
+					</p>
+					<p>
+						<a>我的博客</a>
+					</p>
+					<p>
+						<a>代码片段</a>
+					</p>
+					<p onclick="logout();">
+						<a>退出</a>
+					</p>
 				</div>
 			</li>
 
@@ -95,6 +120,22 @@
 				onclick="resolvebyserverv()" style="background: grey;" />
 		</p>
 	</div>
+	<div id="askniuren" class="popup_dia" style="width: 50%; height: 50%;">
+		<div class="popup_title">
+			<span>请教大牛</span> <span onclick="popclose('askniuren')"
+				class="popup_close">×</span>
+		</div>
+
+		<p>
+
+			<textarea class="popup_textin" id="askcontent" style="height: 60%;"
+				name="askcontent" placeholder="问题描述"></textarea>
+		</p>
+
+		<p>
+			<input type="button" value="提 交" class="popup_btn" onclick="" />
+		</p>
+	</div>
 	<div id="addtemplate" class="popup_dia"
 		style="width: 50%; height: 50%;">
 		<div class="popup_title">
@@ -113,9 +154,7 @@
 		<p>
 			<input type="text" placeholder="价格，0为免费" class="popup_textin"
 				id="templateprice" style="width: 45%;" name="templateprice" />
-		    <input
-				type="text" placeholder="价格，0为免费" class="popup_textin"
-				id="templateauther" style="width: 45%;" name="templateauther" />
+				<select class="popup_textin"  style="width: 45%;"><option >公开</option><option >私有</option></select>
 		</p>
 		<p>
 			<input type="button" value="提 交" class="popup_btn" onclick="" />
@@ -351,56 +390,50 @@
 				onclick="register()" />
 		</p>
 	</div>
-	<div id="mysqlconf" class="popup_dia" style="height: 30%;">
-		<div class="popup_title">
-			<span>mysql设置</span> <span onclick="popclose('mysqlconf')"
-				class="popup_close">×</span>
-		</div>
 
-		<input style="width: 23%;" type="text" id="mysqlhost"
-			class="popup_textin" name="mysqlhost" placeholder="请输入mysql地址" /> <input
-			style="width: 23%;" type="text" id="mysqlport" name="mysqlport"
-			placeholder="请输入mysql端口" class="popup_textin" /> <input type="text"
-			id="mysqlname" name="mysqlname" placeholder="请输入mysql用户名"
-			style="width: 23%;" class="popup_textin" /> <input type="text"
-			id="mysqlpwd" name="mysqlpwd" placeholder="请输入mysql密码"
-			style="width: 23%;" class="popup_textin" />
-		<p>
-
-			<input type="button" value="设     置" class="popup_btn"
-				onclick="mysqlconf()" />
-		</p>
-	</div>
-	<div id="newprodia" class="popup_dia" style="color: grey;">
+	<div id="newprodia" class="popup_dia" style="width: 50%; height: 70%;">
 		<div class="popup_title">
 			<span>新建项目</span> <span onclick="popclose('newprodia')"
 				class="popup_close">×</span>
 		</div>
-
-		<input type="text" class="popup_textin" id="proname" name="proname"
-			placeholder="请输入项目名称" />
-
-		<div id="lang_choose" style="padding: 10px;">
-			开发语言:<label for="php_lang"> <input type="radio" name="dev_lang"
-				id="php_lang" checked>PHP
-			</label> <label for="java_lang"> <input type="radio" name="dev_lang"
-				id="java_lang">JAVA
-			</label> <label for="c_lang"> <input type="radio" name="dev_lang"
-				id="c_lang">C#
-			</label>
-		</div>
+		<p>
+			<input type="text" class="popup_textin" id="proname" name="proname"
+				placeholder="请输入项目名称,英文首字母大写" style="width: 50%;" />	<input type="text" class="popup_textin"
+				placeholder="请选择开发语言" style="width: 30%;" readonly /><select
+				style="width: 15%;"  class="popup_textin"><option value="c#">C#</option>
+				<option value="java">JAVA</option>
+				<option value="php">PHP</option></select>
+		</p>
 
 
-		<div style="margin: 5px 5px 0 10px;">从模板创建</div>
-		<hr></hr>
+		<p>
 		<ul class="temp_ul" id="choose_temp">
-			<li tempid="empty">空白</li>
-			<li tempid="gfdgdfg">电商</li>
-			<li tempid="dxadvcbcsdfsf">企业</li>
-			<li tempid="dfgd">后台</li>
-			<li tempid="dxasbbcvdfsf">新闻</li>
-			<li tempid="dxascvbdfsf">博客</li>
+			<li style="font-weight:bold;">开发模板</li>
+			<li classid="1">我的</li>
+			<li classid="1">电商</li>
+			<li classid="1">企业</li>
+			<li classid="1">后台</li>
+			<li classid="1">新闻</li>
+			<li classid="1">博客</li>
+			<li classid="1">接口</li>
+			<li classid="1">其他</li>
+			<li style="float:right;"><input style="width:125px;padding:2px;margin:0px;" type="search" placeholder="输入关键词搜索" /></li>
 		</ul>
+		</p>
+		<p>
+
+
+		<ul class="temp_d_ul scrollbar" id="choose_d_temp" >
+			<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
+<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
+<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
+<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
+<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
+<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
+<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
+<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
+		</ul>
+		</p>
 		<p>
 
 			<input type="button" value="创     建" class="popup_btn"
@@ -408,7 +441,7 @@
 		</p>
 	</div>
 	<div id="wellcomepage">
-		<h1>最近项目</h1>
+		<h2 style="color:#cbcbcb;">最近项目</h2>
 		<?php if(DEV_PLACE=="local"){?>
 		<ul class="nav_tab" id="pro_nav_tab">
 			<li class="tab_selected">本地</li>
@@ -521,5 +554,6 @@
 		type="text/javascript" charset="utf-8"></script>
 	<script src="?webide=1&getstatic=/webide.js" type="text/javascript"
 		charset="utf-8"></script>
+
 </body>
 </html>

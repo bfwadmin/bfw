@@ -1,7 +1,11 @@
 <?php
 namespace Lib;
-use Lib\Util\FileUtil;
+
 // Bfw::import("App.Lang." . DOMIAN_VALUE . "." . LANG);
+/**
+ * @author wangbo
+ * 框架运行开始
+ */
 class WebApp extends WangBo
 {
 
@@ -10,7 +14,7 @@ class WebApp extends WangBo
     /**
      * 执行action
      *
-     * @param string $str            
+     * @param string $str
      */
     private Function ExecuteAction($str)
     {
@@ -28,9 +32,9 @@ class WebApp extends WangBo
     /**
      * 执行
      *
-     * @param string $_controler            
-     * @param string $_action            
-     * @param string $_domian            
+     * @param string $_controler
+     * @param string $_action
+     * @param string $_domian
      * @throws Exception
      */
     public function Execute($_controler, $_action, $_domian)

@@ -1,6 +1,10 @@
 <?php
 namespace Lib\Util;
 
+/**
+ * @author wangbo
+ * 字符辅助类
+ */
 class StringUtil
 {
 
@@ -462,7 +466,7 @@ class StringUtil
     /**
      * 二进制转成text
      *
-     * @param string $bin_str            
+     * @param string $bin_str
      * @return string
      */
     public static function bin2text($bin_str)
@@ -477,7 +481,7 @@ class StringUtil
     /**
      * text转二进制
      *
-     * @param string $txt_str            
+     * @param string $txt_str
      * @return string
      */
     public static function text2bin($txt_str)
@@ -493,7 +497,7 @@ class StringUtil
     /**
      * 生成随机字符串
      *
-     * @param int $length            
+     * @param int $length
      * @param bool $_onlynumber
      *            是否是数字
      * @return string
@@ -507,13 +511,13 @@ class StringUtil
         } else {
             $strPol = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
         }
-        
+
         $max = strlen($strPol) - 1;
-        
+
         for ($i = 0; $i < $length; $i ++) {
             $str .= $strPol[rand(0, $max)]; // rand($min,$max)生成介于min和max两个数之间的一个随机整数
         }
-        
+
         return $str;
     }
 
@@ -531,7 +535,7 @@ class StringUtil
     /**
      * 时间id
      * 20位
-     * 
+     *
      * @return string
      */
     public static function TimeId()
@@ -572,7 +576,7 @@ class StringUtil
     /**
      * 隐藏号码中间段，如// 14000234 1400**234
      *
-     * @param string $str            
+     * @param string $str
      * @return string
      */
     public static function half_replace($str)
@@ -590,10 +594,10 @@ class StringUtil
     /**
      * 截取字符串
      *
-     * @param string $string            
-     * @param number $sublen            
-     * @param number $start            
-     * @param string $code            
+     * @param string $string
+     * @param number $sublen
+     * @param number $start
+     * @param string $code
      * @return string
      */
     public static function cut_str($string, $sublen, $start = 0, $code = 'UTF-8')
@@ -633,7 +637,7 @@ class StringUtil
     /**
      * gb2312转utf-8
      *
-     * @param string $gb            
+     * @param string $gb
      * @return string
      */
     public static function gb2u($gb)
@@ -644,7 +648,7 @@ class StringUtil
     /**
      * utf-8转gb2312
      *
-     * @param string $gb            
+     * @param string $gb
      * @return string
      */
     public static function u2gb($gb)
@@ -658,7 +662,7 @@ class StringUtil
     /**
      * 格式化价格
      *
-     * @param decimal $money            
+     * @param decimal $money
      * @return string
      */
     public static function Formatmoney($money)
@@ -677,7 +681,7 @@ class StringUtil
     /**
      * 清除html标签
      *
-     * @param stirng $str            
+     * @param stirng $str
      * @return string
      */
     public static function ClearHtml($_str)
@@ -750,8 +754,8 @@ class StringUtil
     /**
      * 用数组根据数组位置替换字符串
      *
-     * @param string $_str            
-     * @param array $_arr            
+     * @param string $_str
+     * @param array $_arr
      * @return string
      */
     public static function ReplaceWithArr($_str, $_arr)
@@ -772,7 +776,7 @@ class StringUtil
      *            摘要长度
      * @param (int) $format
      *            输入格式 id
-     *            
+     *
      */
     public static function htmlSummary($body, $size, $format = NULL)
     {

@@ -2,9 +2,13 @@
 namespace Lib;
 
 
+/**
+ * @author wangbo
+ * 路由类
+ */
 class BoRoute
 {
-   
+
 
     public static function GetParaByUrl()
     {

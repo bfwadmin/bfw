@@ -1,6 +1,10 @@
 <?php
 namespace Lib;
 
+/**
+ * @author wangbo
+ * 我的工作模式
+ */
 class BoJob
 {
 

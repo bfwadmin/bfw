@@ -5,6 +5,10 @@ use Lib\Util\HttpUtil;
 use Lib\Exception\HttpException;
 use Lib\Util\StringUtil;
 // import ( "Client." . DOMIAN_VALUE . ".config" );
+/**
+ * @author wangbo
+ * 调用类父类
+ */
 class BoClient
 {
 
@@ -160,7 +164,7 @@ class BoClient
             "data" => ""
         ];
         $method = str_replace("___", "", $method);
-        
+
         if (! $this->_callfrombg) {
             $_servicename = str_replace("App\\" . DOMIAN_VALUE . "\\Client\\Client_", "", get_class($this));
             // 调用模式
@@ -286,7 +290,7 @@ class BoClient
                 }
             }
         }
-        
+
         if ($this->_service_remote) {
             $_ret = call_user_func_array([
                 $this->Proxy(),
@@ -369,12 +373,12 @@ class BoClient
                         if ($this->_cachedependcy['method'] == "read") {
                             // 如果是读
                         }
-                        
+
                         if ($this->_cachedependcy['method'] == "write") {
                             // 如果是写
                         }
                     }
-                    
+
                     // BoCache::Cache(CACHE_DEPENDCY_PRE . $this->_cachedependcy, time(), 0);
                 }
             }
@@ -414,7 +418,7 @@ class BoClient
                         Core::LoadClass("App\\Client\\" . DOMIAN_VALUE . '\Client_' . $this->_cachedependcy['source'][0]),
                         $this->_cachedependcy['source'][1]
                     ), $this->_cachedependcy['source'][2]);
-                    
+
                     if ($_ret['err']) {
                         BoDebug::LogR($this->_cachedependcy['source'][0] . $_ret['data']);
                     } else {
@@ -500,7 +504,7 @@ class BoClient
      *            秒
      * @param bool $async
      *            是否异步
-     * @param string $_dependcy缓存依赖            
+     * @param string $_dependcy缓存依赖
      * @param bool $_ismaster
      *            是否是依赖主
      * @return BoClient
@@ -517,14 +521,14 @@ class BoClient
     public function CacheMaster($key)
     {
         $this->_cachemasterkey = $key;
-        
+
         return $this;
     }
 
     public function ResetCache($_isdepency = true)
     {
         if ($this->_cachedependcy) {}
-        
+
         //
         // $_keyname = "";
         // if ($_isdepency) {
@@ -612,7 +616,7 @@ class BoClient
         if (empty($this->_serv_url)) {
             $this->_serv_url = $this->getserviceinfo($_servicename);
         }
-        
+
         return BoTranClient::getInstance()->Init($this->_serv_url, DOMIAN_VALUE, $_servicename);
     }
 
@@ -622,12 +626,12 @@ class BoClient
         $_data = BoCache::Cache($_key);
         if (empty($_data)) {
             $_url = SERVICE_REG_CENTER_URL . "?dom=" . DOMIAN_VALUE . "&act=get&cont=service&sername=" . $_servicename . "&notifyurl=" . urlencode(SERVICE_NOTIFY_URL);
-            
+
             $_data = HttpUtil::HttpGet($_url);
             if ($_data['err']) {
                 throw new HttpException('get service list http err,' . $_data['data']);
             } else {
-                
+
                 $_json_data = json_decode($_data['data'], true);
                 if (empty($_json_data)) {
                     throw new HttpException('get service list http err,empty data');
@@ -658,7 +662,7 @@ class BoClient
                             } else {
                                 $_sourcearr = $this->_cachedependcy['source'];
                             }
-                            
+
                             foreach ($_sourcearr as $_source) {
                                 BoCache::Cache(CACHE_DEPENDCY_PRE . $_source, time(), 0);
                             }
@@ -735,7 +739,7 @@ class BoClient
                         $_lock->unlock();
                     }
                 }
-                
+
                 return $_data;
             } else {
                 $_reqgo = false;

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>BFW-演示页面</title>
+<meta name="robots" content="all" />
+<meta name="keywords" content="BFW" />
+<meta name="description" content="BFW" />
+<link type="text/css" rel="stylesheet" href="../css/bfw.css">
+<script src="../js/bfw.js"></script>
+</head>
+<body>
+BFW-演示页面
+</body>
+</html>

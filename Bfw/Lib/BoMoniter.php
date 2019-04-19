@@ -3,6 +3,10 @@ namespace Lib;
 
 use Lib\Util\HttpUtil;
 
+/**
+ * @author wangbo
+ * 监督模式
+ */
 class BoMoniter
 {
 
@@ -65,7 +69,7 @@ class BoMoniter
                     } else {
                         var_dump($this->_pdo->errorInfo());
                     }
-                    
+
                     if (empty($_data)) {
                         $sql = "INSERT INTO service (seckey,lang,dom,serviceurl,cont,act,providerip,regtime,weight,reportnum) VALUES (:seckey,:lang,:dom,:serviceurl,:cont,:act,:providerip,:regtime,:weight,:reportnum)";
                         $stmt = $this->_pdo->prepare($sql);
@@ -95,7 +99,7 @@ class BoMoniter
             $_ip = IP;
             $_date = date('Y-m-d H:i:s');
             $this->initdb($_dbfilepath);
-            
+
             $sql = "SELECT dom,customerip,notifyurl FROM client where dom=:dom and customerip=:customerip and notifyurl=:notifyurl";
             $stmt = $this->_pdo->prepare($sql);
             $stmt->bindParam(':dom', $_domian);
@@ -134,7 +138,7 @@ class BoMoniter
             ]);
             echo "ok";
         }
-        
+
         // 服务权值调整通知
         if ($_controler == "service" && $_action == "notify") {
             $this->initdb($_dbfilepath);
@@ -161,7 +165,7 @@ class BoMoniter
             }
             echo "ok";
         }
-        
+
         // 服务举报
         if ($_controler == "service" && $_action == "report") {
             $this->initdb($_dbfilepath);
@@ -192,7 +196,7 @@ class BoMoniter
             }
             echo "ok";
         }
-        
+
         // 服务检查
         if ($_controler == "service" && $_action == "check") {
             $this->initdb($_dbfilepath);
@@ -217,14 +221,14 @@ class BoMoniter
                     die("账号错误");
                 }
             }
-            
+
             if (BoCache::Cache("bfwserviceauth" . SESS_ID) != "ok") {
                 BoRes::View("login", "System", "v1", [
                     'refer' => URL
                 ]);
                 exit();
             }
-            
+
             $_ser_val = isset($_GET['ser_inp']) ? $_GET['ser_inp'] : "";
             $_dom_val = isset($_GET['dom_inp']) ? $_GET['dom_inp'] : "";
             $_url_val = isset($_GET['url_inp']) ? $_GET['url_inp'] : "";
@@ -257,7 +261,7 @@ class BoMoniter
             }
             $stmt->execute();
             $_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            
+
             // $_data = $this->_pdo->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
             $sql = "SELECT * FROM client order by dom desc";
             $_cdata = $this->_pdo->query($sql)->fetchAll(\PDO::FETCH_ASSOC);

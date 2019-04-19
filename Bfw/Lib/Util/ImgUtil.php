@@ -1,6 +1,10 @@
 <?php
 namespace Lib\Util;
 
+/**
+ * @author wangbo
+ * 图像辅助类
+ */
 class ImgUtil
 {
 
@@ -8,14 +12,14 @@ class ImgUtil
     {
         if ($url == "") :
             return false;
-        
+
         endif;
-        
+
         if ($filename == "") {
             $ext = strrchr($url, ".");
             if ($ext != ".gif" && $ext != ".jpg") :
                 return false;
-            
+
             endif;
             $filename = date("dMYHis") . $ext;
         }
@@ -31,7 +35,7 @@ class ImgUtil
             fclose($fp2);
             $img = null;
         }
-        
+
         return $filename;
     }
 }

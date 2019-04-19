@@ -3,6 +3,10 @@ namespace Lib;
 
 use Lib\Util\FileUtil;
 
+/**
+ * @author wangbo
+ * 开发模式界面
+ */
 class BoGui
 {
 
@@ -34,8 +38,8 @@ class BoGui
     private function setuid($_uid)
     {
         if (DEV_PLACE == "cloud") {
-            file_put_contents(BFW_LIB . DS . "Cache" . DS . $this->genkey(), $_uid);
-            // BoCache::Cache(SESS_ID . "app_server_uid", $_uid, 0);
+           // file_put_contents(BFW_LIB . DS . "Cache" . DS . $this->genkey(), $_uid);
+            BoCache::Cache($this->genkey(), $_uid, 0);
         }
         if (DEV_PLACE == "local") {
             BoCache::Cache("app_server_uid", $_uid, 0);
@@ -54,9 +58,9 @@ class BoGui
     private function getuid()
     {
         if (DEV_PLACE == "cloud") {
-            return file_get_contents(BFW_LIB . DS . "Cache" . DS . $this->genkey());
+            //return file_get_contents(BFW_LIB . DS . "Cache" . DS . $this->genkey());
             // $_key=.
-            // return BoCache::Cache(SESS_ID . "app_server_uid");
+             return BoCache::Cache($this->genkey());
         }
         if (DEV_PLACE == "local") {
             return BoCache::Cache("app_server_uid");
@@ -67,7 +71,9 @@ class BoGui
     private function logout()
     {
         if (DEV_PLACE == "cloud") {
-            return file_put_contents(BFW_LIB . DS . "Cache" . DS . $this->genkey(), "");
+            //return file_put_contents(BFW_LIB . DS . "Cache" . DS . $this->genkey(), "");
+
+            return BoCache::Cache($this->genkey(), "", 0);
         }
         if (DEV_PLACE == "local") {
             return BoCache::Cache("app_server_uid", "");
@@ -95,31 +101,31 @@ class BoGui
 
     private function getappversion($_appname)
     {
-        $_ba = new BoApp();
+        $_ba = new BoVersion();
         return $_ba->getappversion($_appname);
     }
 
     private function addappversion($_appname, $_memo, $_usertoken)
     {
-        $_ba = new BoApp();
+        $_ba = new BoVersion();
         return $_ba->addappversion($_appname, $_memo, $_usertoken);
     }
 
     private function setappversion($_appname, $_v, $_usertoken)
     {
-        $_ba = new BoApp();
+        $_ba = new BoVersion();
         return $_ba->setappversion($_appname, $_v, $_usertoken);
     }
 
     private function commitlog($_appname, $_file, $_actiontype, $_memo, $_usertoken)
     {
-        $_ba = new BoApp();
+        $_ba = new BoVersion();
         return $_ba->commitlog($_appname, $_file, $_actiontype, $_memo, $_usertoken);
     }
 
     private function getcommitlog($_appname)
     {
-        $_ba = new BoApp();
+        $_ba = new BoVersion();
         return $_ba->getcommitlog($_appname, 10, 0);
     }
 
@@ -240,6 +246,20 @@ class BoGui
 
     public function Run()
     {
+        //验证
+        if(isset($_GET['callback'])){
+            $_sign=$_GET['sign'];
+            $_token=$_GET['token'];
+            $_username=$_GET['username'];
+            if($_token!=""&&$_username!=""&&$_sign!=""){
+                if(md5($_token.$_username."SJDU!234324(*(DDFDDGF")==$_sign){
+                    //创建工作目录
+                    FileUtil::CreatDir(APP_BASE . DS . "Cloud" . DS . $_token);
+                    FileUtil::copydir(APP_ROOT . DS . "CodeT" . DS . "cloud", APP_BASE . DS . "Cloud" . DS . $_token);
+                    $this->setuid($_token);
+                }
+            }
+        }
         if (isset($_GET['getstatic'])) {
             $_file = str_replace("\\", '', str_replace("/", '', $_GET['getstatic']));
             if (substr($_file, strlen($_file) - 4) == ".css") {
@@ -425,7 +445,8 @@ class BoGui
                         "data" => "请登录后再操作"
                     ]);
                 } else {
-                    BoRes::View("cloudreg", "System", "v1");
+                    header("Location:".BFWUSER_HOST_URL."?authbackurl=".urlencode(URL));
+                   // BoRes::View("cloudreg", "System", "v1");
                 }
 
                 exit();
@@ -543,7 +564,13 @@ class BoGui
                 $_filename=APP_ROOT . DS . "App" . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['getfiles']);
             }
             if(file_exists($_filename)){
-                echo json_encode(['err'=>false,"data"=>file_get_contents($_filename),"filehash"=>md5_file($_filename)]);
+               $_file_ext= strtolower(pathinfo($_filename,PATHINFO_EXTENSION));
+                if($_file_ext=="png"||$_file_ext=="jpg"||$_file_ext=="gif"){
+                    echo file_get_contents($_filename);
+                }else{
+                    echo json_encode(['err'=>false,"data"=>file_get_contents($_filename),"filehash"=>md5_file($_filename)]);
+                }
+
             }else{
                 echo json_encode(['err'=>true,"data"=>"文件不存在"]);
             }
@@ -633,16 +660,18 @@ class BoGui
         if (isset($_GET['createfiles'])) {
             if (isset($_GET['isstatic'])) {
                 $_filetype = "";
+                $_filedata="";
                 $_f_get = $_GET['ftype'];
                 if ($_f_get == "html") {
                     $_filetype = ".html";
+                    $_filedata=file_get_contents(BFW_LIB . DS . "CodeT" . DS . "html.temp");
                 } elseif ($_f_get == "css") {
                     $_filetype = ".css";
                 } elseif ($_f_get == "js") {
                     $_filetype = ".js";
                 }
 
-                if (file_put_contents(APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['pfolder']) . DS . $_GET['createfiles'] . $_filetype, "")) {
+                if (file_put_contents(APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['pfolder']) . DS . $_GET['createfiles'] . $_filetype, $_filedata)) {
                     $this->commitlog($_GET['parent'], $_GET['createfiles'], "create", "dddd", $_uid);
                 }
             } else {
@@ -862,6 +891,7 @@ class BoGui
                 if (! isset($_GET['targetappname'])) {
                     if ($_uid == "") {
                         if (strpos(URL, 'Cloud') === false) {
+                           // BFWUSER_HOST_URL
                             BoRes::View("cloudreg", "System", "v1");
                         } else {
                             // die("s");

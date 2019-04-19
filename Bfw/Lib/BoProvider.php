@@ -5,6 +5,10 @@ use Lib\Util\FileUtil;
 use Lib\Exception\CoreException;
 use Lib\Util\HttpUtil;
 
+/**
+ * @author wangbo
+ * 服务提供模式
+ */
 class BoProvider
 {
 
@@ -95,7 +99,7 @@ class BoProvider
                                         goto service_pass;
                                     }
                                 }
-                                
+
                                 // usleep(2000000);
                                 $ret = call_user_func_array(array(
                                     $_cinstance,
@@ -108,7 +112,7 @@ class BoProvider
                                 } else {
                                     return $_sretmsg(false, $ret);
                                 }
-                                
+
                                 service_pass:
                                  BoDebug::Info("LOCK TIMEOUT:" . LOCK_TIMEOUT . "s");
                                 if (WEB_DEBUG) {

@@ -6,6 +6,10 @@ use Lib\Exception\DbException;
 use Lib\Util\StringUtil;
 use Lib\Util\FileUtil;
 
+/**
+ * @author wangbo
+ * 代码自动生成
+ */
 class BoCode extends WangBo
 {
 
@@ -315,7 +319,7 @@ class BoCode extends WangBo
                 } else {
                     $_ret = $this->_replacetag(BFW_LIB . '/' . CODE_TEMP_PATH . '/' . $item[0], APP_ROOT . DS . "App" . DS . $item[1], $_fields, $_table, $_m_name, false, $_domian);
                 }
-                
+
                 if (WEB_DEBUG) {
                     if ($_ret) {
                         global $_debug_info_array;

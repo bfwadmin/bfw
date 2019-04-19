@@ -1,6 +1,10 @@
 <?php
 namespace Lib;
 
+/**
+ * @author wangbo
+ * 会话类
+ */
 class BoSess
 {
 
@@ -59,11 +63,11 @@ class BoSess
                     $_SESSION[$_key] = $_val;
                 }
                 // Bfw::LogR("write.".$_key."=".$_val."</br>") ;
-                
+
                 $ret = true;
             }
             session_write_close();
-            
+
             return $ret;
         }
         return "";
@@ -72,7 +76,7 @@ class BoSess
     /**
      * 防止恶意攻击
      *
-     * @param int $intvaltime            
+     * @param int $intvaltime
      * @return boolean
      */
     public static function AntiRobotAttack($intvaltime)
@@ -91,7 +95,7 @@ class BoSess
             return true;
         }
     }
-    
+
 
 }
 

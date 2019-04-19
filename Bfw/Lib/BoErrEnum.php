@@ -1,6 +1,10 @@
 <?php
 namespace Lib;
 
+/**
+ * @author wangbo
+ * 调试消息类型
+ */
 class BoErrEnum
 {
 
