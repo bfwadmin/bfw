@@ -16,6 +16,7 @@ var bfw_method_list=[];
 var loadingstartshow=false;
 var loadingendshow=false;
 var syswait=null;
+var debug_timeintval=null;
 var _bfw_config = {
 	baseurl : "",
 	routetype : "",
@@ -558,6 +559,13 @@ function setbreakpointer(line,isclear){
 		console.log(data);
 	});
 };
+
+function getdebuginfo(){
+	var url = "?webide=1&getdebuginfo=1&filename="+ editing_file+"&parent=" + project_name;
+	ajax(url, function(data) {
+		console.log(data);
+	});
+}
 function init_complete(){
 
  var myList = [
@@ -1595,6 +1603,7 @@ $(function() {
 	//var ue = UM.getEditor('wikibodytext');
 	getpro();
 	getsysclassfunc();
+	debug_timeintval=setInterval("getdebuginfo",2000);
 	$("#loadding").hide();
 	// notify("ddddd");
 	$("#pro_nav_tab li").live("click", function() {

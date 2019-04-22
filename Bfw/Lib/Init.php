@@ -446,8 +446,13 @@ if (RUN_MODE == "S") {
     }
 }
 
+
 if (strtolower(PHP_SAPI) != "cli") {
     ob_end_flush();
+    if (WEB_DEBUG) {
+        //断点调试
+        set_time_limit();
+    }
 }
 // 发送异步消息
 // $_cachedata=&Registry::getInstance()->get("cache_list_forsend");

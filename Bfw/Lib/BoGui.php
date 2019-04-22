@@ -11,7 +11,7 @@ use Lib\Util\FileUtil;
 class BoGui
 {
 
-    private $_debug_str = "\$_debug_g_file=APP_ROOT.DS.'file_info.debug';\$_debug_cont_file=APP_ROOT.DS.'file_cont.debug';file_put_contents(\$_debug_g_file,serialize(['line'=>__LINE__,'var'=>get_defined_vars()]));while(true){if(file_get_contents(\$_debug_cont_file)=='go'){file_put_contents(\$_debug_cont_file,'wait');break;} sleep(2);}";
+    private $_debug_str = "\$_debug_g_file=APP_ROOT.DS.'App'.DS.'file_info.debug';\$_debug_cont_file=APP_ROOT.DS.'App'.DS.'file_cont.debug';file_put_contents(\$_debug_g_file,serialize(['line'=>__LINE__,'var'=>get_defined_vars()]));while(true){if(file_get_contents(\$_debug_cont_file)=='go'){file_put_contents(\$_debug_cont_file,'wait');break;} sleep(2);}";
 
     private $_mode = "";
 
@@ -808,7 +808,16 @@ class BoGui
                 exit();
             }
         }
-
+        if (isset($_GET['getdebuginfo'])) {
+            $_debug_file = APP_ROOT . DS . "App" . DS . "file_info.debug";
+            echo json_encode(unserialize(file_get_contents($_debug_file)));
+            exit();
+        }
+        if (isset($_GET['contdebug'])) {
+            $_debug_file = APP_ROOT . DS . "App" . DS . "file_cont.debug";
+            file_put_contents($_debug_file, "go");
+            exit();
+        }
         if (isset($_GET['addbreak'])) {
             $_filename = APP_ROOT . DS . "App" . DS . str_replace("/", '', str_replace("\\", DS, $_GET["filename"]));
 
