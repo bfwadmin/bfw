@@ -547,6 +547,17 @@ function rename(){
 		});
 	}
 };
+function setbreakpointer(line,isclear){
+	var url="";
+	if(isclear==1){
+		url = "?webide=1&clearbreak=1&filename="+ editing_file+"&parent=" + project_name+"&line="+line;
+	}else{
+		url = "?webide=1&addbreak=1&filename="+ editing_file+"&parent=" + project_name+"&line="+line;
+	}
+	ajax(url, function(data) {
+		console.log(data);
+	});
+};
 function init_complete(){
 
  var myList = [
@@ -645,8 +656,14 @@ function openeditor(file, filedata,hash) {
 			enableSnippets : true,
 			enableLiveAutocompletion : true
 		});
+
+
 		editor.getSession().selection.on('changeCursor', function(e) {
-			console.log("changeCursor");
+			//var rows = editor.$getSelectedRows();
+			//editor.getSession().setBreakpoint(rows);
+			//console.log(editor.getSession().getBreakpoints());
+			//console.log(rows);
+			//console.log("changeCursor");
 		});
 		editor.getSession().selection.on('changeSelection', function(e) {
 			console.log("changeSelection");
@@ -667,6 +684,39 @@ function openeditor(file, filedata,hash) {
 
 		});
 		if (stuff == ".php") {
+			editor.on("guttermousedown", function(e){
+			    var target = e.domEvent.target;
+			    if (target.className.indexOf("ace_gutter-cell") == -1)
+			        return;
+			    if (!editor.isFocused())
+			        return;
+			    if (e.clientX > 25 + target.getBoundingClientRect().left)
+			        return;
+			    var row = e.getDocumentPosition().row;
+			    console.log(row);
+			    var _linedata=e.editor.session.getLine(row);
+			    console.log(_linedata);
+			    var _allbreaks=e.editor.session.getBreakpoints();
+			    console.log(_allbreaks);
+
+			    if(_linedata!="{"&&_linedata!="}"){
+			    	if(!_allbreaks[row]){
+			    		//addbreak
+			    		setbreakpointer(row,0);
+			    		e.editor.session.setBreakpoint(row);
+			    	}else{
+			    		setbreakpointer(row,1);
+			    		e.editor.session.clearBreakpoint(row);
+			    		//e.editor.session.documentToScreenRow(row,1);
+			    	}
+
+			    }
+			    //editor.session.setBreakpoint(pos.row,"ace_coderunstatus");
+			    //e.editor.session.clearBreakpoint(row);
+			    e.stop();
+
+			});
+
 			editor.session.setMode("ace/mode/php");
 			var myCompleter = {
 					identifierRegexps: [/[^\s]+/],
@@ -676,6 +726,7 @@ function openeditor(file, filedata,hash) {
 						var lastpr=prefix.substring(prefix.length-2);
 						console.info("myCompleter prefix:", lastpr);
 		                if(lastpr=="::"){
+
 		            		var entrynew = prefix.substring(0,prefix.indexOf("::"));
 		            		if (typeof bfw_method_list[entrynew] == "undefined") {
 								console.log(entrynew+"不存在");
@@ -1567,6 +1618,16 @@ $(function() {
 		}
 
 	});
+	$(".ace_gutter-cell").live("dblclick", function() {
+		if($(this).children('.bfw-breakpointer').length==0){
+			//$(this).prepend("<a class='bfw-breakpointer'></a>");
+		}else{
+			//$(this).children('.bfw-breakpointer').remove();
+		}
+
+		console.log($(this).index());
+	});
+
 	$("#choose_d_temp li").live("click", function() {
 		$("#choose_d_temp li").removeClass("tempselected");
 		$(this).addClass("tempselected");

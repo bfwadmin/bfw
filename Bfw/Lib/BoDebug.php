@@ -3,12 +3,28 @@ namespace Lib;
 
 use Lib\Registry;
 
+
 /**
  * @author wangbo
  * 调试类
  */
 class BoDebug
 {
+
+    /**
+     *断点调试
+     */
+     public static  function Breakpoint(&$_obj){
+        if(WEB_DEBUG){
+            var_dump($_obj);
+            var_dump($_GET);
+            var_dump($_COOKIE);
+            var_dump($_POST);
+            var_dump($_SERVER);
+
+        }
+
+    }
 
     /**
      * 调试信息输出

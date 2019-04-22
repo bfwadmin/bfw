@@ -2,8 +2,9 @@
 namespace Lib\Util;
 
 /**
+ *
  * @author wangbo
- * 文件辅助类
+ *         文件辅助类
  */
 class FileUtil
 {
@@ -184,6 +185,62 @@ class FileUtil
             }
         }
     }
+
+    /**
+     * 指定行插入数据
+     *
+     * @param unknown $_src
+     * @param unknown $_string
+     * @param unknown $_iLine
+     * @return multitype:string unknown
+     */
+    public static function insertstrbyline($_src, $_string, $_iLine)
+    {
+        $file_handle = fopen($_src, "r");
+        $i = 0;
+        $arr = array();
+        while (! feof($file_handle)) {
+            $line = fgets($file_handle);
+            ++ $i;
+            if ($i == $_iLine) {
+                    $arr[] = substr($line, 0, strlen($line) - 2) . $_string . "\n";
+            } else {
+                $arr[] = $line;
+            }
+        }
+        fclose($file_handle);
+        file_put_contents($_src, implode("", $arr));
+        return $arr;
+    }
+
+
+    /**
+     * 指定行删除数据
+     *
+     * @param unknown $_src
+     * @param unknown $_string
+     * @param unknown $_iLine
+     * @return multitype:string unknown
+     */
+    public static function deletestrbyline($_src, $_string, $_iLine)
+    {
+        $file_handle = fopen($_src, "r");
+        $i = 0;
+        $arr = array();
+        while (! feof($file_handle)) {
+            $line = fgets($file_handle);
+            ++ $i;
+            if ($i == $_iLine) {
+                $arr[] =str_replace($_string, "", $line);
+            } else {
+                $arr[] = $line;
+            }
+        }
+        fclose($file_handle);
+        file_put_contents($_src, implode("", $arr));
+        return $arr;
+    }
+
 }
 
 ?>

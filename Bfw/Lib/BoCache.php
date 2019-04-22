@@ -20,6 +20,7 @@ class BoCache
     {
         $_key=$_key.$_dom;
         $_cache_instance = "Lib\\Cache\\" . CACHE_HANDLER_NAME;
+        //echo $_cache_instance;
         Core::ImportClass($_cache_instance);
         if (is_null($_val)) {
             return $_cache_instance::getInstance()->getkey($_key);

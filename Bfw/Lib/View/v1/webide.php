@@ -14,6 +14,23 @@
 .ace_autocomplete {
 	width: 600px !important;
 }
+.ace_gutter-cell .bfw-breakpointer{
+	border-radius:4px;
+	background:red;
+	width:8px;
+	height:8px;
+	display:inline-block;
+}
+.ace_gutter-cell.ace_breakpoint{
+    border-radius: 20px 0px 0px 20px;
+    box-shadow: 0px 0px 1px 1px red inset;
+	background:url("?webide=1&getstatic=/breakpointer.png") 3px -1px no-repeat;
+}
+.ace_gutter-cell.ace_coderunstatus{
+    border-radius: 20px 0px 0px 20px;
+    box-shadow: 0px 0px 1px 1px green inset;
+	background:url("?webide=1&getstatic=/breakpointer.png") 3px -25px no-repeat;
+}
 </style>
 </head>
 <body onload="RunOnBeforeUnload()">

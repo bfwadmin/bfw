@@ -18,6 +18,7 @@ use Lib\Exception\LockException;
 use Lib\Exception\QueueException;
 use Lib\Exception\SessionException;
 use Lib\Exception\LogException;
+use Lib\BoCache;
 
 if (strtolower(PHP_SAPI) != "cli") {
     ob_start();
@@ -461,15 +462,34 @@ function defineinit($_name, &$_conf, $_val, $_defval = "")
 function autoloadclient($class)
 {
     $_classname = str_replace("\\", DS, str_replace(".", DS, $class));
+    $_class_pre = substr($_classname, 0, strpos($_classname, DS));
     if (substr($_classname, 0, 3) == "Lib") {
         $classpath = BFW_LIB . DS . $_classname . ".php";
     } else
-        if (substr($_classname, 0, strpos($_classname, DS)) == "Plugin") {
+        if ($_class_pre == "Plugin") {
             $classpath = PLUGIN_DIR . DS . substr($_classname, strpos($_classname, DS)) . ".php";
         } else {
             $classpath = APP_ROOT . DS . $_classname . ".php";
+            if (WEB_DEBUG) {
+                // 断电调试
+
+                $_debug_file = APP_ROOT . DS . "App" . DS . "file.debug";
+
+                $_debug_arr = [];
+                if (file_exists($_debug_file)) {
+                    $_debug_arr = unserialize(file_get_contents($_debug_file));
+                }
+                //echo $classpath;
+               // var_dump($_debug_arr);
+              // print_r($_debug_arr);
+                if (in_array($classpath, $_debug_arr)) {
+                    //var_dump($_debug_arr);
+                    $classpath = APP_ROOT . DS . $_classname . ".php.debug";
+                }
+            }
         }
     // echo $classpath;
+
     if (file_exists($classpath)) {
         include_once $classpath;
         if (defined("WEB_DEBUG")) {
@@ -487,7 +507,7 @@ function autoloadclient($class)
             // echo "download";
             // return autoloadclient($class);
         }
-
+        // echo $classpath;
         throw new Exception(BoConfig::Config("Sys", "webapp", "System")['class_not_found'] . $class);
     }
 }

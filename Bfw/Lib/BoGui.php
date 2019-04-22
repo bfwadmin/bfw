@@ -4,11 +4,14 @@ namespace Lib;
 use Lib\Util\FileUtil;
 
 /**
+ *
  * @author wangbo
- * 开发模式界面
+ *         开发模式界面
  */
 class BoGui
 {
+
+    private $_debug_str = "\$_debug_g_file=APP_ROOT.DS.'file_info.debug';\$_debug_cont_file=APP_ROOT.DS.'file_cont.debug';file_put_contents(\$_debug_g_file,serialize(['line'=>__LINE__,'var'=>get_defined_vars()]));while(true){if(file_get_contents(\$_debug_cont_file)=='go'){file_put_contents(\$_debug_cont_file,'wait');break;} sleep(2);}";
 
     private $_mode = "";
 
@@ -38,7 +41,7 @@ class BoGui
     private function setuid($_uid)
     {
         if (DEV_PLACE == "cloud") {
-           // file_put_contents(BFW_LIB . DS . "Cache" . DS . $this->genkey(), $_uid);
+            // file_put_contents(BFW_LIB . DS . "Cache" . DS . $this->genkey(), $_uid);
             BoCache::Cache($this->genkey(), $_uid, 0);
         }
         if (DEV_PLACE == "local") {
@@ -58,9 +61,9 @@ class BoGui
     private function getuid()
     {
         if (DEV_PLACE == "cloud") {
-            //return file_get_contents(BFW_LIB . DS . "Cache" . DS . $this->genkey());
+            // return file_get_contents(BFW_LIB . DS . "Cache" . DS . $this->genkey());
             // $_key=.
-             return BoCache::Cache($this->genkey());
+            return BoCache::Cache($this->genkey());
         }
         if (DEV_PLACE == "local") {
             return BoCache::Cache("app_server_uid");
@@ -71,7 +74,7 @@ class BoGui
     private function logout()
     {
         if (DEV_PLACE == "cloud") {
-            //return file_put_contents(BFW_LIB . DS . "Cache" . DS . $this->genkey(), "");
+            // return file_put_contents(BFW_LIB . DS . "Cache" . DS . $this->genkey(), "");
 
             return BoCache::Cache($this->genkey(), "", 0);
         }
@@ -246,20 +249,30 @@ class BoGui
 
     public function Run()
     {
-        //验证
-        if(isset($_GET['callback'])){
-            $_sign=$_GET['sign'];
-            $_token=$_GET['token'];
-            $_username=$_GET['username'];
-            if($_token!=""&&$_username!=""&&$_sign!=""){
-                if(md5($_token.$_username."SJDU!234324(*(DDFDDGF")==$_sign){
-                    //创建工作目录
-                    FileUtil::CreatDir(APP_BASE . DS . "Cloud" . DS . $_token);
-                    FileUtil::copydir(APP_ROOT . DS . "CodeT" . DS . "cloud", APP_BASE . DS . "Cloud" . DS . $_token);
+        // 验证
+        if (isset($_GET['callback'])) {
+
+            $_sign = $_GET['sign'];
+            $_token = $_GET['token'];
+            $_username = $_GET['username'];
+            // die(APPSELF);
+            if (APPSELF != "/index.php") {
+                header("location:/?webide=1&callback=1&sign={$_sign}&token={$_token}&username={$_username}");
+
+                exit();
+            }
+            if ($_token != "" && $_username != "" && $_sign != "") {
+                if (md5($_token . $_username . "SJDU!234324(*(DDFDDGF") == $_sign) {
+                    // 创建工作目录
+                    if (! file_exists(APP_BASE . DS . "Cloud" . DS . $_token . DS . "index.php")) {
+                        FileUtil::CreatDir(APP_BASE . DS . "Cloud" . DS . $_token);
+                        FileUtil::copydir(APP_ROOT . DS . "CodeT" . DS . "cloud", APP_BASE . DS . "Cloud" . DS . $_token);
+                    }
                     $this->setuid($_token);
                 }
             }
         }
+        // die("d");
         if (isset($_GET['getstatic'])) {
             $_file = str_replace("\\", '', str_replace("/", '', $_GET['getstatic']));
             if (substr($_file, strlen($_file) - 4) == ".css") {
@@ -418,6 +431,7 @@ class BoGui
                                         "data" => "没权限操作"
                                     ]);
                                 } else {
+                                    // die("s");
                                     header("Location:/Cloud/" . $_uid . "/?webide=1");
                                 }
 
@@ -433,6 +447,7 @@ class BoGui
                                 "data" => "没权限操作"
                             ]);
                         } else {
+                            // die("ds");
                             header("Location:/Cloud/" . $_uid . "/?webide=1");
                         }
                         exit();
@@ -445,8 +460,8 @@ class BoGui
                         "data" => "请登录后再操作"
                     ]);
                 } else {
-                    header("Location:".BFWUSER_HOST_URL."?authbackurl=".urlencode(URL));
-                   // BoRes::View("cloudreg", "System", "v1");
+                    header("Location:" . BFWUSER_HOST_URL . "?authbackurl=" . urlencode(URL));
+                    // BoRes::View("cloudreg", "System", "v1");
                 }
 
                 exit();
@@ -556,23 +571,28 @@ class BoGui
             exit();
         }
         if (isset($_GET['getfiles'])) {
-            $_filename="";
+            $_filename = "";
             if (isset($_GET['isstatic'])) {
-                $_filename=APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['getfiles']);
-
+                $_filename = APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['getfiles']);
             } else {
-                $_filename=APP_ROOT . DS . "App" . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['getfiles']);
+                $_filename = APP_ROOT . DS . "App" . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['getfiles']);
             }
-            if(file_exists($_filename)){
-               $_file_ext= strtolower(pathinfo($_filename,PATHINFO_EXTENSION));
-                if($_file_ext=="png"||$_file_ext=="jpg"||$_file_ext=="gif"){
+            if (file_exists($_filename)) {
+                $_file_ext = strtolower(pathinfo($_filename, PATHINFO_EXTENSION));
+                if ($_file_ext == "png" || $_file_ext == "jpg" || $_file_ext == "gif") {
                     echo file_get_contents($_filename);
-                }else{
-                    echo json_encode(['err'=>false,"data"=>file_get_contents($_filename),"filehash"=>md5_file($_filename)]);
+                } else {
+                    echo json_encode([
+                        'err' => false,
+                        "data" => file_get_contents($_filename),
+                        "filehash" => md5_file($_filename)
+                    ]);
                 }
-
-            }else{
-                echo json_encode(['err'=>true,"data"=>"文件不存在"]);
+            } else {
+                echo json_encode([
+                    'err' => true,
+                    "data" => "文件不存在"
+                ]);
             }
             exit();
         }
@@ -660,11 +680,11 @@ class BoGui
         if (isset($_GET['createfiles'])) {
             if (isset($_GET['isstatic'])) {
                 $_filetype = "";
-                $_filedata="";
+                $_filedata = "";
                 $_f_get = $_GET['ftype'];
                 if ($_f_get == "html") {
                     $_filetype = ".html";
-                    $_filedata=file_get_contents(BFW_LIB . DS . "CodeT" . DS . "html.temp");
+                    $_filedata = file_get_contents(BFW_LIB . DS . "CodeT" . DS . "html.temp");
                 } elseif ($_f_get == "css") {
                     $_filetype = ".css";
                 } elseif ($_f_get == "js") {
@@ -714,14 +734,14 @@ class BoGui
                         "data" => false
                     ]);
                 } else {
-                    $_olddata=file_get_contents($_filename);
+                    $_olddata = file_get_contents($_filename);
                     $diff = \Plugin\Diff::compare($_olddata, $_POST["data"]);
                     echo json_encode([
                         'err' => false,
                         "data" => true,
                         "diff" => \Plugin\Diff::toTable($diff),
                         "serverdata" => $_olddata,
-                        "serverhash"=>md5_file($_filename)
+                        "serverhash" => md5_file($_filename)
                     ]);
                 }
             } else {
@@ -735,11 +755,17 @@ class BoGui
         if (isset($_GET['savefiles'])) {
             if (isset($_GET['isstatic'])) {
                 if ($this->writefile(APP_BASE . DS . STATIC_NAME . DS . str_replace("./", "", $_GET['savefiles']), $_POST["data"], $_uid)) {
-                    echo json_encode(['err'=>false,"data"=>md5_file(APP_BASE . DS . STATIC_NAME . DS . str_replace("./", "", $_GET['savefiles']))]);
+                    echo json_encode([
+                        'err' => false,
+                        "data" => md5_file(APP_BASE . DS . STATIC_NAME . DS . str_replace("./", "", $_GET['savefiles']))
+                    ]);
                 }
             } else {
                 if ($this->writefile(APP_ROOT . DS . "App" . DS . str_replace("./", "", $_GET['savefiles']), $_POST["data"], $_uid)) {
-                    echo json_encode(['err'=>false,"data"=>md5_file(APP_ROOT . DS . "App" . DS . str_replace("./", "", $_GET['savefiles']))]);
+                    echo json_encode([
+                        'err' => false,
+                        "data" => md5_file(APP_ROOT . DS . "App" . DS . str_replace("./", "", $_GET['savefiles']))
+                    ]);
                 }
             }
             exit();
@@ -782,12 +808,52 @@ class BoGui
                 exit();
             }
         }
+
+        if (isset($_GET['addbreak'])) {
+            $_filename = APP_ROOT . DS . "App" . DS . str_replace("/", '', str_replace("\\", DS, $_GET["filename"]));
+
+            $_debug_file = $_filename . ".debug";
+
+            if (! file_exists($_debug_file)) {
+                file_put_contents($_debug_file, file_get_contents($_filename));
+            }
+            FileUtil::insertstrbyline($_debug_file, $this->_debug_str, $_GET["line"]);
+            $_debug_file = APP_ROOT . DS . "App" . DS . "file.debug";
+            $_debug_data = file_get_contents($_debug_file);
+            $_debug_arr = [];
+            if ($_debug_data != "") {
+                $_debug_arr = unserialize($_debug_data);
+            }
+            if (! in_array($_filename, $_debug_arr)) {
+                $_debug_arr[] = $_filename;
+            }
+            file_put_contents($_debug_file, serialize($_debug_arr));
+
+            exit();
+        }
+        if (isset($_GET['clearbreak'])) {
+            $_filename = APP_ROOT . DS . "App" . DS . str_replace("/", '', str_replace("\\", DS, $_GET["filename"]));
+            $_debug_file = $_filename . ".debug";
+            FileUtil::deletestrbyline($_debug_file, $this->_debug_str, $_GET["line"]);
+            if (strpos(file_get_contents($_debug_file), $this->_debug_str) === false) {
+                $_debug_file = APP_ROOT . DS . "App" . DS . "file.debug";
+                $_debug_data = file_get_contents($_debug_file);
+                $_debug_arr = [];
+                if ($_debug_data != "") {
+                    $_debug_arr = unserialize($_debug_data);
+                }
+                if (in_array($_filename, $_debug_arr)) {
+                    unset($_debug_arr[$_filename]);
+                }
+                file_put_contents($_debug_file, serialize($_debug_arr));
+            }
+            exit();
+        }
         if (isset($_GET['getappdir'])) {
             $_file = str_replace("\\", '', str_replace("/", '', $_GET['getappdir']));
             if (isset($_GET['isstatic'])) {
                 echo json_encode(FileUtil::getfilebydir($_file, APP_BASE . DS . STATIC_NAME . DS));
             } else {
-                // echo APP_ROOT;
                 echo json_encode(FileUtil::getfilebydir($_file, APP_ROOT . DS . "App" . DS));
             }
             exit();
@@ -891,8 +957,8 @@ class BoGui
                 if (! isset($_GET['targetappname'])) {
                     if ($_uid == "") {
                         if (strpos(URL, 'Cloud') === false) {
-                           // BFWUSER_HOST_URL
-                            BoRes::View("cloudreg", "System", "v1");
+                            // BFWUSER_HOST_URL
+                            // BoRes::View("cloudreg", "System", "v1");
                         } else {
                             // die("s");
                             header("Location:/?webide=1");
