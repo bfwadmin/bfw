@@ -143,7 +143,7 @@ class FileUtil
         }
     }
 
-    public static function getfilebydir($_dir, $_base = "/")
+    public static function getfilebydir($_dir, $_base = "/",$_ex="")
     {
         $_data = [];
         $_dirdata = scandir($_base . $_dir);
@@ -154,14 +154,19 @@ class FileUtil
                     $_data[] = [
                         "name" => $file,
                         "type" => 1,
-                        "data" => self::getfilebydir($file, $_base . $_dir . DS)
+                        "data" => self::getfilebydir($file, $_base . $_dir . DS,$_ex)
                     ];
                 } else {
-                    $_data[] = [
-                        "name" => $file,
-                        "type" => 2,
-                        "data" => $file
-                    ];
+
+                    $_ext=strrchr($file, '.');
+                    if($_ext&&$_ext!=$_ex){
+                        $_data[] = [
+                            "name" => $file,
+                            "type" => 2,
+                            "data" => $file
+                        ];
+                    }
+
                 }
             }
         }
@@ -203,7 +208,7 @@ class FileUtil
             $line = fgets($file_handle);
             ++ $i;
             if ($i == $_iLine) {
-                    $arr[] = substr($line, 0, strlen($line) - 2) . $_string . "\n";
+                $arr[] = $_string.$line;
             } else {
                 $arr[] = $line;
             }

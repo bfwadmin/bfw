@@ -230,6 +230,8 @@ class BoCustomer extends Wangbo
             }
             $_pret = true;
             $_pointfile = APP_ROOT . DS . "App" . DS . $_domian . DS . "Points" . DS . "Points_" . $_controler . ".php";
+            $_pointfile = BoDebug::getDebugfile($_pointfile);
+           // $_pointfile = APP_ROOT . DS . "App" . DS . $_domian . DS . "Points" . DS . "Points_" . $_controler . ".php";
             if (file_exists($_pointfile)) {
                 $_points = Core::LoadClass("App\\{$_domian}\\Points\\Points_{$_controler}");
                 if ($_points) {

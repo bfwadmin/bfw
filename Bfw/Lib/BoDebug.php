@@ -3,27 +3,51 @@ namespace Lib;
 
 use Lib\Registry;
 
-
 /**
+ *
  * @author wangbo
- * 调试类
+ *         调试类
  */
 class BoDebug
 {
-
     /**
-     *断点调试
+     * 导出提示信息
+     * @param unknown $_v
+     * @return multitype:unknown
      */
-     public static  function Breakpoint(&$_obj){
-        if(WEB_DEBUG){
-            var_dump($_obj);
-            var_dump($_GET);
-            var_dump($_COOKIE);
-            var_dump($_POST);
-            var_dump($_SERVER);
-
+    public static function ExportVar($_v){
+        $_ret=[];
+        foreach ($_v as $_item=>$_val){
+            if($_item!="_debug_cont_file"&&$_item!="_debug_g_file"&&$_item!="_control_file"){
+                $_ret["上下文变量"][$_item]=$_val;
+            }
         }
-
+        $_ret["SESSION"]=$_SESSION;
+        $_ret["POST"]=$_POST;
+        $_ret["GET"]=$_GET;
+        $_ret["COOKIE"]=$_COOKIE;
+        $_ret["SERVER"]=$_SERVER;
+        $_ret["ENV"]=$_ENV;
+        $_ret["FILES"]=$_FILES;
+        return $_ret;
+    }
+    /**
+     * 断点调试路径
+     */
+    public static function getDebugfile($classpath)
+    {
+        if (WEB_DEBUG) {
+            // 断电调试
+            $_debug_file = APP_ROOT . DS . "App" . DS . "file.debug";
+            $_debug_arr = [];
+            if (file_exists($_debug_file)) {
+                $_debug_arr = unserialize(file_get_contents($_debug_file));
+            }
+            if (in_array($classpath, $_debug_arr)) {
+                $classpath = $classpath.".debug";
+            }
+        }
+        return $classpath;
     }
 
     /**
@@ -106,7 +130,7 @@ class BoDebug
 
     public static function DebugJson($_import_info_arr, $_debug_info_arr, $_spendtime, $_log_toserver, $_totalmem, $_file = "debug")
     {
-        return "~_~_~_~_~_~".json_encode([
+        return "~_~_~_~_~_~" . json_encode([
             'import_info' => $_import_info_arr,
             "debug_info" => $_debug_info_arr,
             "spendtime" => $_spendtime,

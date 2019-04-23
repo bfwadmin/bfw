@@ -11,7 +11,7 @@ use Lib\Util\FileUtil;
 class BoGui
 {
 
-    private $_debug_str = "\$_debug_g_file=APP_ROOT.DS.'App'.DS.'file_info.debug';\$_debug_cont_file=APP_ROOT.DS.'App'.DS.'file_cont.debug';file_put_contents(\$_debug_g_file,serialize(['line'=>__LINE__,'var'=>get_defined_vars()]));while(true){if(file_get_contents(\$_debug_cont_file)=='go'){file_put_contents(\$_debug_cont_file,'wait');break;} sleep(2);}";
+    private $_debug_str = "\$_debug_g_file=APP_ROOT.DS.'App'.DS.'file_info.debug';\$_debug_cont_file=APP_ROOT.DS.'App'.DS.'file_cont.debug';file_put_contents(\$_debug_g_file,serialize(['file'=>\\Lib\\Util\\StringUtil::GetStringByRegx(__FILE__,'/App(.*)\\.debug/'),'line'=>__LINE__,'var'=>\\Lib\\BoDebug::ExportVar(get_defined_vars())]));while(true){\$_control_file=file_get_contents(\$_debug_cont_file);if(\$_control_file=='go'){file_put_contents(\$_debug_cont_file,'wait');break;} if(\$_control_file=='exit'){break;} sleep(2);}";
 
     private $_mode = "";
 
@@ -249,6 +249,8 @@ class BoGui
 
     public function Run()
     {
+        // StringUtil::GetStringByRegx("ddd\App\sdf\dfd\ll.php.debug","/App(.*)\.debug/");
+        // die();
         // 验证
         if (isset($_GET['callback'])) {
 
@@ -370,13 +372,25 @@ class BoGui
             $dirArr = scandir(APP_ROOT . DS . "App" . DS);
 
             foreach ($dirArr as $_item) {
+                $_ext=strrchr($_item, '.');
                 if (strtolower($_item) != "config.php" && strtolower($_item) != ".." && strtolower($_item) != ".") {
                     // if (strpos(URL, $_uid) === true) {
-                    $_dirarr[] = [
-                        'type' => 'self',
-                        "name" => $_item,
-                        "url" => ""
-                    ];
+                    if($_ext){
+                        if($_ext!=".debug"){
+                            $_dirarr[] = [
+                                'type' => 'self',
+                                "name" => $_item,
+                                "url" => ""
+                            ];
+                        }
+                    }else{
+                        $_dirarr[] = [
+                            'type' => 'self',
+                            "name" => $_item,
+                            "url" => ""
+                        ];
+                    }
+
                     // } else {
 
                     // }
@@ -582,10 +596,12 @@ class BoGui
                 if ($_file_ext == "png" || $_file_ext == "jpg" || $_file_ext == "gif") {
                     echo file_get_contents($_filename);
                 } else {
+                    $_breakline=file_get_contents($_filename.".break.debug");
                     echo json_encode([
                         'err' => false,
                         "data" => file_get_contents($_filename),
-                        "filehash" => md5_file($_filename)
+                        "filehash" => md5_file($_filename),
+                        "breakline" => $_breakline?explode("|", $_breakline):[]
                     ]);
                 }
             } else {
@@ -815,18 +831,19 @@ class BoGui
         }
         if (isset($_GET['contdebug'])) {
             $_debug_file = APP_ROOT . DS . "App" . DS . "file_cont.debug";
-            file_put_contents($_debug_file, "go");
+            file_put_contents($_debug_file, $_GET['contdebug']);
+            echo "ok";
             exit();
         }
         if (isset($_GET['addbreak'])) {
+            $_line = intval($_GET["line"]) + 1;
             $_filename = APP_ROOT . DS . "App" . DS . str_replace("/", '', str_replace("\\", DS, $_GET["filename"]));
+            $_debug_files = $_filename . ".debug";
 
-            $_debug_file = $_filename . ".debug";
-
-            if (! file_exists($_debug_file)) {
-                file_put_contents($_debug_file, file_get_contents($_filename));
+            if (! file_exists($_debug_files)) {
+                file_put_contents($_debug_files, file_get_contents($_filename));
             }
-            FileUtil::insertstrbyline($_debug_file, $this->_debug_str, $_GET["line"]);
+            FileUtil::insertstrbyline($_debug_files, $this->_debug_str, $_line);
             $_debug_file = APP_ROOT . DS . "App" . DS . "file.debug";
             $_debug_data = file_get_contents($_debug_file);
             $_debug_arr = [];
@@ -838,12 +855,25 @@ class BoGui
             }
             file_put_contents($_debug_file, serialize($_debug_arr));
 
+            $_debug_breakfile = $_filename . ".break.debug";
+            $_debug_breakdata = file_get_contents($_debug_breakfile);
+            $_debug_breakarr = [];
+            if ($_debug_breakdata != "") {
+                $_debug_breakarr = explode("|", $_debug_breakdata);
+            }
+            $_line--;
+            if (! in_array($_line, $_debug_breakarr)) {
+                $_debug_breakarr[] = $_line;
+            }
+            file_put_contents($_debug_breakfile, implode("|", $_debug_breakarr));
+
             exit();
         }
         if (isset($_GET['clearbreak'])) {
             $_filename = APP_ROOT . DS . "App" . DS . str_replace("/", '', str_replace("\\", DS, $_GET["filename"]));
             $_debug_file = $_filename . ".debug";
-            FileUtil::deletestrbyline($_debug_file, $this->_debug_str, $_GET["line"]);
+            $_line = intval($_GET["line"]) + 1;
+            FileUtil::deletestrbyline($_debug_file, $this->_debug_str, $_line);
             if (strpos(file_get_contents($_debug_file), $this->_debug_str) === false) {
                 $_debug_file = APP_ROOT . DS . "App" . DS . "file.debug";
                 $_debug_data = file_get_contents($_debug_file);
@@ -851,19 +881,37 @@ class BoGui
                 if ($_debug_data != "") {
                     $_debug_arr = unserialize($_debug_data);
                 }
-                if (in_array($_filename, $_debug_arr)) {
-                    unset($_debug_arr[$_filename]);
+
+                for ($i = 0; $i < count($_debug_arr); $i ++) {
+                    if ($_debug_arr[$i] == $_filename) {
+                        unset($_debug_arr[$i]);
+                    }
                 }
+
                 file_put_contents($_debug_file, serialize($_debug_arr));
             }
+
+            $_debug_breakfile = $_filename . ".break.debug";
+            $_debug_breakdata = file_get_contents($_debug_breakfile);
+            $_debug_breakarr = [];
+            if ($_debug_breakdata != "") {
+                $_debug_breakarr = explode("|", $_debug_breakdata);
+            }
+            $_line--;
+            for ($i = 0; $i < count($_debug_breakarr); $i ++) {
+                if ($_debug_breakarr[$i] == $_line) {
+                    unset($_debug_breakarr[$i]);
+                }
+            }
+            file_put_contents($_debug_breakfile, implode("|", $_debug_breakarr));
             exit();
         }
         if (isset($_GET['getappdir'])) {
             $_file = str_replace("\\", '', str_replace("/", '', $_GET['getappdir']));
             if (isset($_GET['isstatic'])) {
-                echo json_encode(FileUtil::getfilebydir($_file, APP_BASE . DS . STATIC_NAME . DS));
+                echo json_encode(FileUtil::getfilebydir($_file, APP_BASE . DS . STATIC_NAME . DS,".debug"));
             } else {
-                echo json_encode(FileUtil::getfilebydir($_file, APP_ROOT . DS . "App" . DS));
+                echo json_encode(FileUtil::getfilebydir($_file, APP_ROOT . DS . "App" . DS,".debug"));
             }
             exit();
         }

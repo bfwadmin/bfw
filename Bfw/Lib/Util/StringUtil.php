@@ -2,8 +2,9 @@
 namespace Lib\Util;
 
 /**
+ *
  * @author wangbo
- * 字符辅助类
+ *         字符辅助类
  */
 class StringUtil
 {
@@ -540,8 +541,8 @@ class StringUtil
      */
     public static function TimeId()
     {
-        list($usec, $sec) = explode(" ", microtime());
-        return $sec.str_replace("0.", "", $usec). rand(10, 99);
+        list ($usec, $sec) = explode(" ", microtime());
+        return $sec . str_replace("0.", "", $usec) . rand(10, 99);
     }
 
     /**
@@ -782,6 +783,18 @@ class StringUtil
     {
         preg_match_all("/[\\.|,|，|。|:|：|\\d]*[\x{4e00}-\x{9fa5}]+/u", $body, $chinese);
         return self::cut_str(implode("", $chinese[0]), $size);
+    }
+
+    /**
+     * 根据正则获取内容
+     * @param unknown $_str
+     * @param unknown $_reg
+     */
+    public static function GetStringByRegx($_str, $_reg)
+    {
+        $arr = [];
+        preg_match($_reg, $_str, $arr);
+        return isset($arr[1])?$arr[1]:"";
     }
 }
 

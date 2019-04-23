@@ -61,6 +61,7 @@ class Core
             $classpath = BFW_LIB . DS . $classname . ".php";
         } else {
             $classpath = APP_ROOT . DS . $classname . ".php";
+            $classpath=BoDebug::getDebugfile($classpath);
         }
         if (file_exists($classpath)) {
             include_once $classpath;
@@ -73,6 +74,8 @@ class Core
             throw new CoreException(BoConfig::Config("Sys", "webapp", "System")['class_not_found'] . $class);
         }
     }
+
+
 
     // 导入类
     // Core::ImportClass("类名");
@@ -115,5 +118,6 @@ class Core
             }
         }
     }
+
 }
 ?>

@@ -10,30 +10,51 @@
 <link rel="stylesheet" media="all" href="?webide=1&getstatic=/tree.css" />
 <link rel="stylesheet" media="all"
 	href="?webide=1&getstatic=/webide.css" />
+<link rel="stylesheet" media="all"
+	href="?webide=1&getstatic=/json-viewer.css" />
 <style type="text/css">
 .ace_autocomplete {
 	width: 600px !important;
 }
-.ace_gutter-cell .bfw-breakpointer{
-	border-radius:4px;
-	background:red;
-	width:8px;
-	height:8px;
-	display:inline-block;
+
+.ace_gutter-cell .bfw-breakpointer {
+	border-radius: 4px;
+	background: red;
+	width: 8px;
+	height: 8px;
+	display: inline-block;
 }
-.ace_gutter-cell.ace_breakpoint{
-    border-radius: 20px 0px 0px 20px;
-    box-shadow: 0px 0px 1px 1px red inset;
-	background:url("?webide=1&getstatic=/breakpointer.png") 3px -1px no-repeat;
+
+.ace_gutter-cell.ace_breakpoint {
+	border-radius: 20px 0px 0px 20px;
+	box-shadow: 0px 0px 1px 1px red inset;
+	background: url("?webide=1&getstatic=/breakpointer.png") 3px -1px
+		no-repeat;
 }
-.ace_gutter-cell.ace_coderunstatus{
-    border-radius: 20px 0px 0px 20px;
-    box-shadow: 0px 0px 1px 1px green inset;
-	background:url("?webide=1&getstatic=/breakpointer.png") 3px -25px no-repeat;
+
+.ace_gutter-cell.ace_coderunstatus {
+	border-radius: 20px 0px 0px 20px;
+	box-shadow: 0px 0px 1px 1px green inset;
+	background: url("?webide=1&getstatic=/breakpointer.png") 3px -25px
+		no-repeat;
 }
 </style>
 </head>
 <body onload="RunOnBeforeUnload()">
+	<div id="debug_control_pan" style="display:none;">
+		<ul id="control_btn">
+		<li style="width: auto;padding:5px;">调试窗口</li>
+			<li title="继续调试"  id="debug-continue-btn"
+				style='background: url("?webide=1&amp;getstatic=/breakpointer.png") 3px -19px no-repeat;'></li>
+			<li title="停止调试"  id="debug-stop-btn"
+				style='background: url("?webide=1&amp;getstatic=/breakpointer.png") 3px 3px no-repeat;'></li>
+					<li title="关闭调试模式" style="float:right;padding:5px;"  onclick="closedebug()"
+				>×</li>
+		</ul>
+		<div id="debug_info_detail" class="scrollbar" style="padding:10px;overflow:scroll;margin:0 5px;">
+		<pre id="json-renderer"></pre>
+		</div>
+	</div>
 	<div id="mask" class="pos-abs v-fullscreen color-black "
 		style="z-index: 999998; opacity: 0.2;">
 		<div id="notice" style="text-align: center;">
@@ -48,6 +69,8 @@
 				<div>
 					<p>
 						<a>当前项目</a>
+					</p>
+					<p onclick="opendebug()"><a>打开调试</a>
 					</p>
 					<p onclick="popup($('#addtemplate'))">
 						<a>提交模板</a>
@@ -170,8 +193,9 @@
 		</p>
 		<p>
 			<input type="text" placeholder="价格，0为免费" class="popup_textin"
-				id="templateprice" style="width: 45%;" name="templateprice" />
-				<select class="popup_textin"  style="width: 45%;"><option >公开</option><option >私有</option></select>
+				id="templateprice" style="width: 45%;" name="templateprice" /> <select
+				class="popup_textin" style="width: 45%;"><option>公开</option>
+				<option>私有</option></select>
 		</p>
 		<p>
 			<input type="button" value="提 交" class="popup_btn" onclick="" />
@@ -415,17 +439,20 @@
 		</div>
 		<p>
 			<input type="text" class="popup_textin" id="proname" name="proname"
-				placeholder="请输入项目名称,英文首字母大写" style="width: 50%;" />	<input type="text" class="popup_textin"
-				placeholder="请选择开发语言" style="width: 30%;" readonly /><select
-				style="width: 15%;"  class="popup_textin"><option value="c#">C#</option>
+				placeholder="请输入项目名称,英文首字母大写" style="width: 50%;" /> <input
+				type="text" class="popup_textin" placeholder="请选择开发语言"
+				style="width: 30%;" readonly /><select style="width: 15%;"
+				class="popup_textin"><option value="c#">C#</option>
 				<option value="java">JAVA</option>
 				<option value="php">PHP</option></select>
 		</p>
 
 
 		<p>
+
+
 		<ul class="temp_ul" id="choose_temp">
-			<li style="font-weight:bold;">开发模板</li>
+			<li style="font-weight: bold;">开发模板</li>
 			<li classid="1">我的</li>
 			<li classid="1">电商</li>
 			<li classid="1">企业</li>
@@ -434,21 +461,47 @@
 			<li classid="1">博客</li>
 			<li classid="1">接口</li>
 			<li classid="1">其他</li>
-			<li style="float:right;"><input style="width:125px;padding:2px;margin:0px;" type="search" placeholder="输入关键词搜索" /></li>
+			<li style="float: right;"><input
+				style="width: 125px; padding: 2px; margin: 0px;" type="search"
+				placeholder="输入关键词搜索" /></li>
 		</ul>
 		</p>
 		<p>
 
 
-		<ul class="temp_d_ul scrollbar" id="choose_d_temp" >
-			<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
-<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
-<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
-<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
-<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
-<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
-<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
-<li tempid="empty"><div class="imgshow"><img style="width:100%;" src="?webide=1&getstatic=/demo.png"/></div><div>电商+平台+抢购</div></li>
+		<ul class="temp_d_ul scrollbar" id="choose_d_temp">
+			<li tempid="empty"><div class="imgshow">
+					<img style="width: 100%;" src="?webide=1&getstatic=/demo.png" />
+				</div>
+				<div>电商+平台+抢购</div></li>
+			<li tempid="empty"><div class="imgshow">
+					<img style="width: 100%;" src="?webide=1&getstatic=/demo.png" />
+				</div>
+				<div>电商+平台+抢购</div></li>
+			<li tempid="empty"><div class="imgshow">
+					<img style="width: 100%;" src="?webide=1&getstatic=/demo.png" />
+				</div>
+				<div>电商+平台+抢购</div></li>
+			<li tempid="empty"><div class="imgshow">
+					<img style="width: 100%;" src="?webide=1&getstatic=/demo.png" />
+				</div>
+				<div>电商+平台+抢购</div></li>
+			<li tempid="empty"><div class="imgshow">
+					<img style="width: 100%;" src="?webide=1&getstatic=/demo.png" />
+				</div>
+				<div>电商+平台+抢购</div></li>
+			<li tempid="empty"><div class="imgshow">
+					<img style="width: 100%;" src="?webide=1&getstatic=/demo.png" />
+				</div>
+				<div>电商+平台+抢购</div></li>
+			<li tempid="empty"><div class="imgshow">
+					<img style="width: 100%;" src="?webide=1&getstatic=/demo.png" />
+				</div>
+				<div>电商+平台+抢购</div></li>
+			<li tempid="empty"><div class="imgshow">
+					<img style="width: 100%;" src="?webide=1&getstatic=/demo.png" />
+				</div>
+				<div>电商+平台+抢购</div></li>
 		</ul>
 		</p>
 		<p>
@@ -458,7 +511,7 @@
 		</p>
 	</div>
 	<div id="wellcomepage">
-		<h2 style="color:#cbcbcb;">最近项目</h2>
+		<h2 style="color: #cbcbcb;">最近项目</h2>
 		<?php if(DEV_PLACE=="local"){?>
 		<ul class="nav_tab" id="pro_nav_tab">
 			<li class="tab_selected">本地</li>
@@ -568,6 +621,8 @@
 	<script src="?webide=1&getstatic=/ace.js" type="text/javascript"
 		charset="utf-8"></script>
 	<script src="?webide=1&getstatic=/ext-language_tools.js"
+		type="text/javascript" charset="utf-8"></script>
+	<script src="?webide=1&getstatic=/json-viewer.js"
 		type="text/javascript" charset="utf-8"></script>
 	<script src="?webide=1&getstatic=/webide.js" type="text/javascript"
 		charset="utf-8"></script>

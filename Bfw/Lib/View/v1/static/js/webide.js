@@ -17,6 +17,7 @@ var loadingstartshow=false;
 var loadingendshow=false;
 var syswait=null;
 var debug_timeintval=null;
+var debug_data=null;
 var _bfw_config = {
 	baseurl : "",
 	routetype : "",
@@ -548,22 +549,60 @@ function rename(){
 		});
 	}
 };
-function setbreakpointer(line,isclear){
+function setbreakpointer(file,line,isclear){
 	var url="";
 	if(isclear==1){
-		url = "?webide=1&clearbreak=1&filename="+ editing_file+"&parent=" + project_name+"&line="+line;
+		url = "?webide=1&clearbreak=1&filename="+ file+"&parent=" + project_name+"&line="+line;
 	}else{
-		url = "?webide=1&addbreak=1&filename="+ editing_file+"&parent=" + project_name+"&line="+line;
+		url = "?webide=1&addbreak=1&filename="+ file+"&parent=" + project_name+"&line="+line;
 	}
 	ajax(url, function(data) {
 		console.log(data);
 	});
 };
-
+function opendebug(){
+	ajax("?webide=1&contdebug=go", function(data) {
+		if(data=="ok"){
+			$("#debug_control_pan").fadeIn(300);
+			debug_timeintval=setInterval(getdebuginfo,1000);
+		}
+	});
+};
+function closedebug(){
+	ajax("?webide=1&contdebug=exit", function(data) {
+		if(data=="ok"){
+			$("#debug_control_pan").fadeOut(300);
+			clearInterval(debug_timeintval);
+		}
+	});
+};
 function getdebuginfo(){
 	var url = "?webide=1&getdebuginfo=1&filename="+ editing_file+"&parent=" + project_name;
 	ajax(url, function(data) {
-		console.log(data);
+		if(project_name!=""){
+			if(debug_data!=data){
+				debug_data=data;
+				 try{
+				    var json_data = eval('(' + data + ')');
+				 }catch (error) {
+				    return alert("Cannot eval JSON: " + error);
+				 }
+				 $('#json-renderer').jsonViewer(json_data.var, {collapsed:false,withQuotes:true});
+				// stvar result = json_data.file.replace('\\'+project_name, '');
+				var editor = openfile(json_data.file.replace('\\'+project_name, ''),project_name);
+
+				setTimeout(function () {
+					if(editor!=null){
+						editor.renderer.scrollCursorIntoView({row: json_data.line, column: 1}, 0.5);
+						editor.getSession().setBreakpoint(json_data.line-1,"ace_coderunstatus");
+					}
+	            },500);
+
+
+
+			}
+		}
+
 	});
 }
 function init_complete(){
@@ -574,7 +613,8 @@ function init_complete(){
  ];
 
 };
-function openeditor(file, filedata,hash) {
+
+function openeditor(file, filedata,hash,breakline) {
 
 	var ids = uniqid();
 	$("#file_tab ul").prepend(
@@ -667,11 +707,11 @@ function openeditor(file, filedata,hash) {
 
 
 		editor.getSession().selection.on('changeCursor', function(e) {
-			//var rows = editor.$getSelectedRows();
-			//editor.getSession().setBreakpoint(rows);
-			//console.log(editor.getSession().getBreakpoints());
-			//console.log(rows);
-			//console.log("changeCursor");
+			// var rows = editor.$getSelectedRows();
+			// editor.getSession().setBreakpoint(rows);
+			// console.log(editor.getSession().getBreakpoints());
+			// console.log(rows);
+			// console.log("changeCursor");
 		});
 		editor.getSession().selection.on('changeSelection', function(e) {
 			console.log("changeSelection");
@@ -709,22 +749,24 @@ function openeditor(file, filedata,hash) {
 
 			    if(_linedata!="{"&&_linedata!="}"){
 			    	if(!_allbreaks[row]){
-			    		//addbreak
-			    		setbreakpointer(row,0);
+			    		// addbreak
+			    		setbreakpointer(file,row,0);
 			    		e.editor.session.setBreakpoint(row);
 			    	}else{
-			    		setbreakpointer(row,1);
+			    		setbreakpointer(file,row,1);
 			    		e.editor.session.clearBreakpoint(row);
-			    		//e.editor.session.documentToScreenRow(row,1);
+			    		// e.editor.session.documentToScreenRow(row,1);
 			    	}
 
 			    }
-			    //editor.session.setBreakpoint(pos.row,"ace_coderunstatus");
-			    //e.editor.session.clearBreakpoint(row);
+			    // editor.session.setBreakpoint(pos.row,"ace_coderunstatus");
+			    // e.editor.session.clearBreakpoint(row);
 			    e.stop();
 
 			});
-
+			for (var i = 0; i < breakline.length; i++) {
+				editor.session.setBreakpoint(breakline[i]);
+			}
 			editor.session.setMode("ace/mode/php");
 			var myCompleter = {
 					identifierRegexps: [/[^\s]+/],
@@ -760,10 +802,10 @@ function openeditor(file, filedata,hash) {
 							if(prefix=="$this->"){
 								 entrynew = getfilename(editing_file).replace(/.php/g, "");
 							}else{
-								//锁定变量
+								// 锁定变量
 								if(prefix.indexOf("$")>=0){
-									//prefix+"="
-									//editor.getValue().
+									// prefix+"="
+									// editor.getValue().
 								}else{
 									entrynew = prefix.substring(0,prefix.indexOf("::"));
 								}
@@ -838,7 +880,9 @@ function openeditor(file, filedata,hash) {
 			editor.session.setMode("ace/mode/php");
 		}
 		editor.setValue(filedata);
-		// editor.focus();
+		editor.renderer.scrollCursorIntoView({row: 141, column: 1}, 0.5);
+		//editor.moveCursorTo(143,1);
+		//editor.blur();
 	} else if (stuff == '.png' || stuff == '.jpeg' || stuff == '.jpg'
 			|| stuff == '.gif') {
 		$("#editor").append(
@@ -870,7 +914,9 @@ function openeditor(file, filedata,hash) {
 		"namespace":[],
 		"confict":{"resolvemethod":"","serverdata":"","serverhash":""}
 	});
+	return editor;
 };
+
 function addns(editor,ns){
 	if (editor_arr.length > 0) {
 		for (var i = 0; i < editor_arr.length; i++) {
@@ -1020,19 +1066,21 @@ function getcloudpro() {
 	}, "get", "");
 };
 function openfile(f, p) {
+	//console.log(f);
 	var stuff = getstuff(f);
 	var allowext = [ '.php', '.js', '.css', '.html', '.java', '.log', ".png",
 			".jpeg", ".jpg", ".gif", ".bfw" ];
 	if (allowext.indexOf(stuff) >= 0) {
 		var file = p  + f;
-		if (showeditor(file) == 1) {
-			return;
+		var editor=showeditor(file);
+		if (editor !=null) {
+			return editor;
 		}
 		console.log("openfile:"+file);
 		if (stuff == ".png" || stuff == ".jpeg" || stuff == ".jpg"
 				|| stuff == ".gif") {
-			openeditor(file, "?isstatic=1&webide=1&getfiles=" + f + "&parent="
-					+ p+"&targetappname="+p);
+			return openeditor(file, "?isstatic=1&webide=1&getfiles=" + f + "&parent="
+					+ p+"&targetappname="+p,"","");
 		} else {
 			if (is_staticfile) {
 				ajax("?webide=1&isstatic=1&getfiles=" + f + "&parent=" + p,
@@ -1042,7 +1090,7 @@ function openfile(f, p) {
 								alert(obj.data);
 								return;
 							}
-							openeditor(file, obj.data,obj.filehash);
+							return openeditor(file, obj.data,obj.filehash,obj.breakline);
 						});
 			} else {
 				ajax("?webide=1&getfiles=" + f + "&parent=" + p,
@@ -1052,13 +1100,14 @@ function openfile(f, p) {
 								alert(obj.data);
 								return;
 							}
-							openeditor(file, obj.data,obj.filehash);
+							return openeditor(file, obj.data,obj.filehash,obj.breakline);
 						});
 			}
 		}
 	} else {
 		$.Bfw.toastshow("未知文件格式，无法打开");
 	}
+	return null;
 };
 function showeditor(file) {
 	editing_file = file;
@@ -1069,11 +1118,11 @@ function showeditor(file) {
 			if (file == editor_arr[i].file) {
 				$("#" + editor_arr[i].tabid).addClass("file_selected");
 				$("#" + editor_arr[i].editorid).show();
-				return 1;
+				return editor_arr[i].editor;
 			}
 		}
 	}
-	return 2;
+	return null;
 };
 function uniqid(randomLength) {
 	return Number(Math.random().toString().substr(3, randomLength) + Date.now())
@@ -1169,7 +1218,7 @@ function resolvebyserverv(){
 		for (var i = 0; i < editor_arr.length; i++) {
 			if (editor_arr[i].file==filepath) {
 				editor_arr[i].confict.resolvemethod="server";
-				//savefile(editor_arr[i]);
+				// savefile(editor_arr[i]);
 				break;
 			}
 		}
@@ -1183,7 +1232,7 @@ function resolvebymev(){
 			if (editor_arr[i].file==filepath) {
 				editor_arr[i].confict.resolvemethod="me";
 
-				//savefile(editor_arr[i]);
+				// savefile(editor_arr[i]);
 
 				break;
 			}
@@ -1226,7 +1275,7 @@ function savefilereal(editor){
 		$("#filechanged_"+ editor.id).html("");
 		editor.confict.resolvemethod="";
 		editor.filehash=editor.confict.serverhash;
-		//$.Bfw.toastshow("保存成功");
+		// $.Bfw.toastshow("保存成功");
 		getbfwclassfunc(project_name);
 		popclose("confictshow");
 	}
@@ -1579,13 +1628,13 @@ function ajax(url, fnSucc, method, data) {
 			}
 		}
 
-		//throttle(function(){$("#mask").fadeOut(30);},30);
-	//	if(loadingstartshow==true){
+		// throttle(function(){$("#mask").fadeOut(30);},30);
+	// if(loadingstartshow==true){
 			$("#mask").fadeOut(100);
-		//}
+		// }
 
-		//loadingshow=false;
-		//setTimeout(function(){},3000);
+		// loadingshow=false;
+		// setTimeout(function(){},3000);
 
 	};
 };
@@ -1600,10 +1649,10 @@ $(function() {
 		alert("请用基于Chrome内核的浏览器打开");
 		return;
 	}
-	//var ue = UM.getEditor('wikibodytext');
+	// var ue = UM.getEditor('wikibodytext');
 	getpro();
 	getsysclassfunc();
-	debug_timeintval=setInterval("getdebuginfo",2000);
+
 	$("#loadding").hide();
 	// notify("ddddd");
 	$("#pro_nav_tab li").live("click", function() {
@@ -1627,14 +1676,15 @@ $(function() {
 		}
 
 	});
-	$(".ace_gutter-cell").live("dblclick", function() {
-		if($(this).children('.bfw-breakpointer').length==0){
-			//$(this).prepend("<a class='bfw-breakpointer'></a>");
-		}else{
-			//$(this).children('.bfw-breakpointer').remove();
-		}
+	$("#debug-continue-btn").live("click", function() {
+		ajax("?webide=1&contdebug=go", function(data) {
 
-		console.log($(this).index());
+		});
+	});
+	$("#debug-stop-btn").live("click", function() {
+		ajax("?webide=1&contdebug=1", function(data) {
+
+		});
 	});
 
 	$("#choose_d_temp li").live("click", function() {
