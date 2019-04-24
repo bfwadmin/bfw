@@ -16,14 +16,16 @@ a {
 }
 
 #debug_control_pan {
-	padding: 0 5px;
-	z-index: 99;
-	right: 0;
-	bottom: 0;
-	background: black;
-	width: 30%;
-	height: calc(100vh - 120px);
+	z-index: 1;
+	margin: 0;
 	position: absolute;
+	top: 50%;
+	bottom: 0;
+	left: 20%;
+	right: 0;
+	background: black;
+	background: black;
+	padding: 0;
 }
 
 #debug_info_detail_pan {
@@ -253,24 +255,24 @@ a {
 	font-size: 14px;
 }
 
-.scrollbar::-webkit-scrollbar {
+.scrollbar::-webkit-scrollbar,.ace_scrollbar::-webkit-scrollbar {
 	width: 10px;
 	height: 1px;
 }
 
-.scrollbar::-webkit-scrollbar-thumb {
+.scrollbar::-webkit-scrollbar-thumb,.ace_scrollbar::-webkit-scrollbar-thumb{
 	border-radius: 10px;
 	-webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
 	background: #535353;
 }
 
-.scrollbar::-webkit-scrollbar-track {
+.scrollbar::-webkit-scrollbar-track,.ace_scrollbar::-webkit-scrollbar-track {
 	-webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
 	border-radius: 10px;
 	background: #EDEDED;
 }
 
-.scrollbar::-webkit-scrollbar {
+.scrollbar::-webkit-scrollbar,.ace_scrollbar::-webkit-scrollbar {
 	width: 10px;
 	height: 1px;
 }

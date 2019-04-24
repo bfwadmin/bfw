@@ -10,27 +10,35 @@ use Lib\Registry;
  */
 class BoDebug
 {
+
     /**
      * 导出提示信息
+     *
      * @param unknown $_v
      * @return multitype:unknown
      */
-    public static function ExportVar($_v){
-        $_ret=[];
-        foreach ($_v as $_item=>$_val){
-            if($_item!="_debug_cont_file"&&$_item!="_debug_g_file"&&$_item!="_control_file"){
-                $_ret["上下文变量"][$_item]=$_val;
+    public static function ExportVar($_v, $_obj)
+    {
+        $_ret = [];
+        foreach ($_v as $_item => $_val) {
+            if ($_item != "_debug_cont_file" && $_item != "_debug_g_file" && $_item != "_control_file") {
+                $_ret["上下文变量"][$_item] = $_val;
             }
         }
-        $_ret["SESSION"]=$_SESSION;
-        $_ret["POST"]=$_POST;
-        $_ret["GET"]=$_GET;
-        $_ret["COOKIE"]=$_COOKIE;
-        $_ret["SERVER"]=$_SERVER;
-        $_ret["ENV"]=$_ENV;
-        $_ret["FILES"]=$_FILES;
+
+        $_ret["CLASS"] = var_export($_obj, true);
+        $_ret["SESSION"] = $_SESSION;
+        $_ret["POST"] = $_POST;
+        $_ret["GET"] = $_GET;
+        $_ret["COOKIE"] = $_COOKIE;
+        $_ret["REQUEST"] = $_REQUEST;
+        $_ret["SERVER"] = $_SERVER;
+        $_ret["ENV"] = $_ENV;
+        $_ret["FILES"] = $_FILES;
+        $_ret["GLOBALS"] = $GLOBALS;
         return $_ret;
     }
+
     /**
      * 断点调试路径
      */
@@ -44,7 +52,7 @@ class BoDebug
                 $_debug_arr = unserialize(file_get_contents($_debug_file));
             }
             if (in_array($classpath, $_debug_arr)) {
-                $classpath = $classpath.".debug";
+                $classpath = $classpath . ".debug";
             }
         }
         return $classpath;
@@ -195,6 +203,21 @@ class BoDebug
             echo $word;
         }
     }
+
+    /**
+     * 检查php文件语法是否正确
+     *
+     * @param unknown $file_name
+     * @param string $error_message
+     * @return boolean
+     */
+    public static function CheckPhpOk($file_name, &$error_message = null)
+    {
+        $file_content = file_get_contents($file_name);
+
+    }
+
+
 }
 
 ?>

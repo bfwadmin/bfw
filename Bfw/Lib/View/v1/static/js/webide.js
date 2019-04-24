@@ -18,6 +18,8 @@ var loadingendshow=false;
 var syswait=null;
 var debug_timeintval=null;
 var debug_data=null;
+var last_breakpointer=null;
+var last_debugeditor=null;
 var _bfw_config = {
 	baseurl : "",
 	routetype : "",
@@ -549,7 +551,7 @@ function rename(){
 		});
 	}
 };
-function setbreakpointer(file,line,isclear){
+function setbreakpointer(file,line,isclear,callback){
 	var url="";
 	if(isclear==1){
 		url = "?webide=1&clearbreak=1&filename="+ file+"&parent=" + project_name+"&line="+line;
@@ -557,13 +559,20 @@ function setbreakpointer(file,line,isclear){
 		url = "?webide=1&addbreak=1&filename="+ file+"&parent=" + project_name+"&line="+line;
 	}
 	ajax(url, function(data) {
+		if(data=="ok"){
+			callback();
+		}
 		console.log(data);
 	});
 };
 function opendebug(){
 	ajax("?webide=1&contdebug=go", function(data) {
 		if(data=="ok"){
+			editorreadonly(true);
 			$("#debug_control_pan").fadeIn(300);
+			$("#editor").css({"bottom":"50%"});
+			editorresize();
+			//resize();
 			debug_timeintval=setInterval(getdebuginfo,1000);
 		}
 	});
@@ -571,7 +580,10 @@ function opendebug(){
 function closedebug(){
 	ajax("?webide=1&contdebug=exit", function(data) {
 		if(data=="ok"){
+			editorreadonly(false);
 			$("#debug_control_pan").fadeOut(300);
+			$("#editor").css({"bottom":"0"});
+			editorresize();
 			clearInterval(debug_timeintval);
 		}
 	});
@@ -585,21 +597,24 @@ function getdebuginfo(){
 				 try{
 				    var json_data = eval('(' + data + ')');
 				 }catch (error) {
-				    return alert("Cannot eval JSON: " + error);
+					console.log("json_data_err");
+				    return ;
 				 }
 				 $('#json-renderer').jsonViewer(json_data.var, {collapsed:false,withQuotes:true});
 				// stvar result = json_data.file.replace('\\'+project_name, '');
-				var editor = openfile(json_data.file.replace('\\'+project_name, ''),project_name);
+				openfile(json_data.file.replace('\\'+project_name, ''),project_name,function(_editor){
+					if(_editor!=null){
+						//last_breakpointer=json_data.line-1;
+						_editor.renderer.scrollCursorIntoView({row: json_data.line, column: 1}, 0.5);
+						if(last_breakpointer!=null&&last_debugeditor!=null){
+							last_debugeditor.getSession().setBreakpoint(last_breakpointer,"ace_passed");
+						}
+						last_debugeditor=_editor;
+						last_breakpointer=json_data.line-1;
+						_editor.getSession().setBreakpoint(json_data.line-1,"ace_coderunstatus");
 
-				setTimeout(function () {
-					if(editor!=null){
-						editor.renderer.scrollCursorIntoView({row: json_data.line, column: 1}, 0.5);
-						editor.getSession().setBreakpoint(json_data.line-1,"ace_coderunstatus");
 					}
-	            },500);
-
-
-
+				});
 			}
 		}
 
@@ -750,11 +765,11 @@ function openeditor(file, filedata,hash,breakline) {
 			    if(_linedata!="{"&&_linedata!="}"){
 			    	if(!_allbreaks[row]){
 			    		// addbreak
-			    		setbreakpointer(file,row,0);
-			    		e.editor.session.setBreakpoint(row);
+			    		setbreakpointer(file,row,0,function(){e.editor.session.setBreakpoint(row);});
+
 			    	}else{
-			    		setbreakpointer(file,row,1);
-			    		e.editor.session.clearBreakpoint(row);
+			    		setbreakpointer(file,row,1,function(){e.editor.session.clearBreakpoint(row);});
+
 			    		// e.editor.session.documentToScreenRow(row,1);
 			    	}
 
@@ -934,6 +949,13 @@ function addns(editor,ns){
 		}
 	}
 };
+function editorresize(){
+	if (editor_arr.length > 0) {
+		for (var i = 0; i < editor_arr.length; i++) {
+			editor_arr[i].editor.resize(true);
+		}
+	}
+};
 function closefile(f) {
 	if (editor_arr.length > 0) {
 		for (var i = 0; i < editor_arr.length; i++) {
@@ -1065,18 +1087,21 @@ function getcloudpro() {
 		}
 	}, "get", "");
 };
-function openfile(f, p) {
+function openfile(f, p,callback) {
 	//console.log(f);
 	var stuff = getstuff(f);
 	var allowext = [ '.php', '.js', '.css', '.html', '.java', '.log', ".png",
 			".jpeg", ".jpg", ".gif", ".bfw" ];
 	if (allowext.indexOf(stuff) >= 0) {
 		var file = p  + f;
-		var editor=showeditor(file);
-		if (editor !=null) {
-			return editor;
+		var _editor=showeditor(file);
+		if (_editor !=null) {
+			if (callback !== undefined) {
+				callback(_editor);
+			}
+			return _editor;
 		}
-		console.log("openfile:"+file);
+		console.log("openfile:ssssssssssssssssssssssss:"+file);
 		if (stuff == ".png" || stuff == ".jpeg" || stuff == ".jpg"
 				|| stuff == ".gif") {
 			return openeditor(file, "?isstatic=1&webide=1&getfiles=" + f + "&parent="
@@ -1090,7 +1115,11 @@ function openfile(f, p) {
 								alert(obj.data);
 								return;
 							}
-							return openeditor(file, obj.data,obj.filehash,obj.breakline);
+							var _editor= openeditor(file, obj.data,obj.filehash,obj.breakline);
+							if (callback !== undefined) {
+								callback(_editor);
+							}
+							return _editor;
 						});
 			} else {
 				ajax("?webide=1&getfiles=" + f + "&parent=" + p,
@@ -1100,7 +1129,11 @@ function openfile(f, p) {
 								alert(obj.data);
 								return;
 							}
-							return openeditor(file, obj.data,obj.filehash,obj.breakline);
+							var _editor= openeditor(file, obj.data,obj.filehash,obj.breakline);
+							if (callback !== undefined) {
+								callback(_editor);
+							}
+							return _editor;
 						});
 			}
 		}
@@ -1108,6 +1141,13 @@ function openfile(f, p) {
 		$.Bfw.toastshow("未知文件格式，无法打开");
 	}
 	return null;
+};
+function editorreadonly(isreadonly){
+	if (editor_arr.length > 0) {
+		for (var i = 0; i < editor_arr.length; i++) {
+			editor_arr[i].editor.setReadOnly(isreadonly);
+		}
+	}
 };
 function showeditor(file) {
 	editing_file = file;
@@ -1682,7 +1722,7 @@ $(function() {
 		});
 	});
 	$("#debug-stop-btn").live("click", function() {
-		ajax("?webide=1&contdebug=1", function(data) {
+		ajax("?webide=1&contdebug=go", function(data) {
 
 		});
 	});

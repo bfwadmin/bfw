@@ -28,30 +28,48 @@
 .ace_gutter-cell.ace_breakpoint {
 	border-radius: 20px 0px 0px 20px;
 	box-shadow: 0px 0px 1px 1px red inset;
-	background: url("?webide=1&getstatic=/breakpointer.png") 3px -1px
+	background: url("?webide=1&getstatic=/debug-break.png") 4px 4px
 		no-repeat;
 }
 
+.ace_gutter-cell.ace_passed {
+	border-radius: 20px 0px 0px 20px;
+	box-shadow: 0px 0px 1px 1px grey inset;
+	background: url("?webide=1&getstatic=/debug-passed.png") 4px 4px
+		no-repeat;
+}
 .ace_gutter-cell.ace_coderunstatus {
 	border-radius: 20px 0px 0px 20px;
 	box-shadow: 0px 0px 1px 1px green inset;
-	background: url("?webide=1&getstatic=/breakpointer.png") 3px -25px
+	background: url("?webide=1&getstatic=/debug-run-pointer.png") 4px 4px
 		no-repeat;
 }
+.debug-btn{
+width: 20px;
+    height: 20px;
+    border: none;
+    margin: 5px;
+}
+.debug-btn:active {
+    border: 1px solid grey;
+}
+
 </style>
 </head>
 <body onload="RunOnBeforeUnload()">
 	<div id="debug_control_pan" style="display:none;">
 		<ul id="control_btn">
 		<li style="width: auto;padding:5px;">调试窗口</li>
-			<li title="继续调试"  id="debug-continue-btn"
-				style='background: url("?webide=1&amp;getstatic=/breakpointer.png") 3px -19px no-repeat;'></li>
-			<li title="停止调试"  id="debug-stop-btn"
-				style='background: url("?webide=1&amp;getstatic=/breakpointer.png") 3px 3px no-repeat;'></li>
+			<li title="继续调试"  >
+				<input class="debug-btn" id="debug-continue-btn" value="" type="button" style='background: url("?webide=1&amp;getstatic=/debug-continue.png") 3px 4px no-repeat;' />
+				</li>
+			<li title="停止调试" >
+					<input class="debug-btn" id="debug-stop-btn" value="" type="button" style='background: url("?webide=1&amp;getstatic=/debug-stop.png") 3px 4px no-repeat;' />
+				</li>
 					<li title="关闭调试模式" style="float:right;padding:5px;"  onclick="closedebug()"
 				>×</li>
 		</ul>
-		<div id="debug_info_detail" class="scrollbar" style="padding:10px;overflow:scroll;margin:0 5px;">
+		<div id="debug_info_detail" class="scrollbar" style="overflow:scroll;">
 		<pre id="json-renderer"></pre>
 		</div>
 	</div>

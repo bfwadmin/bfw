@@ -451,7 +451,7 @@ if (strtolower(PHP_SAPI) != "cli") {
     ob_end_flush();
     if (WEB_DEBUG) {
         //断点调试
-        set_time_limit();
+        set_time_limit(0);
     }
 }
 // 发送异步消息
