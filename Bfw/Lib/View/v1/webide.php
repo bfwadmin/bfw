@@ -38,39 +38,61 @@
 	background: url("?webide=1&getstatic=/debug-passed.png") 4px 4px
 		no-repeat;
 }
+
 .ace_gutter-cell.ace_coderunstatus {
 	border-radius: 20px 0px 0px 20px;
 	box-shadow: 0px 0px 1px 1px green inset;
 	background: url("?webide=1&getstatic=/debug-run-pointer.png") 4px 4px
 		no-repeat;
 }
-.debug-btn{
-width: 20px;
-    height: 20px;
-    border: none;
-    margin: 5px;
-}
-.debug-btn:active {
-    border: 1px solid grey;
+
+.debug-btn {
+	width: 20px;
+	height: 20px;
+	border: none;
+	margin: 5px;
 }
 
+.debug-btn:active {
+	border: 1px solid grey;
+}
 </style>
 </head>
 <body onload="RunOnBeforeUnload()">
-	<div id="debug_control_pan" style="display:none;">
-		<ul id="control_btn">
-		<li style="width: auto;padding:5px;">调试窗口</li>
-			<li title="继续调试"  >
-				<input class="debug-btn" id="debug-continue-btn" value="" type="button" style='background: url("?webide=1&amp;getstatic=/debug-continue.png") 3px 4px no-repeat;' />
-				</li>
-			<li title="停止调试" >
-					<input class="debug-btn" id="debug-stop-btn" value="" type="button" style='background: url("?webide=1&amp;getstatic=/debug-stop.png") 3px 4px no-repeat;' />
-				</li>
-					<li title="关闭调试模式" style="float:right;padding:5px;"  onclick="closedebug()"
-				>×</li>
+	<div id="file-menu" class="right-menu" style="display: none;">
+		<ul>
+			<li>关闭当前文件</li>
+			<li>关闭右侧文件</li>
+			<li>关闭左侧文件</li>
+			<li>关闭其他文件</li>
 		</ul>
-		<div id="debug_info_detail" class="scrollbar" style="overflow:scroll;">
-		<pre id="json-renderer"></pre>
+	</div>
+	<div id="editor-menu" class="right-menu" style="display: none;">
+		<ul>
+		<li>复制</li>
+		<li>粘贴</li>
+		<li>全选</li>
+			<li>格式化</li>
+			<li>打开调试模式</li>
+		</ul>
+	</div>
+	<div id="debug_control_pan" style="display: none;">
+		<ul id="control_btn">
+			<li style="width: auto; padding: 5px;">调试窗口</li>
+			<li title="继续调试"><input class="debug-btn" id="debug-continue-btn"
+				value="" type="button"
+				style='background: url("?webide=1&amp;getstatic=/debug-continue.png") 3px 4px no-repeat;' />
+			</li>
+			<li title="停止调试"><input class="debug-btn" id="debug-stop-btn"
+				value="" type="button"
+				style='background: url("?webide=1&amp;getstatic=/debug-stop.png") 3px 4px no-repeat;' />
+			</li>
+			<li title="关闭调试模式" style="float: right; padding: 5px;"
+				onclick="closedebug()">×</li>
+		</ul>
+		<div id="debug_info_detail" class="scrollbar"
+			style="overflow: scroll;">
+			<pre id="json-renderer"></pre>
 		</div>
 	</div>
 	<div id="mask" class="pos-abs v-fullscreen color-black "
@@ -88,7 +110,8 @@ width: 20px;
 					<p>
 						<a>当前项目</a>
 					</p>
-					<p onclick="opendebug()"><a>打开调试</a>
+					<p onclick="opendebug()">
+						<a>打开调试</a>
 					</p>
 					<p onclick="popup($('#addtemplate'))">
 						<a>提交模板</a>
@@ -114,6 +137,7 @@ width: 20px;
 			<li><a href="/" target="_blank">模板商城</a></li>
 			<li><a href="/" target="_blank">文档教程</a></li>
 			<li onclick="popup($('#aboutus'));">关于我们</li>
+			<li><input type="search" placeholder="搜一下，就知道怎么写了" /></li>
 
 			<li class="navitem"  id="logined" style="float:right;<?php if($uid==""){?>display:none;<?php }?>">
 				<div>
@@ -556,7 +580,7 @@ width: 20px;
 
 
 		</div>
-		<div id="file_tab">
+		<div id="file_tab" class="scrollbar">
 			<ul></ul>
 		</div>
 		<div id="editor" class="scrollbar"></div>

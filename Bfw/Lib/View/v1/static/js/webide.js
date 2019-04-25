@@ -20,6 +20,7 @@ var debug_timeintval=null;
 var debug_data=null;
 var last_breakpointer=null;
 var last_debugeditor=null;
+var isdebuging=false;
 var _bfw_config = {
 	baseurl : "",
 	routetype : "",
@@ -171,6 +172,7 @@ contex_menu = {
 								+ project_name, function(data) {
 							editing_file = node.tag;
 							editor.setValue(data);
+							editor.clearSelection();
 						});
 					},
 
@@ -194,6 +196,15 @@ contex_menu = {
 
 				},
 				{
+					type : "Plugin",
+					text : '新建扩展类',
+					// icon : '/?getstatic=/folder.png',
+					action : function(node) {
+						 createmodule(node,'context1',1);
+					},
+
+				},
+				{
 					type : "Config",
 					text : '新建配置项',
 					// icon : '/?getstatic=/folder.png',
@@ -202,6 +213,7 @@ contex_menu = {
 								+ project_name, function(data) {
 							editing_file = node.tag;
 							editor.setValue(data);
+							editor.clearSelection();
 						});
 					},
 
@@ -343,7 +355,7 @@ contex_menu = {
 				} ]
 	}
 };
-function createmodule(node,cont){
+function createmodule(node,cont,issingle){
 	  var fname=prompt("请输入文件名，不能前缀","Home");
 		if (fname != null && fname != "" && namecheck(fname)) {
 			var url = "";
@@ -358,6 +370,10 @@ function createmodule(node,cont){
 			}
 	    	ajax(url, function(data) {
 	    		var file =node.tag+"_"+ fname + ".php";
+	    		if(issingle!=undefined){
+	    			 file = fname + ".php";
+	    		}
+	    		//var file =node.tag+"_"+ fname + ".php";
 		        var newnode = node.createChildNode( file, false,
 				'?webide=1&getstatic=/file.png',file,
 				cont);
@@ -365,7 +381,8 @@ function createmodule(node,cont){
 
 			});
 	    }
-}
+};
+
 function RunOnBeforeUnload() {
 	window.onbeforeunload = function() {
 		return '将丢失未保存的数据!';
@@ -568,6 +585,7 @@ function setbreakpointer(file,line,isclear,callback){
 function opendebug(){
 	ajax("?webide=1&contdebug=go", function(data) {
 		if(data=="ok"){
+			isdebuging=true;
 			editorreadonly(true);
 			$("#debug_control_pan").fadeIn(300);
 			$("#editor").css({"bottom":"50%"});
@@ -580,6 +598,7 @@ function opendebug(){
 function closedebug(){
 	ajax("?webide=1&contdebug=exit", function(data) {
 		if(data=="ok"){
+			isdebuging=false;
 			editorreadonly(false);
 			$("#debug_control_pan").fadeOut(300);
 			$("#editor").css({"bottom":"0"});
@@ -600,21 +619,30 @@ function getdebuginfo(){
 					console.log("json_data_err");
 				    return ;
 				 }
-				 $('#json-renderer').jsonViewer(json_data.var, {collapsed:false,withQuotes:true});
-				// stvar result = json_data.file.replace('\\'+project_name, '');
-				openfile(json_data.file.replace('\\'+project_name, ''),project_name,function(_editor){
-					if(_editor!=null){
-						//last_breakpointer=json_data.line-1;
-						_editor.renderer.scrollCursorIntoView({row: json_data.line, column: 1}, 0.5);
-						if(last_breakpointer!=null&&last_debugeditor!=null){
-							last_debugeditor.getSession().setBreakpoint(last_breakpointer,"ace_passed");
-						}
-						last_debugeditor=_editor;
-						last_breakpointer=json_data.line-1;
-						_editor.getSession().setBreakpoint(json_data.line-1,"ace_coderunstatus");
+				 if(json_data.var!=undefined){
+					 $('#json-renderer').jsonViewer(json_data.var, {collapsed:false,withQuotes:true});
+				 }
 
-					}
-				});
+				// stvar result = json_data.file.replace('\\'+project_name, '');
+				if(json_data.file!=undefined){
+					 openfile(json_data.file.replace('\\'+project_name, ''),project_name,function(_editor){
+							if(_editor!=null){
+								console.log("debug ipenfile callback editir");
+								//last_breakpointer=json_data.line-1;
+								_editor.renderer.scrollCursorIntoView({row: json_data.line, column: 1}, 0.5);
+								_editor.selection.moveCursorToPosition({row: json_data.line-1, column: 0});
+								_editor.selection.selectLine();
+								if(last_breakpointer!=null&&last_debugeditor!=null){
+									last_debugeditor.getSession().setBreakpoint(last_breakpointer,"ace_passed");
+								}
+								last_debugeditor=_editor;
+								last_breakpointer=json_data.line-1;
+								_editor.getSession().setBreakpoint(json_data.line-1,"ace_coderunstatus");
+
+							}
+						});
+				}
+
 			}
 		}
 
@@ -629,13 +657,67 @@ function init_complete(){
 
 };
 
-function openeditor(file, filedata,hash,breakline) {
+function rightmenu(elementID,menuID){
+	　　var menu=document.getElementById(menuID);
+	　　var element=document.getElementById(elementID);
+	　　element.onmousedown=function(aevent){
+	　　　　if(window.event)aevent=window.event;
+	　　　　if(aevent.button==2){
+	　　　　　　document.oncontextmenu=function(aevent){
+	   　　　　if(window.event){
+	       　　　　aevent=window.event;
+	　　　　　　　　aevent.returnValue=false;
+	　　　　　　}else{
+	　　　　　　　　aevent.preventDefault();
+					aevent.stopPropagation();
+	　　　　　　};
+	　　　　};
+	　　　　menu.style.cssText='position: absolute;z-index:1111;display:block;top:'+aevent.clientY+'px;'+'left:'+aevent.clientX+'px;'
+	　　　　}
+	　　}
+		$(document).click(function(e){
+			$(".right-menu").hide();
 
+		});
+	　
+};
+function closerightfile(file){
+
+};
+function closeotherfile(file){
+
+};
+function closeleftfile(file){
+
+};
+function updatebreakpointer(_editor,_row,_distant,_allline){
+	var _breakpointer=_editor.getSession().getBreakpoints();
+	console.log(_distant);
+	var changedline=[];
+	var oldline=[];
+	for (var i = _row; i < _allline; i++) {
+		if(_breakpointer[i]){
+			oldline.push(i);
+		}
+	}
+	for (var i = 0; i < oldline.length; i++) {
+		console.log(oldline[i]);
+		if(changedline.indexOf(oldline[i])==-1){
+			_editor.session.clearBreakpoint(oldline[i]);
+		}
+		_editor.session.setBreakpoint(oldline[i]+_distant);
+		changedline.push(oldline[i]+_distant);
+	}
+
+};
+function openeditor(file, filedata,hash,breakline) {
+	var _linecount=0;
 	var ids = uniqid();
 	$("#file_tab ul").prepend(
 			"<li id='tab" + ids + "' class='file_selected' title='" + file + "'><span id='filechanged_"+ids+"'></span>"
 					+ getfilename(file) + "<span class='tab_close' id='close"
 					+ ids + "'>×</span></li>");
+	rightmenu("tab" + ids,"file-menu");
 	$("#tab" + ids).click(function() {
 		$("#editor pre").hide();
 		$("#file_tab ul li").removeClass("file_selected");
@@ -679,7 +761,13 @@ function openeditor(file, filedata,hash,breakline) {
 		// editor.session.setMode("ace/mode/php");
 		editor.setFontSize(18);
 		editor.setOption("wrap", "free");
+		editor.container.addEventListener("contextmenu", function(e) {
+		    e.preventDefault();
+			//rightmenu("tab" + ids,"file-menu");
 
+			$("#editor-menu").css({"position":"absolute","z-index":"1111","top":e.clientY,"left":e.clientX}).show();
+		    return false;
+		}, false);
 		editor.commands.addCommand({
 			name : "showKeyboardShortcuts",
 			bindKey : {
@@ -722,9 +810,11 @@ function openeditor(file, filedata,hash,breakline) {
 
 
 		editor.getSession().selection.on('changeCursor', function(e) {
+			 var lines = editor.session.doc.getAllLines().length;
+			 console.log(lines);
 			// var rows = editor.$getSelectedRows();
 			// editor.getSession().setBreakpoint(rows);
-			// console.log(editor.getSession().getBreakpoints());
+			 console.log(editor.getSession().getBreakpoints());
 			// console.log(rows);
 			// console.log("changeCursor");
 		});
@@ -734,9 +824,17 @@ function openeditor(file, filedata,hash,breakline) {
 			console.log(selecttext);
 		});
 		editor.on("change", function(e) {
+			console.log(e.start.row);
+
+			var _linecount=editor.session.doc.getAllLines().length;
 			if (editor_arr.length > 0) {
 				for (var i = 0; i < editor_arr.length; i++) {
 					if (editor == editor_arr[i].editor) {
+						if(editor_arr[i].totalline!=_linecount){
+							updatebreakpointer(editor,e.start.row,_linecount-editor_arr[i].totalline,_linecount);
+							editor_arr[i].totalline=_linecount;
+
+						}
 						editor_arr[i].filechanged = true;
 						console.log(editor_arr[i].id+"filechanged");
 						$("#filechanged_"+ editor_arr[i].id).html("*");
@@ -895,7 +993,12 @@ function openeditor(file, filedata,hash,breakline) {
 			editor.session.setMode("ace/mode/php");
 		}
 		editor.setValue(filedata);
-		editor.renderer.scrollCursorIntoView({row: 141, column: 1}, 0.5);
+		editor.clearSelection();
+		_linecount=editor.session.doc.getAllLines().length;
+		if(isdebuging){
+			editor.setReadOnly(true);
+		}
+		//editor.renderer.scrollCursorIntoView({row: 141, column: 1}, 0.5);
 		//editor.moveCursorTo(143,1);
 		//editor.blur();
 	} else if (stuff == '.png' || stuff == '.jpeg' || stuff == '.jpg'
@@ -927,7 +1030,8 @@ function openeditor(file, filedata,hash,breakline) {
 		"filechanged" : false,
 		"type" : is_staticfile ? 2 : 1,
 		"namespace":[],
-		"confict":{"resolvemethod":"","serverdata":"","serverhash":""}
+		"confict":{"resolvemethod":"","serverdata":"","serverhash":""},
+		'totalline':_linecount
 	});
 	return editor;
 };
@@ -952,7 +1056,10 @@ function addns(editor,ns){
 function editorresize(){
 	if (editor_arr.length > 0) {
 		for (var i = 0; i < editor_arr.length; i++) {
-			editor_arr[i].editor.resize(true);
+			if(editor_arr[i].editor!=undefined){
+				editor_arr[i].editor.resize(true);
+			}
+
 		}
 	}
 };
@@ -1145,7 +1252,10 @@ function openfile(f, p,callback) {
 function editorreadonly(isreadonly){
 	if (editor_arr.length > 0) {
 		for (var i = 0; i < editor_arr.length; i++) {
-			editor_arr[i].editor.setReadOnly(isreadonly);
+			if(editor_arr[i].editor!=undefined){
+				editor_arr[i].editor.setReadOnly(isreadonly);
+			}
+
 		}
 	}
 };

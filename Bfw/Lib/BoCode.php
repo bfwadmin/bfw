@@ -73,6 +73,7 @@ class BoCode extends WangBo
                 "dbpwd" => $_upwd,
                 "dbname" => $_dbname
             ];
+            //var_dump($_dbinfo);
             $this->_dbhandle = DbFactory::GetInstance([
                 "dbtype" => "DbMysql",
                 "dbhost" => $_dbinfo[0],
@@ -108,10 +109,10 @@ class BoCode extends WangBo
             file_put_contents(APP_ROOT . DS . "App" .DS. $_appname . DS . "readme.bfw", "项目备注信息填写");
             return true;
         } catch (DbException $ex) {
-            echo $ex->getException()['errmsg'];
+            echo $ex->getException()['errmsg'].$ex->getLine();
             return false;
         } catch (\Exception $ex) {
-            echo $ex->getException()['errmsg'];
+            echo $ex->getException()['errmsg'].$ex->getLine();
             return false;
         }
     }
@@ -311,6 +312,10 @@ class BoCode extends WangBo
                 array(
                     "Widget.php",
                     "/$_domian/Widget/Widget_Pager.php"
+                ),
+                array(
+                    "Plugin.php",
+                    "/$_domian/Plugin/Demo.php"
                 )
             );
             foreach ($_temp_arr as $item) {

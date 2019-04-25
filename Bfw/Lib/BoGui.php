@@ -11,7 +11,7 @@ use Lib\Util\FileUtil;
 class BoGui
 {
 
-    private $_debug_str = "\$_debug_g_file=APP_ROOT.DS.'App'.DS.'file_info.debug';\$_debug_cont_file=APP_ROOT.DS.'App'.DS.'file_cont.debug';file_put_contents(\$_debug_g_file,serialize(['file'=>\\Lib\\Util\\StringUtil::GetStringByRegx(__FILE__,'/App(.*)\\.debug/'),'line'=>__LINE__,'var'=>\\Lib\\BoDebug::ExportVar(get_defined_vars(),\$this)]));while(true){\$_control_file=file_get_contents(\$_debug_cont_file);if(\$_control_file=='go'){file_put_contents(\$_debug_cont_file,'wait');break;} if(\$_control_file=='exit'){break;} sleep(2);}";
+    private $_debug_str = "\$_debug_g_file=APP_ROOT.DS.'App'.DS.'file_info.debug';\$_debug_cont_file=APP_ROOT.DS.'App'.DS.'file_cont.debug';file_put_contents(\$_debug_g_file,serialize(['file'=>\\Lib\\Util\\StringUtil::GetStringByRegx(__FILE__,'/App(.*)\\.debug/'),'line'=>__LINE__,'var'=>\\Lib\\BoDebug::ExportVar(get_defined_vars(),\$this)]));while(true){\$_control_file=file_get_contents(\$_debug_cont_file);if(\$_control_file=='go'){file_put_contents(\$_debug_cont_file,'wait');break;} if(\$_control_file=='exit'){break;} sleep(1);}";
 
     private $_mode = "";
 
@@ -656,9 +656,14 @@ class BoGui
                 $_method[$_file] = $this->getmethod("App." . $_appname . ".Controler." . $_file);
                 // $_file .= "::getInstance()";
             }
-
+            $_pluginlist = FileUtil::getFileListByDir(APP_ROOT . DS . "App" . DS . $_appname . DS . "Plugin" . DS);
+            foreach ($_pluginlist as &$_file) {
+                $_file = str_replace(".php", "", $_file);
+                $_method[$_file] = $this->getmethod("App." . $_appname . ".Plugin." . $_file);
+                // $_file .= "::getInstance()";
+            }
             echo json_encode([
-                'class' => array_merge($_modellist, $_clientllist, $_servicellist),
+                'class' => array_merge($_modellist, $_clientllist, $_servicellist,$_pluginlist),
                 "method" => $_method
             ]);
             exit();
@@ -731,6 +736,9 @@ class BoGui
                 }
                 if ($_GET['pfolder'] == "View") {
                     file_put_contents(APP_ROOT . DS . "App" . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['pfolder']) . DS . "Controler_" . $_GET['createfiles'] . ".php", str_replace("CONTNAME", $_GET['createfiles'], str_replace("DOM", $_GET['parent'], file_get_contents(BFW_LIB . DS . "CodeT" . DS . "Controler.php"))));
+                }
+                if ($_GET['pfolder'] == "Plugin") {
+                    file_put_contents(APP_ROOT . DS . "App" . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['pfolder']) . DS . $_GET['createfiles'] . ".php", str_replace("Demo", $_GET['createfiles'], str_replace("DOM", $_GET['parent'], file_get_contents(BFW_LIB . DS . "CodeT" . DS . "Plugin.php"))));
                 }
             }
 

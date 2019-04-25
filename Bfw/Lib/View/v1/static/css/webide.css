@@ -240,7 +240,26 @@ a {
 	position: relative;
 	z-index: 5;
 }
+.right-menu{
+	background:black;
+	font-size:14px;
+	color:grey;
+	box-shadow: 1px 1px 1px #494949;
+}
+.right-menu ul{
+	padding:0;
+	margin:0;
+	list-style:none;
 
+}
+.right-menu li{
+	cursor:pointer;
+	padding:8px 12px;
+}
+.right-menu li:hover{
+	background:#494949;
+	color:white;
+}
 #dir {
 	margin: 0;
 	position: absolute;

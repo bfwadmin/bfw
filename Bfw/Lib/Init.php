@@ -496,7 +496,7 @@ function autoloadclient($class)
             // echo "download";
             // return autoloadclient($class);
         }
-        // echo $classpath;
+         echo $classpath;
         throw new Exception(BoConfig::Config("Sys", "webapp", "System")['class_not_found'] . $class);
     }
 }
