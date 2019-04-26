@@ -237,13 +237,16 @@ class BoGui
         }
         return true;
     }
-    private function delfile($_filepath){
-        //加入版本控制
+
+    private function delfile($_filepath)
+    {
+        // 加入版本控制
         return unlink($_filepath);
     }
+
     private function writefile($_filepath, $_data, $_uid)
     {
-        //加入版本控制
+        // 加入版本控制
         if (file_put_contents($_filepath, $_data)) {
             $this->commitlog("Demo", $_filepath, "save", "dddd", $_uid);
             return true;
@@ -618,11 +621,11 @@ class BoGui
         }
         if (isset($_GET['delfiles'])) {
             if (isset($_GET['isstatic'])) {
-                if($this->delfile(APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['delfiles']))){
+                if ($this->delfile(APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['delfiles']))) {
                     echo "ok";
                 }
             } else {
-                if($this->delfile(APP_ROOT . DS . "App" . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['delfiles']))){
+                if ($this->delfile(APP_ROOT . DS . "App" . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['delfiles']))) {
                     echo "ok";
                 }
             }
@@ -671,7 +674,7 @@ class BoGui
                 // $_file .= "::getInstance()";
             }
             echo json_encode([
-                'class' => array_merge($_modellist, $_clientllist, $_servicellist,$_pluginlist),
+                'class' => array_merge($_modellist, $_clientllist, $_servicellist, $_pluginlist),
                 "method" => $_method
             ]);
             exit();
@@ -849,10 +852,33 @@ class BoGui
             $_debug_file = APP_ROOT . DS . "App" . DS . "file_cont.debug";
             $_debug_info_file = APP_ROOT . DS . "App" . DS . "file_info.debug";
             file_put_contents($_debug_file, $_GET['contdebug']);
-            if($_GET['contdebug']=="exit"){
+            if ($_GET['contdebug'] == "exit") {
                 file_put_contents($_debug_info_file, serialize([]));
             }
             echo "ok";
+            exit();
+        }
+        if (isset($_GET['savelayout'])) {
+            $_appname = $_GET["projectname"];
+            $_lay_file = APP_ROOT . DS . "App" . DS . "layout.debug";
+            $_lay_data = file_get_contents($_lay_file);
+            $_lay_arr = [];
+            if ($_lay_data != "") {
+                $_lay_arr = unserialize($_lay_data);
+            }
+            $_lay_arr[$_appname] = $_GET['files'];
+            file_put_contents($_lay_file, serialize($_lay_arr));
+            exit();
+        }
+        if (isset($_GET['getlayout'])) {
+            $_appname = $_GET["projectname"];
+            $_lay_file = APP_ROOT . DS . "App" . DS . "layout.debug";
+            $_lay_data = file_get_contents($_lay_file);
+            $_lay_arr = [];
+            if ($_lay_data != "") {
+                $_lay_arr = unserialize($_lay_data);
+            }
+            echo isset($_lay_arr[$_appname]) ? $_lay_arr[$_appname] : "";
             exit();
         }
         if (isset($_GET['addbreak'])) {
@@ -869,9 +895,9 @@ class BoGui
             }
             FileUtil::insertstrbyline($_debug_test_files, $this->_debug_str, $_line);
             $_err = "";
-            //验证是否存在语法错误
+            // 验证是否存在语法错误
             exec("D:\bfwsetup\bfw\php\php-5.6.27-nts\php -l {$_debug_test_files}", $output, $return);
-            //var_dump($output);
+            // var_dump($output);
             if ($return === 0) {
 
                 @unlink($_debug_test_files);

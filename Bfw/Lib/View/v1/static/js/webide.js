@@ -1556,13 +1556,12 @@ function throttle(method,delay){
 };
 function proreset() {
 	openedfiles="";
-	openedfiles="";
-	project_name = "";
+
 	editing_file = "";
 	is_staticfile = false;
 	if (editor_arr.length > 0) {
 		for (var i = 0; i < editor_arr.length; i++) {
-			//openedfiles=openedfiles+"|"+editor_arr[i].file;
+			openedfiles=openedfiles+"|"+editor_arr[i].file;
 			//var _breakpointer=editor_arr[i].editor.getSession().getBreakpoints();
 			editor_arr[i].editor = null;
 			$("#" + editor_arr[i].editorid).remove();
@@ -1581,11 +1580,11 @@ function proreset() {
 
 	console.log(openedfiles);
 
-	return ;
 	//保存项目布局及断点信息
-	ajax('/?webide=1&register=' + openedfiles, function(str) {
-
+	ajax('?webide=1&savelayout=1&files=' + openedfiles+"&projectname="+project_name, function(str) {
+		//openedfiles
 	});
+	project_name = "";
 };
 function hideediter() {
 	if (editor_arr.length > 0) {
@@ -1679,7 +1678,22 @@ function openpro(p) {
 		$("#project-menu").show();
 		refleshdir(p);
 		getbfwclassfunc(p);
-		openfile("\\readme.bfw", p);
+
+		ajax("?webide=1&getlayout=1&projectname="+p, function(str) {
+			if(str!=""){
+				var files = str.split('|');
+				for (var i = 0; i < files.length; i++) {
+					if(files[i]!=""){
+						var _filename=files[i].substr(files[i].indexOf("\\"));
+						openfile(_filename, p);
+						//console.log(_filename);
+						//setTimeout(function(){openfile(_filename, p);},1000*(i-1));
+					}
+				}
+			}else{
+				openfile("\\readme.bfw", p);
+			}
+		});
 	}
 };
 function getbfwclassfunc(p){
