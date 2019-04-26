@@ -21,6 +21,7 @@ var debug_data=null;
 var last_breakpointer=null;
 var last_debugeditor=null;
 var isdebuging=false;
+var now_file_tab_obj=null;
 var _bfw_config = {
 	baseurl : "",
 	routetype : "",
@@ -77,21 +78,10 @@ contex_menu = {
 			text : '删除',
 			// icon : '/?getstatic=/folder.png',
 			action : function(node) {
-				if (window.confirm("您确定删除吗?")) {
-					var url = "";
-					if (is_staticfile) {
-						url = "?webide=1&isstatic=1&delfiles="+
-							getfilepath(node)+"\\" +node.tag + "&parent=" + project_name;
-					} else {
-						url = "?webide=1&delfiles=" + getfilepath(node)+"\\" +node.tag
-								+ "&parent=" + project_name;
-					}
-					ajax(url, function(data) {
-						jing_tree.removeNode(node);
-						// editor.setValue("");
-						// refleshdir(project_name);
-					});
-				}
+				delselectfile(getfilepath(node)+"\\" +node.tag,function(){
+					jing_tree.removeNode(node);
+				});
+
 			}
 		}, {
 			type : "Common",
@@ -336,24 +326,44 @@ contex_menu = {
 					text : '删除',
 					// icon : '/?getstatic=/folder.png',
 					action : function(node) {
-						if (window.confirm("您确定删除吗?")) {
-							var url = "";
-							if (is_staticfile) {
-								url = "?webide=1&isstatic=1&delfiles="+
-									getfilepath(node)+"\\" +node.tag + "&parent=" + project_name;
-							} else {
-								url = "?webide=1&delfiles=" + getfilepath(node)+"\\" +node.tag
-										+ "&parent=" + project_name;
-							}
-							ajax(url, function(data) {
-								dong_tree.removeNode(node);
-								// editor.setValue("");
-								// refleshdir(project_name);
-							});
-						}
+						delselectfile(getfilepath(node)+"\\" +node.tag,function(){
+							dong_tree.removeNode(node);
+
+						});
 					},
 				} ]
 	}
+};
+function delselectfile(filename,callback){
+	if (window.confirm("您确定删除吗?")) {
+		var url = "";
+		if (is_staticfile) {
+			url = "?webide=1&isstatic=1&delfiles="+
+			filename+ "&parent=" + project_name;
+		} else {
+			url = "?webide=1&delfiles=" + filename
+					+ "&parent=" + project_name;
+		}
+		closefile(project_name+filename);
+		ajax(url, function(data) {
+			if(data=="ok"){
+				callback();
+			}
+
+		});
+	}
+};
+
+function checkfilechanged(filename){
+	if (editor_arr.length > 0) {
+		for (var i = 0; i < editor_arr.length; i++) {
+			if (filename == editor_arr[i].file) {
+				return editor_arr[i].filechanged;
+				break;
+			}
+		}
+	}
+	return false;
 };
 function createmodule(node,cont,issingle){
 	  var fname=prompt("请输入文件名，不能前缀","Home");
@@ -661,6 +671,8 @@ function rightmenu(elementID,menuID){
 	　　var menu=document.getElementById(menuID);
 	　　var element=document.getElementById(elementID);
 	　　element.onmousedown=function(aevent){
+		now_file_tab_obj=$("#"+elementID);
+		console.log(element);
 	　　　　if(window.event)aevent=window.event;
 	　　　　if(aevent.button==2){
 	　　　　　　document.oncontextmenu=function(aevent){
@@ -677,18 +689,25 @@ function rightmenu(elementID,menuID){
 	　　}
 		$(document).click(function(e){
 			$(".right-menu").hide();
-
 		});
 	　
 };
-function closerightfile(file){
-
+function closerightfile(){
+	//closefile($(this).parent('li').attr("title"));
+	var e = now_file_tab_obj.nextAll();     
+	e.each(function(index, el) {
+		closefile($(this).attr("title"));
+	});
 };
-function closeotherfile(file){
-
+function closeotherfile(){
+	//closefile($(this).parent('li').attr("title"));
+	var e = now_file_tab_obj.siblings();     
+	e.each(function(index, el) {
+		closefile($(this).attr("title"));
+	});
 };
-function closeleftfile(file){
-
+function closethisfile(){
+	closefile(now_file_tab_obj.attr("title"));
 };
 function updatebreakpointer(_editor,_row,_distant,_allline){
 	var _breakpointer=_editor.getSession().getBreakpoints();
@@ -708,6 +727,27 @@ function updatebreakpointer(_editor,_row,_distant,_allline){
 		_editor.session.setBreakpoint(oldline[i]+_distant);
 		changedline.push(oldline[i]+_distant);
 	}
+	updateeditorbreaks(_editor);
+
+};
+function updateeditorbreaks(_editor){
+	var _lines =  _editor.session.doc.getAllLines().length;
+	var _breakpointer= _editor.getSession().getBreakpoints();
+	var _oldline=[];
+	for (var i = 0; i < _lines; i++) {
+		if(_breakpointer[i]){
+			_oldline.push(i);
+		}
+	}
+	for (var i = 0; i < editor_arr.length; i++) {
+		if (_editor == editor_arr[i].editor) {
+			editor_arr[i].breakpointer=_oldline;
+			break;
+		}
+	}
+
+	console.log("get poiinter:");
+	console.log(_oldline);
 
 };
 function openeditor(file, filedata,hash,breakline) {
@@ -863,13 +903,18 @@ function openeditor(file, filedata,hash,breakline) {
 			    if(_linedata!="{"&&_linedata!="}"){
 			    	if(!_allbreaks[row]){
 			    		// addbreak
-			    		setbreakpointer(file,row,0,function(){e.editor.session.setBreakpoint(row);});
+
+			    		e.editor.session.setBreakpoint(row);
+			    		//setbreakpointer(file,row,0,function(){e.editor.session.setBreakpoint(row);});
 
 			    	}else{
-			    		setbreakpointer(file,row,1,function(){e.editor.session.clearBreakpoint(row);});
+			    		e.editor.session.clearBreakpoint(row);
+			    		//setbreakpointer(file,row,1,function(){e.editor.session.clearBreakpoint(row);});
 
 			    		// e.editor.session.documentToScreenRow(row,1);
 			    	}
+
+			    	updateeditorbreaks(e.editor);
 
 			    }
 			    // editor.session.setBreakpoint(pos.row,"ace_coderunstatus");
@@ -877,6 +922,7 @@ function openeditor(file, filedata,hash,breakline) {
 			    e.stop();
 
 			});
+
 			for (var i = 0; i < breakline.length; i++) {
 				editor.session.setBreakpoint(breakline[i]);
 			}
@@ -1031,7 +1077,8 @@ function openeditor(file, filedata,hash,breakline) {
 		"type" : is_staticfile ? 2 : 1,
 		"namespace":[],
 		"confict":{"resolvemethod":"","serverdata":"","serverhash":""},
-		'totalline':_linecount
+		'totalline':_linecount,
+		'breakpointer':breakline
 	});
 	return editor;
 };
@@ -1068,10 +1115,13 @@ function closefile(f) {
 		for (var i = 0; i < editor_arr.length; i++) {
 			if (f == editor_arr[i].file) {
 				if(editor_arr[i].filechanged){
-					if (confirm("文件未保存，是否先保存再关闭项目？")) {
+					if (confirm("文件未保存，是否先保存再关闭？")) {
 						savefile(editor_arr[i]);
 					}
 				}
+
+				//保存断点信息
+
 				editor_arr[i].editor = null;
 				$("#" + editor_arr[i].editorid).remove();
 				$("#" + editor_arr[i].tabid).remove();
@@ -1505,12 +1555,15 @@ function throttle(method,delay){
     }
 };
 function proreset() {
+	openedfiles="";
+	openedfiles="";
 	project_name = "";
 	editing_file = "";
 	is_staticfile = false;
 	if (editor_arr.length > 0) {
 		for (var i = 0; i < editor_arr.length; i++) {
-
+			//openedfiles=openedfiles+"|"+editor_arr[i].file;
+			//var _breakpointer=editor_arr[i].editor.getSession().getBreakpoints();
 			editor_arr[i].editor = null;
 			$("#" + editor_arr[i].editorid).remove();
 			$("#" + editor_arr[i].tabid).remove();
@@ -1525,6 +1578,14 @@ function proreset() {
 	$("#static_tree_tab").addClass("dir_tab");
 	$("#dong_tree").show();
 	$("#jing_tree").hide();
+
+	console.log(openedfiles);
+
+	return ;
+	//保存项目布局及断点信息
+	ajax('/?webide=1&register=' + openedfiles, function(str) {
+
+	});
 };
 function hideediter() {
 	if (editor_arr.length > 0) {
@@ -1539,7 +1600,9 @@ function hideediter() {
 	$("#editorpannel").hide();
 	$(".popup_dia").hide();
 	$("#project-menu").hide();
+
 	proreset();
+
 };
 function dbconfshow() {
 	$("#mysqlhost").val(localStorage.getItem("host"));
@@ -1793,13 +1856,10 @@ function showjoblistview(){
 	$('#jobpannel').show();
 };
 $(function() {
-	if (window.navigator.userAgent.indexOf("Chrome") !== -1) {
-
-	} else {
+	if (window.navigator.userAgent.indexOf("Chrome") == -1) {
 		alert("请用基于Chrome内核的浏览器打开");
 		return;
 	}
-	// var ue = UM.getEditor('wikibodytext');
 	getpro();
 	getsysclassfunc();
 
@@ -1844,6 +1904,9 @@ $(function() {
 	});
 	$(".pron_item_name").live("click", function() {
 		openpro($(this).attr("data"));
+	});
+	$('.ace_class').live("click", function() {
+		alert($(this).html());
 	});
 	$("#php_tree_tab").click(function(e) {
 		is_staticfile = false;

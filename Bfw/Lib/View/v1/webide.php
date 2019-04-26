@@ -52,7 +52,9 @@
 	border: none;
 	margin: 5px;
 }
-
+.ace_support.ace_class{
+	cursor:pointer!important;
+}
 .debug-btn:active {
 	border: 1px solid grey;
 }
@@ -61,10 +63,9 @@
 <body onload="RunOnBeforeUnload()">
 	<div id="file-menu" class="right-menu" style="display: none;">
 		<ul>
-			<li>关闭当前文件</li>
-			<li>关闭右侧文件</li>
-			<li>关闭左侧文件</li>
-			<li>关闭其他文件</li>
+			<li onclick="closethisfile()">关闭文件</li>
+			<li onclick="closerightfile()">关闭右侧文件</li>
+			<li onclick="closeotherfile()">关闭其他文件</li>
 		</ul>
 	</div>
 	<div id="editor-menu" class="right-menu" style="display: none;">
@@ -137,7 +138,7 @@
 			<li><a href="/" target="_blank">模板商城</a></li>
 			<li><a href="/" target="_blank">文档教程</a></li>
 			<li onclick="popup($('#aboutus'));">关于我们</li>
-			<li><input type="search" placeholder="搜一下，就知道怎么写了" /></li>
+			<li><input type="search" placeholder="搜一下，就知道怎么写了" style="border: none;padding: 4px 6px;font-size: 12px;" /></li>
 
 			<li class="navitem"  id="logined" style="float:right;<?php if($uid==""){?>display:none;<?php }?>">
 				<div>

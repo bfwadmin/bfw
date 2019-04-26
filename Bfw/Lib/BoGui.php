@@ -237,9 +237,13 @@ class BoGui
         }
         return true;
     }
-
+    private function delfile($_filepath){
+        //加入版本控制
+        return unlink($_filepath);
+    }
     private function writefile($_filepath, $_data, $_uid)
     {
+        //加入版本控制
         if (file_put_contents($_filepath, $_data)) {
             $this->commitlog("Demo", $_filepath, "save", "dddd", $_uid);
             return true;
@@ -614,9 +618,13 @@ class BoGui
         }
         if (isset($_GET['delfiles'])) {
             if (isset($_GET['isstatic'])) {
-                @unlink(APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['delfiles']));
+                if($this->delfile(APP_BASE . DS . STATIC_NAME . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['delfiles']))){
+                    echo "ok";
+                }
             } else {
-                @unlink(APP_ROOT . DS . "App" . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['delfiles']));
+                if($this->delfile(APP_ROOT . DS . "App" . DS . $_GET['parent'] . DS . str_replace("./", "", $_GET['delfiles']))){
+                    echo "ok";
+                }
             }
 
             exit();
