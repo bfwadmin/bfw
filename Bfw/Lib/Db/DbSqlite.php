@@ -4,6 +4,7 @@ namespace Lib\Db;
 use Lib\Bfw;
 use Lib\Exception\DbException;
 use Lib\BoDebug;
+use Lib\BoConfig;
 require_once APP_ROOT . DS . "Lib" . DS . "Db" . DS . 'BoDb.php';
 
 class DbSqlite extends BoDb implements BoDbInterface
@@ -28,12 +29,17 @@ class DbSqlite extends BoDb implements BoDbInterface
     {
         if (! is_null($_connarr) && is_array($_connarr)) {
         } else {
-            $_connarr=Bfw::Config("Db", "localconfig");
+            $_connarr=BoConfig::Config("Db", "localconfig");
         }
-        $this->_connectstr ="sqlite:{$_connarr['dbname']}";
+        $this->_username = $_connarr['dbuser'];
+        $this->_password = $_connarr['dbpwd'];
+        $this->_connectstr ="sqlite:".$_connarr['dbhost'].DS."{$_connarr['dbname']}";
         try {
             $this->_connection = new \PDO($this->_connectstr, $this->_username, $this->_password, $this->_option);
-            $this->_connection->query('SET NAMES utf8');
+            if(isset($_connarr['createsql'])){
+                $this->_connection->exec($_connarr['createsql']);
+            }
+            BoDebug::Info("sqllite connect " . $this->_connectstr);
         } catch (\PDOException $e) {
             throw new DbException($e->getMessage());
         }
@@ -45,7 +51,7 @@ class DbSqlite extends BoDb implements BoDbInterface
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
-            
+
             $sql = "SELECT {$_field} FROM  {$_tablename} WHERE {$_key}=:id";
             BoDebug::Info($sql);
             $stmt = $this->_connection->prepare($sql);
@@ -62,6 +68,58 @@ class DbSqlite extends BoDb implements BoDbInterface
         }
     }
 
+    public function insertupdate($_data, $_tablename, $_key){
+        try {
+            if (is_null($this->_connection)) {
+                return Bfw::RetMsg(true, "数据库连接失败");
+            }
+            if (! empty($_data)) {
+                // $_tablename = $this->GetTableName();
+                $sql_field = "";
+                $sql_val = "";
+                $val = array();
+                $sql_up_field = "";
+                $up_val = [];
+                foreach ($_data as $_field => $_val) {
+                    if ($_val === null) {} else {
+
+                        $sql_field .= "{$_field},";
+                        $sql_val .= "?,";
+                        $val[] = $_val;
+                        if ($_key != $_field) {
+                            $sql_up_field .= "{$_field}=?,";
+                            $up_val[] = $_val;
+                        }
+                    }
+                }
+
+                if ($sql_up_field != "") {
+                    $sql_up_field = substr($sql_up_field, 0, strlen($sql_up_field) - 1);
+                }
+                if ($sql_field != "") {
+                    $sql_field = substr($sql_field, 0, strlen($sql_field) - 1);
+                }
+                if ($sql_val != "") {
+                    $sql_val = substr($sql_val, 0, strlen($sql_val) - 1);
+                }
+                $val = array_merge($val, $up_val);
+                BoDebug::Info("INSERT value:" . var_export($val, true));
+                $sql = "INSERT INTO {$_tablename} ({$sql_field})VALUES ({$sql_val})  ON DUPLICATE KEY UPDATE  {$sql_up_field}";
+                BoDebug::Info($sql);
+                $issuccess = $this->_connection->prepare($sql)->execute($val);
+                if ($issuccess) {
+                    return Bfw::RetMsg(false, true);
+                } else {
+                    return Bfw::RetMsg(false, false);
+                }
+            } else {
+                return Bfw::RetMsg(true, "数据不能为空");
+            }
+        } catch (\PDOException $e) {
+            // return Bfw::RetMsg(true, $e->getMessage());
+            throw new DbException($e->getMessage());
+        }
+    }
     public function insert($_data, $_tablename, $_returnid = false)
     {
         try {
@@ -75,7 +133,7 @@ class DbSqlite extends BoDb implements BoDbInterface
                 $val = array();
                 foreach ($_data as $_key => $_val) {
                     if ($_val === null) {} else {
-                        
+
                         $sql_field .= "{$_key},";
                         $sql_val .= "?,";
                         $val[] = $_val;
@@ -125,11 +183,11 @@ class DbSqlite extends BoDb implements BoDbInterface
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
             if (! empty($_data)) {
-                
+
                 $sql = "";
                 $val = array();
                 foreach ($_data as $_k => $_val) {
-                    
+
                     if (! is_null($_val)) {
                         if (is_array($_val) && count($_val) >= 2 && is_numeric($_val[1]) && in_array($_val[0], [
                             '-',
@@ -144,7 +202,7 @@ class DbSqlite extends BoDb implements BoDbInterface
                         }
                     }
                 }
-                
+
                 if ($sql != "") {
                     $sql = substr($sql, 0, strlen($sql) - 1);
                 }
@@ -166,7 +224,7 @@ class DbSqlite extends BoDb implements BoDbInterface
                 return Bfw::RetMsg(true, "数据不能为空");
             }
         } catch (\PDOException $e) {
-            
+
             throw new DbException($e->getMessage());
         }
     }
@@ -208,13 +266,13 @@ class DbSqlite extends BoDb implements BoDbInterface
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
-            
+
             $sql_count = "SELECT count(*) as num FROM {$_tablename} WHERE 1=1 ";
             if ("" != trim($_wherestr) && ! is_null($_wherestr)) {
-                
+
                 $sql_count = $sql_count . " AND " . $_wherestr;
             }
-            
+
             $_lcount = 0;
             BoDebug::TickStart($sql_count);
             $stmt = $this->_connection->prepare($sql_count);
@@ -235,7 +293,7 @@ class DbSqlite extends BoDb implements BoDbInterface
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
-            
+
             $sql = "SELECT {$_field} FROM {$_tablename} WHERE 1=1 ";
             $sql_count = "SELECT count(*) as num FROM {$_tablename} WHERE 1=1 ";
             if ("" != trim($_wherestr) && ! is_null($_wherestr)) {
@@ -403,7 +461,7 @@ class DbSqlite extends BoDb implements BoDbInterface
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
-            
+
             $stmt = $this->_connection->prepare("show table status;");
             $stmt->execute(null);
             $_ldata = array();
@@ -420,11 +478,82 @@ class DbSqlite extends BoDb implements BoDbInterface
             throw new DbException($e->getMessage());
         }
     }
+    public function mutidelete($_wherestr, $_wherearr, $_tablename)
+    {
+        try {
+            if (is_null($this->_connection)) {
+                return Bfw::RetMsg(true, "数据库连接失败");
+            }
+            if (empty($_wherestr)) {
+                return Bfw::RetMsg(true, "条件不能为空");
+            }
+            $sql = "DELETE FROM  {$_tablename} WHERE " . $_wherestr;
+            BoDebug::Info($_wherestr);
+            BoDebug::Info($sql);
+            $issuccess = $this->_connection->prepare($sql)->execute($_wherearr);
+            if ($issuccess) {
+                return Bfw::RetMsg(false, true);
+            } else {
+                return Bfw::RetMsg(false, false);
+            }
+        } catch (\PDOException $e) {
+            throw new DbException($e->getMessage());
+        }
+    }
+    public function mutiupdate($_wherestr, $_wherearr, $_tablename, $_data)
+    {
+        try {
+            if (! is_array($_data)) {
+                return Bfw::RetMsg(true, "data值必为数组");
+            }
+            if (is_null($this->_connection)) {
+                return Bfw::RetMsg(true, "数据库连接失败");
+            }
 
+            if (! empty($_data)) {
+
+                $sql = "";
+                $val = array();
+                foreach ($_data as $_k => $_val) {
+
+                    if (! is_null($_val)) {
+                        if (is_array($_val) && count($_val) >= 2 && is_numeric($_val[1]) && in_array($_val[0], [
+                            '-',
+                            '+'
+                        ])) {
+                            $sql .= $_k . "=" . $_k . $_val[0] . $_val[1] . ",";
+                        } else {
+                            $sql .= "{$_k}=?,";
+                            $val[] = $_val;
+                        }
+                    }
+                }
+
+                if ($sql != "") {
+                    $sql = substr($sql, 0, strlen($sql) - 1);
+                }
+                $_wherearr=array_merge($val,$_wherearr);
+                $sql = "UPDATE {$_tablename} SET " . $sql . " WHERE " . $_wherestr;
+                // die($sql.var_export($val,true));
+                BoDebug::Info($sql);
+                $issuccess = $this->_connection->prepare($sql)->execute($_wherearr);
+                if ($issuccess) {
+                    return Bfw::RetMsg(false, true);
+                } else {
+                    return Bfw::RetMsg(false, false);
+                }
+            } else {
+                return Bfw::RetMsg(true, "数据不能为空");
+            }
+        } catch (\PDOException $e) {
+
+            throw new DbException($e->getMessage());
+        }
+    }
     /**
      * 获取表信息
      *
-     * @param string $_tablename            
+     * @param string $_tablename
      */
     public function GetTableInfo($_tablename)
     {
@@ -433,9 +562,9 @@ class DbSqlite extends BoDb implements BoDbInterface
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
             // echo($_tablename);
-            
+
             $stmt = $this->_connection->prepare("show full fields from $_tablename;");
-            
+
             $stmt->execute(null);
             $_ldata = array();
             while (($row = $stmt->fetch(\PDO::FETCH_ASSOC)) != false) {
@@ -447,7 +576,7 @@ class DbSqlite extends BoDb implements BoDbInterface
                 // var_dump($row);
                 // $_ldata[] =array_values($row)[0];
             }
-            
+
             return Bfw::RetMsg(false, $_ldata);
         } catch (\PDOException $e) {
             throw new DbException($e->getMessage());

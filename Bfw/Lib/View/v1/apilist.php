@@ -33,6 +33,7 @@ function builderurl($c, $a, $d)
 <meta name="description"
 	content="全球首款支持webide的开发及运行框架，支持单机，伪集群，集群，SOA部署，支持code first，db first，template first开发模式，支持java php net多种流行语言，云端保存，多处开发，支持企业云部署，一个账号，随时随地打开浏览器即可开发应用，丰富的在线插件及文档，社群问题回答，模板涵盖电商、企业官网、在线教育、企业erp，oa等热门系统，支持在线模板交易，让优秀的程序员收获自己的财富" />
 <link rel="shortcut icon" href="/favicon.ico" />
+
 <script>
 function copyUrl(did)
 {
@@ -255,6 +256,7 @@ p {
     text-decoration: none;
     font-size: 14px;
     }
+ul.json-dict,ol.json-array{list-style-type:none;margin:0 0 0 1px;border-left:1px dotted #ccc;padding-left:2em}.json-string{color:#aaa}.json-literal{color:#2596cc;font-weight:700}a.json-toggle{position:relative;color:inherit;text-decoration:none}a.json-toggle:focus{outline:0}a.json-toggle:before{color:#aaa;content:"\25BC";position:absolute;display:inline-block;width:1em;left:-1em}a.json-toggle.collapsed:before{transform:rotate(-90deg);-ms-transform:rotate(-90deg);-webkit-transform:rotate(-90deg)}a.json-placeholder{color:#aaa;padding:0 1em;text-decoration:none}a.json-placeholder:hover{text-decoration:underline}
 </style>
 
 
@@ -276,7 +278,10 @@ p {
 			<input type="text" id="postpara"
 				placeholder="post参数类似于username=wangbo&passwd=111111这种形式" />
 		</div>
-		<h4>返回结果</h4>
+		<h4>返回结果</h4> <span>可视化json</span>
+		<div style="width: 100%; height: 200px; display:none;" id="json_tree_pan">
+
+		</div>
 		<textarea style="width: 100%; height: 200px;" id="responsepannel"></textarea>
 		<textarea style="width: 100%; height: 100px;" id="responsedebugdata"></textarea>
 	</div>

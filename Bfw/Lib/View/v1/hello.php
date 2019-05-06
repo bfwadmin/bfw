@@ -7,13 +7,13 @@
     <meta name="keywords" content="php开发框架,SOA框架,java开发框架" />
     <meta name="description" content="全球首款支持webide的开发及运行框架，支持单机，伪集群，集群，SOA部署，支持code first，db first，template first开发模式，支持java php net多种流行语言，云端保存，多处开发，支持企业云部署，一个账号，随时随地打开浏览器即可开发应用，丰富的在线插件及文档，社群问题回答，模板涵盖电商、企业官网、在线教育、企业erp，oa等热门系统，支持在线模板交易，让优秀的程序员收获自己的财富" />
 	<link rel="shortcut icon" href="/favicon.ico" />
-    
+
     <style type="text/css">
         * {
             box-sizing: border-box;
         }
         body {
-            margin: 0; 
+            margin: 0;
             padding: 0;
             font: 16px/20px microsft yahei;
         }
@@ -25,8 +25,8 @@
             top: 50%;
             margin-top: -200px;
             opacity: 0.8;
-            background: linear-gradient(to bottom right,#50a3a2,#53e3a6);
-            background: -webkit-linear-gradient(to bottom right,#50a3a2,#53e3a6);
+            background: linear-gradient(to bottom right,#1b6e95,#084589);
+            background: -webkit-linear-gradient(to bottom right,#1b6e95,#084589);
         }
         .container {
             width: 60%;
@@ -43,7 +43,7 @@
             color: #ededed;
         	line-height:30px;
         }
-       
+
         .wrap ul {
             position: absolute;
             top: 0;
@@ -189,23 +189,23 @@
         	margin:30px;
         	color:#484848;
         	height:40px;
-        	
+
         }
         .menu a{
         	margin:15px;
         	cursor:pointer;
         }
         .menu a:link{
-        	color:#484848;
+        	color:#a9e1ff;
         }
         .menu a:visited{
-        	color:#5f5f5f;
+        	color:#70c6f3;
         }
   .menu a:hover{
         	font-size:20px;
   	font-weight:bold;
   	color:white;
-  	
+
         }
         .menu a:active{
         	color:#484848;
@@ -238,8 +238,8 @@
             <li></li>
             <li></li>
         </ul>
-      
+
     </div>
-    
+
 </body>
 </html>

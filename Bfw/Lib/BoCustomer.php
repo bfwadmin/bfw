@@ -264,7 +264,7 @@ class BoCustomer extends Wangbo
                 } else {
                     $_cinstance = Core::LoadClass("App\\{$_domian}\\Controler\\Controler_" . $_controler);
                     if ($_cinstance) {
-                        $responseformat = "html";
+                        $responseformat = "text/html";
                         $responsecharset = "UTF-8";
                         $expire = 0;
                         if (isset($_cinstance->_config)) {

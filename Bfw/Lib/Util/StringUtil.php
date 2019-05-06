@@ -723,7 +723,7 @@ class StringUtil
                                                        // return preg_replace('/\s+/', '', $str);
     }
 
-    function filterBadHtml($str)
+    public static  function filterBadHtml($str)
     {
         $str = preg_replace("/<(\/?html.*?)>/si", "", $str); // 过滤html标签
         $str = preg_replace("/<(\/?head.*?)>/si", "", $str); // 过滤head标签

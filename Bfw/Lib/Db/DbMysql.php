@@ -27,13 +27,13 @@ class DbMysql extends BoDb implements BoDbInterface
     public function __construct($_connarr = null)
     {
         if (! is_null($_connarr) && is_array($_connarr)) {} else {
-            $_connarr = Bfw::Config("Db", "localconfig");
+            $_connarr = BoConfig::Config("Db", "localconfig");
         }
-        
+
         $this->_connectstr = "mysql:host={$_connarr['dbhost']};port={$_connarr['dbport']};dbname={$_connarr['dbname']}";
         $this->_username = $_connarr['dbuser'];
         $this->_password = $_connarr['dbpwd'];
-        
+
         try {
             $this->_connection = new \PDO($this->_connectstr, $this->_username, $this->_password, $this->_option);
             $this->_connection->query('SET NAMES utf8');
@@ -83,7 +83,7 @@ class DbMysql extends BoDb implements BoDbInterface
                 $up_val = [];
                 foreach ($_data as $_field => $_val) {
                     if ($_val === null) {} else {
-                        
+
                         $sql_field .= "{$_field},";
                         $sql_val .= "?,";
                         $val[] = $_val;
@@ -93,7 +93,7 @@ class DbMysql extends BoDb implements BoDbInterface
                         }
                     }
                 }
-                
+
                 if ($sql_up_field != "") {
                     $sql_up_field = substr($sql_up_field, 0, strlen($sql_up_field) - 1);
                 }
@@ -135,7 +135,7 @@ class DbMysql extends BoDb implements BoDbInterface
                 $val = array();
                 foreach ($_data as $_key => $_val) {
                     if ($_val === null) {} else {
-                        
+
                         $sql_field .= "{$_key},";
                         $sql_val .= "?,";
                         $val[] = $_val;
@@ -177,13 +177,13 @@ class DbMysql extends BoDb implements BoDbInterface
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
-            
+
             if (! empty($_data)) {
-                
+
                 $sql = "";
                 $val = array();
                 foreach ($_data as $_k => $_val) {
-                    
+
                     if (! is_null($_val)) {
                         if (is_array($_val) && count($_val) >= 2 && is_numeric($_val[1]) && in_array($_val[0], [
                             '-',
@@ -196,7 +196,7 @@ class DbMysql extends BoDb implements BoDbInterface
                         }
                     }
                 }
-                
+
                 if ($sql != "") {
                     $sql = substr($sql, 0, strlen($sql) - 1);
                 }
@@ -214,7 +214,7 @@ class DbMysql extends BoDb implements BoDbInterface
                 return Bfw::RetMsg(true, "数据不能为空");
             }
         } catch (\PDOException $e) {
-            
+
             throw new DbException($e->getMessage());
         }
     }
@@ -235,13 +235,13 @@ class DbMysql extends BoDb implements BoDbInterface
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
-            
+
             if (! empty($_data)) {
-                
+
                 $sql = "";
                 $val = array();
                 foreach ($_data as $_k => $_val) {
-                    
+
                     if (! is_null($_val)) {
                         if (is_array($_val) && count($_val) >= 2 && is_numeric($_val[1]) && in_array($_val[0], [
                             '-',
@@ -256,7 +256,7 @@ class DbMysql extends BoDb implements BoDbInterface
                         }
                     }
                 }
-                
+
                 if ($sql != "") {
                     $sql = substr($sql, 0, strlen($sql) - 1);
                 }
@@ -278,7 +278,7 @@ class DbMysql extends BoDb implements BoDbInterface
                 return Bfw::RetMsg(true, "数据不能为空");
             }
         } catch (\PDOException $e) {
-            
+
             throw new DbException($e->getMessage());
         }
     }
@@ -350,13 +350,13 @@ class DbMysql extends BoDb implements BoDbInterface
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
-            
+
             $sql_count = "SELECT count(*) as num FROM {$_tablename} WHERE 1=1 ";
             if ("" != trim($_wherestr) && ! is_null($_wherestr)) {
-                
+
                 $sql_count = $sql_count . " AND " . $_wherestr;
             }
-            
+
             $_lcount = 0;
             BoDebug::TickStart($sql_count);
             $stmt = $this->_connection->prepare($sql_count);
@@ -377,7 +377,7 @@ class DbMysql extends BoDb implements BoDbInterface
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
-            
+
             $sql = "SELECT {$_field} FROM {$_tablename} WHERE 1=1 ";
             $sql_count = "SELECT count(*) as num FROM {$_tablename} WHERE 1=1 ";
             if ("" != trim($_wherestr) && ! is_null($_wherestr)) {
@@ -545,7 +545,7 @@ class DbMysql extends BoDb implements BoDbInterface
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
-            
+
             $stmt = $this->_connection->prepare("show table status;");
             $stmt->execute(null);
             $_ldata = array();
@@ -566,7 +566,7 @@ class DbMysql extends BoDb implements BoDbInterface
     /**
      * 获取表信息
      *
-     * @param string $_tablename            
+     * @param string $_tablename
      */
     public function GetTableInfo($_tablename)
     {
@@ -575,9 +575,9 @@ class DbMysql extends BoDb implements BoDbInterface
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
             // echo($_tablename);
-            
+
             $stmt = $this->_connection->prepare("show full fields from $_tablename;");
-            
+
             $stmt->execute(null);
             $_ldata = array();
             while (($row = $stmt->fetch(\PDO::FETCH_ASSOC)) != false) {
@@ -589,7 +589,7 @@ class DbMysql extends BoDb implements BoDbInterface
                 // var_dump($row);
                 // $_ldata[] =array_values($row)[0];
             }
-            
+
             return Bfw::RetMsg(false, $_ldata);
         } catch (\PDOException $e) {
             throw new DbException($e->getMessage());

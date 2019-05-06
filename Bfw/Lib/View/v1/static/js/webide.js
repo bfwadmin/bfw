@@ -22,6 +22,7 @@ var last_breakpointer=null;
 var last_debugeditor=null;
 var isdebuging=false;
 var now_file_tab_obj=null;
+var creating_editor=false;
 var _bfw_config = {
 	baseurl : "",
 	routetype : "",
@@ -753,6 +754,7 @@ function updateeditorbreaks(_editor){
 function openeditor(file, filedata,hash,breakline) {
 	var _linecount=0;
 	var ids = uniqid();
+	$("#file_tab ul li").removeClass("file_selected");
 	$("#file_tab ul").prepend(
 			"<li id='tab" + ids + "' class='file_selected' title='" + file + "'><span id='filechanged_"+ids+"'></span>"
 					+ getfilename(file) + "<span class='tab_close' id='close"
@@ -1686,7 +1688,7 @@ function openpro(p) {
 					if(files[i]!=""){
 						var _filename=files[i].substr(files[i].indexOf("\\"));
 						openfile(_filename, p);
-						//console.log(_filename);
+						//console.log(openfile_filename);
 						//setTimeout(function(){openfile(_filename, p);},1000*(i-1));
 					}
 				}

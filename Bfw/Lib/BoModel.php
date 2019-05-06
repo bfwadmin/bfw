@@ -608,7 +608,7 @@ class BoModel
      */
     function MutiDelete()
     {
-        return $this->MutiDelete($this->_wherestr, $this->_wherearr);
+        return $this->MDelete($this->_wherestr, $this->_wherearr);
     }
 
     /**
@@ -618,7 +618,7 @@ class BoModel
      */
     function MutiUpdate($_data)
     {
-        return $this->MutiUpdate($this->_wherestr, $this->_wherearr, $_data);
+        return $this->MUpdate($this->_wherestr, $this->_wherearr, $_data);
     }
 
     /**
