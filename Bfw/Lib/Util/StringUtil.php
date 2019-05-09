@@ -723,7 +723,7 @@ class StringUtil
                                                        // return preg_replace('/\s+/', '', $str);
     }
 
-    public static  function filterBadHtml($str)
+    public static function filterBadHtml($str)
     {
         $str = preg_replace("/<(\/?html.*?)>/si", "", $str); // 过滤html标签
         $str = preg_replace("/<(\/?head.*?)>/si", "", $str); // 过滤head标签
@@ -787,6 +787,7 @@ class StringUtil
 
     /**
      * 根据正则获取内容
+     *
      * @param unknown $_str
      * @param unknown $_reg
      */
@@ -794,7 +795,27 @@ class StringUtil
     {
         $arr = [];
         preg_match($_reg, $_str, $arr);
-        return isset($arr[1])?$arr[1]:"";
+        return isset($arr[1]) ? $arr[1] : "";
+    }
+
+    /**
+     * base64 url 编码
+     *
+     * @param unknown $str
+     */
+    public static function base64_en_url($str)
+    {
+        return strtr(base64_encode($str), '+/=', '-_,');
+    }
+
+    /**
+     * base 64 url解码
+     *
+     * @param string $str
+     */
+    public static function base64_de_url($str)
+    {
+        return trim(base64_decode(strtr($str, '-_,', '+/=')));
     }
 }
 

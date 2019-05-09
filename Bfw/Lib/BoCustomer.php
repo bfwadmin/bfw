@@ -7,8 +7,9 @@ use Lib\Util\ArrayUtil;
 use Lib\Util\HttpUtil;
 
 /**
+ *
  * @author wangbo
- * 消费者
+ *         消费者
  */
 class BoCustomer extends Wangbo
 {
@@ -231,7 +232,7 @@ class BoCustomer extends Wangbo
             $_pret = true;
             $_pointfile = APP_ROOT . DS . "App" . DS . $_domian . DS . "Points" . DS . "Points_" . $_controler . ".php";
             $_pointfile = BoDebug::getDebugfile($_pointfile);
-           // $_pointfile = APP_ROOT . DS . "App" . DS . $_domian . DS . "Points" . DS . "Points_" . $_controler . ".php";
+            // $_pointfile = APP_ROOT . DS . "App" . DS . $_domian . DS . "Points" . DS . "Points_" . $_controler . ".php";
             if (file_exists($_pointfile)) {
                 $_points = Core::LoadClass("App\\{$_domian}\\Points\\Points_{$_controler}");
                 if ($_points) {
@@ -269,38 +270,50 @@ class BoCustomer extends Wangbo
                         $expire = 0;
                         if (isset($_cinstance->_config)) {
                             if (isset($_cinstance->_config['rate']) && is_array($_cinstance->_config['rate'])) {
-                                if (count($_cinstance->_config['rate']) == 2) {
-                                    $_ckey = "controlerlimit" . $_controler . $_action . $_domian;
-                                    if ($_cinstance->_config['rate'][0] == "session") {
-                                        $_ckey = $_ckey . SESS_ID;
+                                $_islimit = false;
+
+                                if (count($_cinstance->_config['rate']) >= 2) {
+                                    if (isset($_cinstance->_config['rate'][2])) {
+                                        if (in_array($_controler, $_cinstance->_config['rate'][2])) {
+                                            $_islimit = true;
+                                        }
+                                    } else {
+                                        $_islimit = true;
                                     }
-                                    if ($_cinstance->_config['rate'][0] == "ip") {
-                                        $_ckey = $_ckey . IP;
-                                    }
-                                    $_lastvisittime = BoCache::Cache($_ckey);
-                                    if ($_lastvisittime != "" &&  microtime(true) - floatval($_lastvisittime)< 60 / $_cinstance->_config['rate'][1]) {
-                                        $_errmsg = BoConfig::Config("Sys", "webapp", "System")['visit_limit'];
-                                        if (IS_AJAX_REQUEST) {
-                                            static $_config_arr = [];
-                                            if (file_exists(APP_ROOT.DS."App".DS . DOMIAN_VALUE . DS . "Config" . DS . "Config.php")) {
-                                                include APP_ROOT.DS."App".DS . DOMIAN_VALUE . DS . "Config" . DS . "Config.php";
-                                            }
-                                            if (isset($_config_arr['App']['limit_err_array'])) {
-                                                echo json_encode($_config_arr['App']['limit_err_array']);
+                                    if ($_islimit) {
+                                        $_ckey = "controlerlimit" . $_controler . $_action . $_domian;
+
+                                        if ($_cinstance->_config['rate'][0] == "session") {
+                                            $_ckey = $_ckey . SESS_ID;
+                                        }
+                                        if ($_cinstance->_config['rate'][0] == "ip") {
+                                            $_ckey = $_ckey . IP;
+                                        }
+                                        $_lastvisittime = BoCache::Cache($_ckey);
+                                        if ($_lastvisittime != "" && microtime(true) - floatval($_lastvisittime) < 60 / $_cinstance->_config['rate'][1]) {
+                                            $_errmsg = BoConfig::Config("Sys", "webapp", "System")['visit_limit'];
+                                            if (IS_AJAX_REQUEST) {
+                                                static $_config_arr = [];
+                                                if (file_exists(APP_ROOT . DS . "App" . DS . DOMIAN_VALUE . DS . "Config" . DS . "Config.php")) {
+                                                    include APP_ROOT . DS . "App" . DS . DOMIAN_VALUE . DS . "Config" . DS . "Config.php";
+                                                }
+                                                if (isset($_config_arr['App']['limit_err_array'])) {
+                                                    echo json_encode($_config_arr['App']['limit_err_array']);
+                                                } else {
+                                                    echo json_encode([
+                                                        'err' => true,
+                                                        data => $_errmsg
+                                                    ]);
+                                                }
                                             } else {
-                                                echo json_encode([
-                                                    'err' => true,
-                                                    data => $_errmsg
+                                                BoRes::View("error", "System", "v1", [
+                                                    'but_msg' => $_errmsg
                                                 ]);
                                             }
-                                        } else {
-                                            BoRes::View("error", "System", "v1", [
-                                                'but_msg' => $_errmsg
-                                            ]);
+                                            die();
                                         }
-                                        die();
+                                        BoCache::Cache($_ckey, microtime(true), 60);
                                     }
-                                    BoCache::Cache($_ckey, microtime(true), 60);
                                 }
                             }
                             if (isset($_cinstance->_config['allowip']) && is_array($_cinstance->_config['allowip'])) {
@@ -348,9 +361,8 @@ class BoCustomer extends Wangbo
                                 }
                             }
                             if (isset($_cinstance->_config['responsecharset'])) {
-                                 $responsecharset = $_cinstance->_config['responsecharset'];
+                                $responsecharset = $_cinstance->_config['responsecharset'];
                             }
-
                         }
                         if ($expire > 0) {
                             $this->Expire($expire);
@@ -368,9 +380,9 @@ class BoCustomer extends Wangbo
                                     break;
                                 case "json":
                                     header("Content-type: text/json;charset={$responsecharset}");
-                                    if(JSON_PRETTY){
-                                       echo  json_encode($ret,JSON_PRETTY_PRINT);
-                                    }else{
+                                    if (JSON_PRETTY) {
+                                        echo json_encode($ret, JSON_PRETTY_PRINT);
+                                    } else {
                                         echo json_encode($ret);
                                     }
 

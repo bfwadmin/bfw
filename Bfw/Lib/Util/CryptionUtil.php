@@ -2,33 +2,82 @@
 namespace Lib\Util;
 
 /**
+ *
  * @author wangbo
- * 加密辅助类
+ *         加密辅助类
  */
 class CryptionUtil
 {
-    // private $securekey, $iv;
-    private $securekey;
 
-    function __construct($textkey)
+    /**
+     * 简单加密
+     * @param unknown $data
+     * @param unknown $key
+     */
+    public static function simpleencrypt($data, $key)
     {
-        $this->securekey = $textkey;
-        // $this->securekey = hash ( 'sha256', $textkey, TRUE );
-        // $this->iv = mcrypt_create_iv ( 32 );
+        $key = md5($key);
+        $x = 0;
+        $len = strlen($data);
+        $l = strlen($key);
+        for ($i = 0; $i < $len; $i ++) {
+            if ($x == $l) {
+                $x = 0;
+            }
+            $char .= $key{$x};
+            $x ++;
+        }
+        for ($i = 0; $i < $len; $i ++) {
+            $str .= chr(ord($data{$i}) + ord($char{$i}));
+        }
+        echo base64_encode($str);
     }
 
-    function encrypt($input)
+    /**
+     * 简单解密
+     * @param unknown $data
+     * @param unknown $key
+     */
+    public static function simpledecrypt($data, $key)
     {
-        // return "111";
-        // return strtr ( base64_encode ( mcrypt_encrypt ( MCRYPT_RIJNDAEL_256, $this->securekey, $input, MCRYPT_MODE_ECB, $this->iv ) ), '+/=', '-_,' );
-        return strtr(base64_encode(mcrypt_ecb(MCRYPT_DES, $this->securekey, $input, MCRYPT_ENCRYPT)), '+/=', '-_,');
+        $char = '';
+        $str = '';
+        $key = md5($key);
+        $x = 0;
+        $data = base64_decode($data);
+        $len = strlen($data);
+        $l = strlen($key);
+        for ($i = 0; $i < $len; $i ++) {
+            if ($x == $l) {
+                $x = 0;
+            }
+            $char .= substr($key, $x, 1);
+            $x ++;
+        }
+        for ($i = 0; $i < $len; $i ++) {
+            $str .= chr(ord($data{$i}) - ord($char{$i}));
+        }
+        echo $str;
     }
 
-    function decrypt($input)
+    /**
+     * ecb加密
+     * @param unknown $input
+     * @param unknown $key
+     */
+    public static function ecbencrypt($input, $key)
     {
-        // return "222";
-        // return trim ( mcrypt_decrypt ( MCRYPT_RIJNDAEL_256, $this->securekey, base64_decode ( strtr ( $input, '-_,', '+/=' ) ), MCRYPT_MODE_ECB, $this->iv ) );
-        return trim(mcrypt_ecb(MCRYPT_DES, $this->securekey, base64_decode(strtr($input, '-_,', '+/=')), MCRYPT_DECRYPT));
+        return strtr(base64_encode(mcrypt_ecb(MCRYPT_DES, $key, $input, MCRYPT_ENCRYPT)), '+/=', '-_,');
+    }
+
+    /**
+     * ecb解密
+     * @param unknown $input
+     * @param unknown $key
+     */
+    public static function ecbdecrypt($input, $key)
+    {
+        return trim(mcrypt_ecb(MCRYPT_DES, $key, base64_decode(strtr($input, '-_,', '+/=')), MCRYPT_DECRYPT));
     }
 }
 ?>
