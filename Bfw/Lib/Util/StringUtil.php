@@ -557,7 +557,7 @@ class StringUtil
 
     /**
      * 获得唯一吗
-     *
+     * 32位
      * @return string
      */
     public static function guid()

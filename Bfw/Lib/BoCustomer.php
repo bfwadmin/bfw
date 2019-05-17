@@ -273,8 +273,8 @@ class BoCustomer extends Wangbo
                                 $_islimit = false;
 
                                 if (count($_cinstance->_config['rate']) >= 2) {
-                                    if (isset($_cinstance->_config['rate'][2])) {
-                                        if (in_array($_controler, $_cinstance->_config['rate'][2])) {
+                                    if (isset($_cinstance->_config['rate'][2]) && is_array($_cinstance->_config['rate'][2])) {
+                                        if (in_array($_action, $_cinstance->_config['rate'][2])) {
                                             $_islimit = true;
                                         }
                                     } else {
@@ -353,7 +353,14 @@ class BoCustomer extends Wangbo
                                 }
                             }
                             if (isset($_cinstance->_config['responseformat'])) {
-                                $responseformat = $_cinstance->_config['responseformat'];
+                                if (is_array($_cinstance->_config['responseformat'])) {
+                                    if (isset($_cinstance->_config['responseformat'][$_action])) {
+                                        $responseformat = $_cinstance->_config['responseformat'][$_action];
+                                    }
+                                }else{
+                                    $responseformat = $_cinstance->_config['responseformat'];
+                                }
+
                             }
                             if (isset($_cinstance->_config['expire'])) {
                                 if (is_numeric($_expiretime) && $_expiretime > 0) {} else {
@@ -388,8 +395,9 @@ class BoCustomer extends Wangbo
 
                                     break;
                                 default:
-                                    header("Content-type: {$responseformat};charset={$responsecharset}");
-                                    // echo $ret;
+                                    if($responseformat!="manual"){
+                                        header("Content-type: {$responseformat};charset={$responsecharset}");
+                                    }
                                     break;
                             }
                         } else {

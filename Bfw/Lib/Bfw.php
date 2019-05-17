@@ -101,8 +101,10 @@ class Bfw
         }
         if (ROUTETYPE == 2) {
             if ($_decode) {
+               // return StringUtil::base64_de_url($_url);
                 return str_replace("|____|", "&", str_replace("|___|", "=", str_replace("|__|", "?", str_replace("|_|", "/", $_url))));
             }
+            //return StringUtil::base64_en_url($_url);
             return str_replace("&", "|____|", str_replace('=', "|___|", str_replace("?", "|__|", str_replace("/", "|_|", $_url))));
         }
         if ($_decode) {
