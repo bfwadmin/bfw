@@ -252,7 +252,7 @@ function debug_show_info(type,id){
 var isdebugtarget=false;
 
 function down(e){
-	console.log(e.target);
+	//console.log(e.target);
     if(e.target.className.indexOf('debug_btn_text')!=-1){
     	isdebugtarget=true;
     }
