@@ -41,7 +41,11 @@ class SessionFiles implements BoSessionInterface
             // echo $data;
             BoDebug::Info("filesession write " . $sess_id);
             if (($fp = @fopen(SESSION_SAVE_PATH . DS . $sess_id, "w")) != false) {
-                $_ret = fwrite($fp, $data);
+
+                if (flock($fp, LOCK_EX)) {
+                    $_ret = fwrite($fp, $data);
+                    flock($fp, LOCK_UN);
+                }
                 fclose($fp);
                 return $_ret;
             } else {

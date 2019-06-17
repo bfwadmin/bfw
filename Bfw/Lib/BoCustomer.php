@@ -342,6 +342,8 @@ class BoCustomer extends Wangbo
                                             'refer' => URL
                                         ]);
                                         die();
+                                    }else{
+                                        BoCache::Cache($_sesskey, "ok", 1800);
                                     }
                                     // throw new CoreException(PHP_SAPI . Bfw::Config("Sys", "webapp", "System")['run_mode_disallow']);
                                 }

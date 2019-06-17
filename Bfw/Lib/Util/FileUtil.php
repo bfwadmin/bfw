@@ -36,12 +36,62 @@ class FileUtil
      */
     public static function CreatDir($path)
     {
+//         $folders = explode("/", $path);
+
+//         $nFolders = count($folders);
+//         for($i = 0; $i < $nFolders; $i++){
+//             $newFolder = '/' . $folders[$i];
+//             $path .= $newFolder;
+
+//             if (!file_exists($path) && !is_dir($path)) {
+//                 mkdir($path,0777);
+//             }
+
+//         }
         if (! is_dir($path)) {
             if (self::CreatDir(dirname($path))) {
                 return mkdir($path, 0777);
             }
         } else {
             return true;
+        }
+    }
+
+    /** 计算目录的文件大小 字节
+     * 换算成Mb要/1024/1024
+     * @param unknown $dir 目录
+     * @return number 大小字节数
+     */
+    public static function CountDirsize($dir)
+    {
+        $_totalsize = 0;
+        $handle = opendir($dir);
+        while (false !== ($FolderOrFile = readdir($handle))) {
+            if ($FolderOrFile != "." && $FolderOrFile != "..") {
+                if (is_dir($dir . DS . $FolderOrFile)) {
+                    $_totalsize += self::CountDirsize($dir . DS . $FolderOrFile);
+                } else {
+                    $_totalsize += filesize($dir . DS . $FolderOrFile);
+                }
+            }
+        }
+        closedir($handle);
+
+        return $_totalsize;
+    }
+
+    /**
+     * 移动文件到新文件夹
+     * @param unknown $_files 文件数组
+     * @param unknown $_sourcefolder 源文件夹
+     * @param unknown $_tofolder 目标文件夹
+     */
+    public static function MoveFiles($_files, $_sourcefolder, $_tofolder)
+    {
+        $nFiles = count($_files);
+        for ($i = 0; $i < $nFiles; $i ++) {
+            $file = $_files[$i];
+            rename($_sourcefolder . $file, $_tofolder . DS . $file);
         }
     }
 
@@ -143,7 +193,7 @@ class FileUtil
         }
     }
 
-    public static function getfilebydir($_dir, $_base = "/",$_ex="")
+    public static function getfilebydir($_dir, $_base = "/", $_ex = "")
     {
         $_data = [];
         $_dirdata = scandir($_base . $_dir);
@@ -154,19 +204,18 @@ class FileUtil
                     $_data[] = [
                         "name" => $file,
                         "type" => 1,
-                        "data" => self::getfilebydir($file, $_base . $_dir . DS,$_ex)
+                        "data" => self::getfilebydir($file, $_base . $_dir . DS, $_ex)
                     ];
                 } else {
 
-                    $_ext=strrchr($file, '.');
-                    if($_ext&&$_ext!=$_ex){
+                    $_ext = strrchr($file, '.');
+                    if ($_ext && $_ext != $_ex) {
                         $_data[] = [
                             "name" => $file,
                             "type" => 2,
                             "data" => $file
                         ];
                     }
-
                 }
             }
         }
@@ -208,7 +257,7 @@ class FileUtil
             $line = fgets($file_handle);
             ++ $i;
             if ($i == $_iLine) {
-                $arr[] = $_string.$line;
+                $arr[] = $_string . $line;
             } else {
                 $arr[] = $line;
             }
@@ -217,7 +266,6 @@ class FileUtil
         file_put_contents($_src, implode("", $arr));
         return $arr;
     }
-
 
     /**
      * 指定行删除数据
@@ -236,7 +284,7 @@ class FileUtil
             $line = fgets($file_handle);
             ++ $i;
             if ($i == $_iLine) {
-                $arr[] =str_replace($_string, "", $line);
+                $arr[] = str_replace($_string, "", $line);
             } else {
                 $arr[] = $line;
             }
@@ -245,7 +293,6 @@ class FileUtil
         file_put_contents($_src, implode("", $arr));
         return $arr;
     }
-
 }
 
 ?>

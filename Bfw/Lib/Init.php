@@ -19,6 +19,7 @@ use Lib\Exception\QueueException;
 use Lib\Exception\SessionException;
 use Lib\Exception\LogException;
 use Lib\BoCache;
+use Lib\BoReq;
 
 if (strtolower(PHP_SAPI) != "cli") {
     ob_start();
@@ -365,12 +366,18 @@ try {
         session_set_cookie_params(SESSION_COOKIE_EXPIRE, "/", SESSION_COOKIE_DOMIAN, false, true);
         $_sessionpath = "Lib\\Session\\" . SESSION_HANDLER_NAME . "::";
         session_set_save_handler($_sessionpath . "sess_open", $_sessionpath . "sess_close", $_sessionpath . "sess_read", $_sessionpath . "sess_write", $_sessionpath . "sess_destroy", $_sessionpath . "sess_gc");
-        if (isset($_POST[SESSION_ID_NAME]) && $_POST[SESSION_ID_NAME] != "") {
-            session_id($_POST[SESSION_ID_NAME]);
+       // if (isset($_POST[SESSION_ID_NAME]) && $_POST[SESSION_ID_NAME] != "") {
+         //   session_id($_POST[SESSION_ID_NAME]);
+       // }
+       // if (isset($_GET[SESSION_ID_NAME]) && $_GET[SESSION_ID_NAME] != "") {
+           // session_id($_GET[SESSION_ID_NAME]);
+       // }
+        //if(ROUTETYPE==2){
+        $_sessidval=BoReq::GPC(SESSION_ID_NAME);
+        if ($_sessidval!="") {
+             session_id($_sessidval);
         }
-        if (isset($_GET[SESSION_ID_NAME]) && $_GET[SESSION_ID_NAME] != "") {
-            session_id($_GET[SESSION_ID_NAME]);
-        }
+       // }
         session_start();
         define("SESS_ID", session_id()); // 用户Sessionid
         session_write_close();

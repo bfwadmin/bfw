@@ -23,11 +23,13 @@ class BoRoute
         $_pathurl="";
         if(isset($_SERVER['PATH_INFO'])&&$_SERVER['PATH_INFO']!=""){
             $_pathurl=$_SERVER['PATH_INFO'];
+
         }else{
             if(isset( $_SERVER["QUERY_STRING"])){
                 $_pathurl=$_SERVER['QUERY_STRING'];
             }
         }
+
         if($_pathurl!=""){
             $_routedata = &Registry::getInstance()->get("route_data");
             if (! is_null($_routedata)) {
@@ -81,6 +83,7 @@ class BoRoute
                     }
                 }
             }
+
             Registry::getInstance()->set("sys_path_array_cache_data", $_key_arr);
         }
         return $_key_arr;
