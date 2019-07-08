@@ -182,6 +182,8 @@ try {
     defineinit("WEB_DEBUG_AJAX", $_config_arr['App'], 'web_debug_ajax', false); // 调试模式
     defineinit("AUTO_CON", $_config_arr['App'], 'auto_con', false); // 是否自动填充control到数据库
     defineinit("SHOW_APIDOC", $_config_arr['App'], 'show_apidoc', false); // 是否显示api文档
+    defineinit("APIDOC_PWD", $_config_arr['App'], 'apidoc_pwd', ""); // api文档的密码
+    defineinit("APIDOC_UNAME", $_config_arr['App'], 'apidoc_uname', ""); // api文档的账号
     defineinit("APP_HOST_URL", $_config_arr['App'], 'app_host_url', "http://a.exm.com/"); // APP远程库
     defineinit("PLUGIN_HOST_URL", $_config_arr['App'], 'plugin_host_url', "http://a.exm.com/"); // 插件库url
     defineinit("FILTER_CONT", $_config_arr['App'], 'filter_cont', false); // 是否过滤控制器

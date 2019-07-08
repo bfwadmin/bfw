@@ -36,18 +36,18 @@ class FileUtil
      */
     public static function CreatDir($path)
     {
-//         $folders = explode("/", $path);
+        // $folders = explode("/", $path);
 
-//         $nFolders = count($folders);
-//         for($i = 0; $i < $nFolders; $i++){
-//             $newFolder = '/' . $folders[$i];
-//             $path .= $newFolder;
+        // $nFolders = count($folders);
+        // for($i = 0; $i < $nFolders; $i++){
+        // $newFolder = '/' . $folders[$i];
+        // $path .= $newFolder;
 
-//             if (!file_exists($path) && !is_dir($path)) {
-//                 mkdir($path,0777);
-//             }
+        // if (!file_exists($path) && !is_dir($path)) {
+        // mkdir($path,0777);
+        // }
 
-//         }
+        // }
         if (! is_dir($path)) {
             if (self::CreatDir(dirname($path))) {
                 return mkdir($path, 0777);
@@ -57,9 +57,12 @@ class FileUtil
         }
     }
 
-    /** 计算目录的文件大小 字节
+    /**
+     * 计算目录的文件大小 字节
      * 换算成Mb要/1024/1024
-     * @param unknown $dir 目录
+     *
+     * @param unknown $dir
+     *            目录
      * @return number 大小字节数
      */
     public static function CountDirsize($dir)
@@ -82,9 +85,13 @@ class FileUtil
 
     /**
      * 移动文件到新文件夹
-     * @param unknown $_files 文件数组
-     * @param unknown $_sourcefolder 源文件夹
-     * @param unknown $_tofolder 目标文件夹
+     *
+     * @param unknown $_files
+     *            文件数组
+     * @param unknown $_sourcefolder
+     *            源文件夹
+     * @param unknown $_tofolder
+     *            目标文件夹
      */
     public static function MoveFiles($_files, $_sourcefolder, $_tofolder)
     {
@@ -193,6 +200,16 @@ class FileUtil
         }
     }
 
+    /**
+     *
+     * @param unknown $_dir
+     *            扫描目录
+     * @param string $_base
+     *            扫描根目录
+     * @param string $_ex
+     *            排除文件格式
+     * @return multitype:multitype:number unknown multitype:number unknown multitype:multitype:number unknown multitype:number NULL unknown
+     */
     public static function getfilebydir($_dir, $_base = "/", $_ex = "")
     {
         $_data = [];
@@ -220,6 +237,25 @@ class FileUtil
             }
         }
         return $_data;
+    }
+
+    /**
+     * 获取目录下的所有子目录
+     *
+     * @param unknown $_dir
+     * @param unknown $_folderdata
+     */
+    public static function getsubfoloderbydir($_dir, $_base = DS, &$_folderdata)
+    {
+        $_dirdata = scandir($_base . $_dir);
+        foreach ($_dirdata as $file) {
+            if (($file != '.') && ($file != '..')) {
+                if (is_dir($_base . $_dir . $file)) {
+                    $_folderdata[] = $_dir . $file;
+                    self::getsubfoloderbydir(DS.$file.DS, $_base, $_folderdata);
+                }
+            }
+        }
     }
 
     public static function copy_replace_text($_src, $_des, $_search, $_repalce)

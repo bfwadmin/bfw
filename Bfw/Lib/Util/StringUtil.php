@@ -557,7 +557,7 @@ class StringUtil
 
     /**
      * 获得唯一吗
-     * 32位
+     *
      * @return string
      */
     public static function guid()
@@ -746,9 +746,9 @@ class StringUtil
         $str = preg_replace("/<(\/?i?frame.*?)>/si", "", $str); // 过滤frame标签
         $str = preg_replace("/<(script.*?)>(.*?)<(\/script.*?)>/si", "", $str); // 过滤script标签
         $str = preg_replace("/<(\/?script.*?)>/si", "", $str); // 过滤script标签
-        $str = preg_replace("/javascript/si", "BfwJavascript", $str); // 过滤script标签
-        $str = preg_replace("/vbscript/si", "BfwVbscript", $str); // 过滤script标签
-        $str = preg_replace("/on([a-z]+)\s*=/si", "BfwOn\\1=", $str); // 过滤script标签
+        $str = preg_replace("/javascript\s*(:)+/si", "BfwJavascript", $str); // 过滤script标签
+        $str = preg_replace("/vbscript\s*(:)+/si", "BfwVbscript", $str); // 过滤script标签
+        $str = preg_replace("/\s+on([a-z]+)\s*=/si", "BfwOn\\1=", $str); // 过滤script标签
         return $str;
     }
 

@@ -3,8 +3,9 @@ namespace Lib;
 
 // Bfw::import("App.Lang." . DOMIAN_VALUE . "." . LANG);
 /**
+ *
  * @author wangbo
- * 框架运行开始
+ *         框架运行开始
  */
 class WebApp extends WangBo
 {
@@ -60,8 +61,30 @@ class WebApp extends WangBo
         // 消费者
         if (RUN_MODE == "C") {
             if (SHOW_APIDOC && isset($_GET['getapidoc'])) {
-                $_bocodeins = Core::LoadClass("Lib\\BoApi");
-                $_bocodeins->Show();
+                if (APIDOC_PWD == ""&&APIDOC_UNAME=="") {
+                    $_bocodeins = Core::LoadClass("Lib\\BoApi");
+                    $_bocodeins->Show();
+                } else {
+                    $_sesskey = SESS_ID . "\\api_doc_login{$_domian}";
+                    if (BoCache::Cache($_sesskey) != "ok") {
+                        if (IS_AJAX_REQUEST) {
+                            if (BoReq::PostVal("username") == APIDOC_UNAME && BoReq::PostVal("password") == APIDOC_PWD) {
+                                BoCache::Cache($_sesskey, "ok", 1800);
+                                die("ok");
+                            } else {
+                                die(BoConfig::Config("Sys", "webapp", "System")['user_pwd_wrong']);
+                            }
+                        }
+                        BoRes::View("login", "System", "v1", [
+                            'refer' => URL
+                        ]);
+                        die();
+                    } else {
+                        BoCache::Cache($_sesskey, "ok", 1800);
+                        $_bocodeins = Core::LoadClass("Lib\\BoApi");
+                        $_bocodeins->Show();
+                    }
+                }
                 exit();
             }
             if (CONTROL_VALUE == "" && ACTION_VALUE == "" && DOMIAN_VALUE == "") {
