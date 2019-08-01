@@ -48,7 +48,15 @@ class AliyunOss
             return false;
         }
     }
+    public function uploadFile($bucket, $object, $file){
+        try {
+            return $this->ossClient->uploadFile($bucket, $object, $file);
+        } catch (\Plugin\OSS\Core\OssException $e) {
+            print $e->getMessage();
+            return false;
+        }
 
+    }
     public function putObject($bucket, $object, $content)
     {
         try {
