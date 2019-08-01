@@ -252,7 +252,7 @@ class FileUtil
             if (($file != '.') && ($file != '..')) {
                 if (is_dir($_base . $_dir . $file)) {
                     $_folderdata[] = $_dir . $file;
-                    self::getsubfoloderbydir(DS.$file.DS, $_base, $_folderdata);
+                    self::getsubfoloderbydir(DS . $file . DS, $_base, $_folderdata);
                 }
             }
         }
@@ -328,6 +328,50 @@ class FileUtil
         fclose($file_handle);
         file_put_contents($_src, implode("", $arr));
         return $arr;
+    }
+
+    /**
+     * This function handles the pull / init / clone of a git repo
+     *
+     * @param $git_url Example
+     *            of git clone url git://github.com/someuser/somerepo.git
+     *
+     * @return bool true
+     */
+    public static function pullOrCloneRepo($git_url, $file_path)
+    {
+        if (! isset($git_url)) {
+            return false;
+        }
+        // validate contains git://github.com/
+
+        echo $file_path;
+        if (strpos($git_url, 'git') !== FALSE) {
+
+            if (! is_dir($file_path)) {
+                self::CreatDir($file_path);
+            }
+
+            // $file_path = drupal_realpath($uri); // change this if not in drupal
+            if (is_dir($file_path)) {
+                $first_dir = getcwd();
+                // change dir to the new path
+                $new_dir = chdir($file_path);
+                // Git init
+
+                $git_init = shell_exec('git init');
+                // Git clone
+                $git_clone = shell_exec('git clone ' . $git_url);
+
+                // Git pull
+                $git_pull = shell_exec('git pull');
+                // change dir back
+                $change_dir_back = chdir($first_dir);
+                return true;
+            }
+        } else {
+            return false;
+        }
     }
 }
 
