@@ -74,29 +74,54 @@ try {
     $_defaultdom = "";
     $_defaultcont = "";
     $_defaultact = "";
-    if (isset($_config_arr['Globle']['host_runmode']) && isset($_config_arr['Globle']['host_runmode'][HOST_NAME])) {
-        defineinit("RUN_MODE", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'mode', "C"); // 运行模式 S server C client M moniter D developer
-        if (RUN_MODE == "D") {
-            defineinit("DEV_PLACE", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'devplace', "local"); // 开发地点 云端或本地 local cloud
-            defineinit("DEV_DEMO_URL", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'devdemourl', "http://a.exm.com/Cloud/"); // 开发地点 云端或本地 local cloud
-            defineinit("DEV_USERDB_DIR", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'devuserdbdir', APP_ROOT . DS . "Data" . DS); // 云开发用户注册数据库
-            defineinit("DEV_USERCOOKIE_NAME", $_config_arr['Globle']['host_runmode'][HOST_NAME], 'devusercookiename', "bfw_id"); // 云开发用户注册数据库
-        }
-        $_defaultdom = isset($_config_arr['Globle']['host_runmode'][HOST_NAME]['dom']) ? $_config_arr['Globle']['host_runmode'][HOST_NAME]['dom'] : "";
-        $_defaultcont = isset($_config_arr['Globle']['host_runmode'][HOST_NAME]['cont']) ? $_config_arr['Globle']['host_runmode'][HOST_NAME]['cont'] : "";
-        $_defaultact = isset($_config_arr['Globle']['host_runmode'][HOST_NAME]['act']) ? $_config_arr['Globle']['host_runmode'][HOST_NAME]['act'] : "";
-        define("HOST_HIDE_DOM", $_defaultdom);
+    //找到入口
 
-        if (isset($_config_arr['Globle']['host_runmode'][HOST_NAME]['routetype'])) {
-            define("ROUTETYPE", $_config_arr['Globle']['host_runmode'][HOST_NAME]['routetype']); // 路由模式 1 get 2 pathinfo
-        } else {
-            defineinit("ROUTETYPE", $_config_arr['Globle'], 'routetype', 1); // 路由模式 1 get 2 pathinfo
-        }
-        if (ROUTETYPE == 2) {
-            if (isset($_config_arr['Globle']['host_runmode'][HOST_NAME]['route'])) {
-                Registry::getInstance()->set("route_data", $_config_arr['Globle']['host_runmode'][HOST_NAME]['route']);
+    if (isset($_config_arr['Globle']['host_runmode'])) {
+        $_findkey="";
+        if(isset($_config_arr['Globle']['host_runmode'][HOST_NAME])){
+            $_findkey=HOST_NAME;
+        }else{
+            $_hosts=array_keys($_config_arr['Globle']['host_runmode']);
+
+            foreach ($_hosts as $_host){
+              if (strstr($_host, "$")!==false&&preg_match($_host, HOST_NAME)) {
+                  $_findkey=$_host;
+                  break;
+              }
             }
+
         }
+        if($_findkey!=""){
+            defineinit("RUN_MODE", $_config_arr['Globle']['host_runmode'][$_findkey], 'mode', "C"); // 运行模式 S server C client M moniter D developer
+            if (RUN_MODE == "D") {
+                defineinit("DEV_PLACE", $_config_arr['Globle']['host_runmode'][$_findkey], 'devplace', "local"); // 开发地点 云端或本地 local cloud
+                defineinit("DEV_DEMO_URL", $_config_arr['Globle']['host_runmode'][$_findkey], 'devdemourl', "http://a.exm.com/Cloud/"); // 开发地点 云端或本地 local cloud
+                defineinit("DEV_USERDB_DIR", $_config_arr['Globle']['host_runmode'][$_findkey], 'devuserdbdir', APP_ROOT . DS . "Data" . DS); // 云开发用户注册数据库
+                defineinit("DEV_USERCOOKIE_NAME", $_config_arr['Globle']['host_runmode'][$_findkey], 'devusercookiename', "bfw_id"); // 云开发用户注册数据库
+            }
+            $_defaultdom = isset($_config_arr['Globle']['host_runmode'][$_findkey]['dom']) ? $_config_arr['Globle']['host_runmode'][$_findkey]['dom'] : "";
+            $_defaultcont = isset($_config_arr['Globle']['host_runmode'][$_findkey]['cont']) ? $_config_arr['Globle']['host_runmode'][$_findkey]['cont'] : "";
+            $_defaultact = isset($_config_arr['Globle']['host_runmode'][$_findkey]['act']) ? $_config_arr['Globle']['host_runmode'][$_findkey]['act'] : "";
+            define("HOST_HIDE_DOM", $_defaultdom);
+
+            if (isset($_config_arr['Globle']['host_runmode'][$_findkey]['routetype'])) {
+                define("ROUTETYPE", $_config_arr['Globle']['host_runmode'][$_findkey]['routetype']); // 路由模式 1 get 2 pathinfo
+            } else {
+                defineinit("ROUTETYPE", $_config_arr['Globle'], 'routetype', 1); // 路由模式 1 get 2 pathinfo
+            }
+            if (ROUTETYPE == 2) {
+                if (isset($_config_arr['Globle']['host_runmode'][$_findkey]['route'])) {
+                    Registry::getInstance()->set("route_data", $_config_arr['Globle']['host_runmode'][$_findkey]['route']);
+                }
+            }
+        }else{
+            defineinit("RUN_MODE", $_config_arr['Globle'], 'runmode', "C"); // 运行模式 S server C client M moniter
+            $_defaultdom = isset($_config_arr['Globle']['defaultdom']) ? $_config_arr['Globle']['defaultdom'] : "";
+            $_defaultcont = isset($_config_arr['Globle']['defaultcont']) ? $_config_arr['Globle']['defaultcont'] : "";
+            $_defaultact = isset($_config_arr['Globle']['defaultact']) ? $_config_arr['Globle']['defaultact'] : "";
+            define("ROUTETYPE", isset($_config_arr['Globle']['routetype']) ? $_config_arr['Globle']['routetype'] : 1); // 路由模式 1 get 2 pathinfo
+        }
+
     } else {
         defineinit("RUN_MODE", $_config_arr['Globle'], 'runmode', "C"); // 运行模式 S server C client M moniter
         $_defaultdom = isset($_config_arr['Globle']['defaultdom']) ? $_config_arr['Globle']['defaultdom'] : "";
@@ -551,25 +576,28 @@ function err_function()
 
 function BoErrorHandler($errno, $errstr, $errfile, $errline)
 {
+    if(defined("WEB_DEBUG")){
+        if (WEB_DEBUG && DEBUG_IP == IP) {
+            BoDebug::Info("err:" . $errstr . ",file:" . $errfile . ",line:" . $errline);
+        }
+        if (E_WARNING === $errno) {
+            BoDebug::LogR("PHP Warning: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_WARN);
+            return true;
+        }
+        if (E_ERROR === $errno) {
+            BoDebug::LogR("PHP Err: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_ERROR);
+            return true;
+        }
+        if (E_NOTICE === $errno) {
+            BoDebug::LogR("PHP Notic: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_INFO);
+            return true;
+        } else {
+            BoDebug::LogR("Err: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_INFO);
+            return true;
+        }
+    }
     // die($errstr.$errno.$errfile.$errline);
-    if (WEB_DEBUG && DEBUG_IP == IP) {
-        BoDebug::Info("err:" . $errstr . ",file:" . $errfile . ",line:" . $errline);
-    }
-    if (E_WARNING === $errno) {
-        BoDebug::LogR("PHP Warning: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_WARN);
-        return true;
-    }
-    if (E_ERROR === $errno) {
-        BoDebug::LogR("PHP Err: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_ERROR);
-        return true;
-    }
-    if (E_NOTICE === $errno) {
-        BoDebug::LogR("PHP Notic: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_INFO);
-        return true;
-    } else {
-        BoDebug::LogR("Err: $errstr, $errfile, $errline", "php", BoErrEnum::BFW_INFO);
-        return true;
-    }
+
     return false;
 }
 

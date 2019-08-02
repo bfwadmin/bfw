@@ -343,9 +343,7 @@ class FileUtil
         if (! isset($git_url)) {
             return false;
         }
-        // validate contains git://github.com/
 
-        echo $file_path;
         if (strpos($git_url, 'git') !== FALSE) {
 
             if (! is_dir($file_path)) {
