@@ -29,8 +29,7 @@ class BoRoute
                 $_pathurl=$_SERVER['QUERY_STRING'];
             }
         }
-
-        if($_pathurl!=""){
+       // if($_pathurl!=""){
             $_routedata = &Registry::getInstance()->get("route_data");
             if (! is_null($_routedata)) {
                foreach ( $_routedata as $_iurl => $_furl){
@@ -59,7 +58,7 @@ class BoRoute
                        }
                    }
                }
-            }
+           // }
             if (PAGE_SUFFIX != "") {
                 $_pathurl=str_replace(PAGE_SUFFIX,"",$_pathurl);
             }

@@ -635,7 +635,7 @@ class BoModel
     /**
      * 输出数据
      *
-     * @return RetMsg
+     * @return RetMsg ['err'=>bool,'data'=>[数组]]
      */
     function Select()
     {
