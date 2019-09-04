@@ -4,8 +4,9 @@ namespace Lib;
 use Lib\Exception\CoreException;
 
 /**
+ *
  * @author wangbo
- * 响应类
+ *         响应类
  */
 class BoRes
 {
@@ -46,16 +47,16 @@ class BoRes
     // Core::V("视图名称", 域,控制器名称，数据)
     public static function View($viewname, $domain, $contval = CONTROL_VALUE, $_data = null)
     {
-        $viewpath = APP_ROOT.DS."App" . DS . $domain . DS . "View" . DS . $contval . DS . $viewname . ".php";
+        $viewpath = APP_ROOT . DS . "App" . DS . $domain . DS . "View" . DS . $contval . DS . $viewname . ".php";
         if ($domain == 'System') {
             if ("error" == $viewname) {
                 $viewpath = ERROR_PAGE;
             } elseif ("msgbox" == $viewname) {
                 $viewpath = MSGBOX_PAGE;
             } elseif ("success" == $viewname) {
-                $viewpath =  SUCCESS_PAGE;
+                $viewpath = SUCCESS_PAGE;
             } else {
-                $viewpath = BFW_LIB. DS."Lib" .DS. "View" . DS . $contval . DS . $viewname . ".php";
+                $viewpath = BFW_LIB . DS . "Lib" . DS . "View" . DS . $contval . DS . $viewname . ".php";
             }
         }
         if (file_exists($viewpath)) {
@@ -73,6 +74,45 @@ class BoRes
         } else {
             throw new CoreException(BoConfig::Config("Sys", "webapp", "System")['view_not_found'] . $viewname);
         }
+    }
+
+    /**
+     * 加载php view块
+     *
+     * @param unknown $path
+     * @param array $data
+     */
+    public static function ViewBlock($viewpath, $data)
+    {
+        $viewpath = APP_ROOT . DS . "App" . DS . DOMIAN_VALUE . DS . "View"  . DS . $viewpath . ".php";
+        if (file_exists($viewpath)) {
+            $_in_data_obj = null;
+            if ($_data != null && is_array($_data)) {
+                $_in_data_obj = &$_data;
+            } else {
+                $_in_data_obj = &Registry::getInstance()->getAll();
+            }
+            if (is_array($_in_data_obj))
+                extract($_in_data_obj, EXTR_PREFIX_SAME, 'data');
+            else
+                $data = $_in_data_obj;
+            include $viewpath;
+        } else {
+            throw new CoreException(BoConfig::Config("Sys", "webapp", "System")['view_not_found'] . $viewname);
+        }
+    }
+
+    /**
+     * 加载小部件
+     *
+     * @param string $_name
+     * @param object $_data
+     * @param string $_domian
+     */
+    public static function Widget($_name, $_data = null, $_domian = DOMIAN_VALUE)
+    {
+        $_name = "App\\" . $_domian . "\\Widget\\Widget_" . $_name;
+        return Core::LoadClass($_name, $_data)->Render();
     }
 
     public static function CacheBegin($id, $_expiretime = 60, $_dependency = "")

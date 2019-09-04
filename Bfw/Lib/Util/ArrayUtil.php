@@ -129,6 +129,24 @@ class ArrayUtil
         return $ret;
     }
 
+    /**
+     * 二维转一维数组
+     * @param unknown $_arr
+     * @return multitype:NULL
+     */
+    public static function MutiToOne(&$_arr)
+    {
+        $ret = array();
+        if (is_array($_arr)) {
+            foreach ($_arr as $_a) {
+                if (is_array($_a)) {
+                    array_push($ret, array_values($_a));
+                }
+            }
+        }
+        return $ret;
+    }
+
     public static function Validate(&$_sarr, &$_varr, &$_obj)
     {
         if (isset($_varr)) {

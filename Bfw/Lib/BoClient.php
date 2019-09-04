@@ -6,8 +6,9 @@ use Lib\Exception\HttpException;
 use Lib\Util\StringUtil;
 // import ( "Client." . DOMIAN_VALUE . ".config" );
 /**
+ *
  * @author wangbo
- * 调用类父类
+ *         调用类父类
  */
 class BoClient
 {
@@ -169,8 +170,8 @@ class BoClient
             $_servicename = str_replace("App\\" . DOMIAN_VALUE . "\\Client\\Client_", "", get_class($this));
             // 调用模式
             static $_config_arr = [];
-            if (file_exists(APP_ROOT.DS."App".DS. "Config.php")) {
-                include APP_ROOT.DS."App".DS. "Config.php";
+            if (file_exists(APP_ROOT . DS . "App" . DS . "Config.php")) {
+                include APP_ROOT . DS . "App" . DS . "Config.php";
             }
             // $_runservicename = SERVICE_DOMIAN_VALUE . "/" . $_servicename . "/" . str_replace("___", "", $method);
             $_runservicename = DOMIAN_VALUE . "_" . $_servicename . "_" . str_replace("___", "", $method);
@@ -339,10 +340,12 @@ class BoClient
 
     public function Count($wherestr = null, $wherearr = null)
     {
-        return $this->client_call("Count", [
+        $_ret= $this->client_call("Count", [
             $wherestr,
             $wherearr
         ]);
+        $this->ClearLastdata();
+        return $_ret;
     }
 
     /**
@@ -454,10 +457,12 @@ class BoClient
 
     public function Total()
     {
-        return $this->client_call("Count", [
+        $_ret=$this->client_call("Count", [
             $this->_wherestr,
             $this->_wherearr
         ]);
+        $this->ClearLastdata();
+        return $_ret;
     }
 
     /**
@@ -486,7 +491,7 @@ class BoClient
      */
     public function Select($_withtotal = true)
     {
-        return $this->client_call("ListData", [
+        $_ret= $this->client_call("ListData", [
             $this->_field,
             $this->_wherestr,
             $this->_wherearr,
@@ -495,6 +500,8 @@ class BoClient
             $this->_orderstr,
             $_withtotal
         ]);
+        $this->ClearLastdata();
+        return $_ret;
     }
 
     /**
@@ -523,6 +530,45 @@ class BoClient
         $this->_cachemasterkey = $key;
 
         return $this;
+    }
+
+    public function ClearLastdata()
+    {
+        $this->_wherestr = null;
+
+        $this->_wherearr = null;
+
+        $this->_pagesize = 0;
+
+        $this->_page = 0;
+
+        $this->_orderstr = null;
+
+        $this->_field = "*";
+
+        $this->_cachetime = 0;
+
+        $this->_cacheasync = false;
+
+        $this->_cachemasterkey = "";
+
+        $this->_cachedependcy = null;
+
+        $this->_cachemaster = false;
+
+        $this->_base_serv_url = "";
+
+        $this->_base_serv_lang = "";
+
+        $this->_base_serv_key = "";
+
+        $this->_base_serv_dom = "";
+
+        $this->_serv_url = null;
+
+        $this->_service_remote = SERVICE_REMOTE;
+
+        $this->_callfrombg = false;
     }
 
     public function ResetCache($_isdepency = true)
