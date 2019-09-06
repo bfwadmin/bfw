@@ -106,13 +106,20 @@ class FileUtil
     {
         if (is_dir($sourcepath)) {
             $zip = new \ZipArchive();
-            if ($zip->open($newpath, \ZipArchive::OVERWRITE) === TRUE) {
+            if($zip->open($newpath, \ZipArchive::OVERWRITE) === TRUE){
                 self::addFileToZip($sourcepath, $zip);
                 $zip->close();
                 return true;
-            } else {
-                return false;
+            }else{
+                if ($zip->open($newpath, \ZipArchive::CREATE) === TRUE) {
+                    self::addFileToZip($sourcepath, $zip);
+                    $zip->close();
+                    return true;
+                } else {
+                    return false;
+                }
             }
+
         }
     }
 
@@ -171,7 +178,9 @@ class FileUtil
     public static function copydir($src, $des)
     {
         $dir = opendir($src);
-        self::CreatDir($des);
+        if(!is_dir($des)){
+          self::CreatDir($des);
+        }
         while (false !== ($file = readdir($dir))) {
             if (($file != '.') && ($file != '..')) {
                 if (is_dir($src . DS . $file)) {
@@ -182,6 +191,7 @@ class FileUtil
             }
         }
         @closedir($dir);
+        return true;
     }
 
     public static function replace_text($_src, $_search, $_repalce)
