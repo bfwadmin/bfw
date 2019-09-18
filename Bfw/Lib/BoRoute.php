@@ -21,23 +21,23 @@ class BoRoute
         $_key_arr[CONTROL_NAME] ="";
         $_key_arr[ACTION_NAME] = "";
         $_pathurl="";
+        $_querypara=false;
+        if(isset( $_SERVER["REQUEST_URI"])){
+           $_querypara = strstr($_SERVER["REQUEST_URI"],'?');
+        }
+
         if(isset($_SERVER['PATH_INFO'])&&$_SERVER['PATH_INFO']!=""){
             $_pathurl=$_SERVER['PATH_INFO'];
 
         }else{
-            //$_SERVER["REQUEST_URI"]
-            if(isset( $_SERVER["REQUEST_URI"])){
-                 $_pathurl=$_SERVER['REQUEST_URI'];
-             }
-            //if(isset( $_SERVER["QUERY_STRING"])){
-               // $_pathurl=$_SERVER['QUERY_STRING'];
-           // }
+            if(isset( $_SERVER["QUERY_STRING"])){
+               $_pathurl=$_SERVER['QUERY_STRING'];
+           }
         }
         if($_pathurl==""){
             $_pathurl="/";
         }
         if($_pathurl!=""){
-
             $_routedata = &Registry::getInstance()->get("route_data");
             if (! is_null($_routedata)) {
                foreach ( $_routedata as $_iurl => $_furl){
@@ -90,8 +90,7 @@ class BoRoute
                     }
                 }
 
-                $_querypara = strstr($_pathurl,'?');
-                //echo "get query".substr($_querypara,1);
+
                 if($_querypara){
                     $queryparts = explode('&', substr($_querypara,1));
                     foreach ($queryparts as $param) {
