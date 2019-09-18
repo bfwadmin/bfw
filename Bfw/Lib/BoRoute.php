@@ -25,14 +25,19 @@ class BoRoute
             $_pathurl=$_SERVER['PATH_INFO'];
 
         }else{
-            if(isset( $_SERVER["QUERY_STRING"])){
-                $_pathurl=$_SERVER['QUERY_STRING'];
-            }
+            //$_SERVER["REQUEST_URI"]
+            if(isset( $_SERVER["REQUEST_URI"])){
+                 $_pathurl=$_SERVER['REQUEST_URI'];
+             }
+            //if(isset( $_SERVER["QUERY_STRING"])){
+               // $_pathurl=$_SERVER['QUERY_STRING'];
+           // }
         }
         if($_pathurl==""){
             $_pathurl="/";
         }
         if($_pathurl!=""){
+
             $_routedata = &Registry::getInstance()->get("route_data");
             if (! is_null($_routedata)) {
                foreach ( $_routedata as $_iurl => $_furl){
@@ -84,6 +89,20 @@ class BoRoute
                         $i ++;
                     }
                 }
+
+                $_querypara = strstr($_pathurl,'?');
+                //echo "get query".substr($_querypara,1);
+                if($_querypara){
+                    $queryparts = explode('&', substr($_querypara,1));
+                    foreach ($queryparts as $param) {
+                        $item = explode('=', $param);
+                        if(isset($item[0])){
+                            $_key_arr[$item[0]]=isset($item[1])?$item[1]:"";
+
+                        }
+                    }
+                }
+
             }
 
             Registry::getInstance()->set("sys_path_array_cache_data", $_key_arr);

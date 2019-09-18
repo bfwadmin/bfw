@@ -12,7 +12,7 @@ class FileUtil
     /**
      * 获取目录文件列表
      *
-     * @param string $dir
+     * @param string $dir            
      * @return array
      */
     public static function getFileListByDir($dir)
@@ -31,22 +31,22 @@ class FileUtil
     /**
      * 创建目录
      *
-     * @param string $path
+     * @param string $path            
      * @return boolean
      */
     public static function CreatDir($path)
     {
         // $folders = explode("/", $path);
-
+        
         // $nFolders = count($folders);
         // for($i = 0; $i < $nFolders; $i++){
         // $newFolder = '/' . $folders[$i];
         // $path .= $newFolder;
-
+        
         // if (!file_exists($path) && !is_dir($path)) {
         // mkdir($path,0777);
         // }
-
+        
         // }
         if (! is_dir($path)) {
             if (self::CreatDir(dirname($path))) {
@@ -79,7 +79,7 @@ class FileUtil
             }
         }
         closedir($handle);
-
+        
         return $_totalsize;
     }
 
@@ -106,11 +106,11 @@ class FileUtil
     {
         if (is_dir($sourcepath)) {
             $zip = new \ZipArchive();
-            if($zip->open($newpath, \ZipArchive::OVERWRITE) === TRUE){
+            if ($zip->open($newpath, \ZipArchive::OVERWRITE) === TRUE) {
                 self::addFileToZip($sourcepath, $zip);
                 $zip->close();
                 return true;
-            }else{
+            } else {
                 if ($zip->open($newpath, \ZipArchive::CREATE) === TRUE) {
                     self::addFileToZip($sourcepath, $zip);
                     $zip->close();
@@ -119,7 +119,6 @@ class FileUtil
                     return false;
                 }
             }
-
         }
     }
 
@@ -138,7 +137,7 @@ class FileUtil
     /**
      * 删除目录及文件
      *
-     * @param unknown $dirName
+     * @param unknown $dirName            
      * @return boolean
      */
     public static function delDirAndFile($dirName)
@@ -165,7 +164,7 @@ class FileUtil
             if ($filename != "." && $filename != "..") { // 文件夹文件名字为'.'和‘..’，不要对他们进行操作
                 if (is_dir($path . DS . $filename)) { // 如果读取的某个对象是文件夹，则递归
                     $zip->addEmptyDir($folder . DS . $filename);
-
+                    
                     self::addFileToZip($path . DS . $filename, $zip, $folder . DS . $filename);
                 } else { // 将文件加入zip对象
                     $zip->addFile($path . DS . $filename, $folder . DS . $filename);
@@ -177,20 +176,43 @@ class FileUtil
 
     public static function copydir($src, $des)
     {
-        $dir = opendir($src);
-        if(!is_dir($des)){
-          self::CreatDir($des);
+        
+        if(!is_dir($src)){
+            return false;
         }
-        while (false !== ($file = readdir($dir))) {
-            if (($file != '.') && ($file != '..')) {
-                if (is_dir($src . DS . $file)) {
-                    self::copydir($src . DS . $file, $des . DS . $file);
-                } else {
-                    copy($src . DS . $file, $des . DS . $file);
+     
+        $from_files = scandir($src);
+        //如果不存在目标目录，则尝试创建
+        if(!file_exists($des)){
+            @mkdir($des);
+        }
+        if(!empty($from_files)){
+            foreach ($from_files as $file){
+                if($file == '.' || $file == '..' ){
+                    continue;
+                }
+                if(is_dir($src.'/'.$file)){//如果是目录，则调用自身
+                    self::copydir($src.'/'.$file,$des.'/'.$file);
+                }else{//直接copy到目标文件夹
+                    copy($src.'/'.$file,$des.'/'.$file);
                 }
             }
         }
-        @closedir($dir);
+      //  @closedir($dir);
+//         $dir = opendir($src);
+//         if (! is_dir($des)) {
+//             self::CreatDir($des);
+//         }
+//         $file = readdir($dir);
+//         if (($file != '.') && ($file != '..')) {
+//             if (is_dir($src  . $file)) {
+//                 self::copydir($src  . $file, $des . $file);
+//             } else {
+//                 copy($src  . $file, $des  . $file);
+//             }
+//         }
+        
+       
         return true;
     }
 
@@ -234,7 +256,7 @@ class FileUtil
                         "data" => self::getfilebydir($file, $_base . $_dir . DS, $_ex)
                     ];
                 } else {
-
+                    
                     $_ext = strrchr($file, '.');
                     if ($_ext && $_ext != $_ex) {
                         $_data[] = [
@@ -252,8 +274,8 @@ class FileUtil
     /**
      * 获取目录下的所有子目录
      *
-     * @param unknown $_dir
-     * @param unknown $_folderdata
+     * @param unknown $_dir            
+     * @param unknown $_folderdata            
      */
     public static function getsubfoloderbydir($_dir, $_base = DS, &$_folderdata)
     {
@@ -263,8 +285,8 @@ class FileUtil
                 if (is_dir($_base . $_dir . $file)) {
                     $_folderdata[] = $_dir . $file;
                     self::getsubfoloderbydir(DS . $file . DS, $_base, $_folderdata);
-                }else{
-                   // $_folderdata[] = $_dir . $file;
+                } else {
+                    // $_folderdata[] = $_dir . $file;
                 }
             }
         }
@@ -291,9 +313,9 @@ class FileUtil
     /**
      * 指定行插入数据
      *
-     * @param unknown $_src
-     * @param unknown $_string
-     * @param unknown $_iLine
+     * @param unknown $_src            
+     * @param unknown $_string            
+     * @param unknown $_iLine            
      * @return multitype:string unknown
      */
     public static function insertstrbyline($_src, $_string, $_iLine)
@@ -318,9 +340,9 @@ class FileUtil
     /**
      * 指定行删除数据
      *
-     * @param unknown $_src
-     * @param unknown $_string
-     * @param unknown $_iLine
+     * @param unknown $_src            
+     * @param unknown $_string            
+     * @param unknown $_iLine            
      * @return multitype:string unknown
      */
     public static function deletestrbyline($_src, $_string, $_iLine)
@@ -347,7 +369,7 @@ class FileUtil
      *
      * @param $git_url Example
      *            of git clone url git://github.com/someuser/somerepo.git
-     *
+     *            
      * @return bool true
      */
     public static function pullOrCloneRepo($git_url, $file_path)
@@ -355,24 +377,24 @@ class FileUtil
         if (! isset($git_url)) {
             return false;
         }
-
+        
         if (strpos($git_url, 'git') !== FALSE) {
-
+            
             if (! is_dir($file_path)) {
                 self::CreatDir($file_path);
             }
-
+            
             // $file_path = drupal_realpath($uri); // change this if not in drupal
             if (is_dir($file_path)) {
                 $first_dir = getcwd();
                 // change dir to the new path
                 $new_dir = chdir($file_path);
                 // Git init
-
+                
                 $git_init = shell_exec('git init');
                 // Git clone
                 $git_clone = shell_exec('git clone ' . $git_url);
-
+                
                 // Git pull
                 $git_pull = shell_exec('git pull');
                 // change dir back
