@@ -122,6 +122,8 @@ class BoModel
 
     protected $_cpsql = "";
 
+    protected $_fields=[];
+
     /**
      * 数据库处理实例
      *
@@ -168,6 +170,127 @@ class BoModel
                 $this->_dbhandle = DbFactory::GetInstance($this->_connarray);
             } else {
                 $this->_dbhandle = DbFactory::GetInstance();
+            }
+        }
+
+        //如果
+        if(!empty($this->_fields)){
+
+            if (isset($this->_connarray)&&$this->_connarray['dbtype']=='DbMysql') {
+                $_sql="SELECT COLUMN_NAME,COLUMN_TYPE,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,IS_NULLABLE,COLUMN_DEFAULT, COLUMN_COMMENT  FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA='{$this->_connarray['dbname']}' and table_name  = '{$this->_tablename}'";
+                BoDebug::Info("show table field {$_sql}");
+                $_columndata=$this->ExecuteReader($_sql,null);
+                var_dump($_columndata);
+
+                $_prisql="SELECT k.column_name FROM information_schema.table_constraints t JOIN information_schema.key_column_usage k USING (constraint_name,table_schema,table_name) WHERE t.constraint_type='PRIMARY KEY' AND t.table_schema='{$this->_connarray['dbname']}' AND t.table_name='{$this->_tablename}'";
+
+                $_pridata=$this->ExecuteReader($_prisql,null);
+                var_dump($_pridata);
+                $_prikey=[];
+                if(!$_pridata['err']&&!empty($_pridata['data'])){
+                    foreach ($_pridata['data'] as $item){
+                        $_prikey[]=$item['column_name'];
+                    }
+                }
+
+                if(!$_columndata['err']&&!empty($_columndata['data'])){
+                    BoDebug::Info("compare table field");
+                    $_alertsql="";
+                    $_localprikey=[];
+                    //进行对比
+                    foreach ($this->_fields as $item){
+                        if(isset($item['prikey'])){
+                            $_localprikey[]=$item['name'];
+                        }
+                        $_findcol=false;
+                        foreach ($_columndata['data'] as $citem){
+                            if($citem['COLUMN_NAME']==$item['name']){
+                                $_findcol=$citem;
+                                break;
+                            }
+                        }
+                        //如果找到了
+                        if($_findcol){
+                            if($_findcol['DATA_TYPE']!=$item['type']){
+                                if($item['type']=="int"||$item['type']=="varchar"){
+                                    $_alertsql.=" MODIFY COLUMN `{$item['name']}`  {$item['type']}({$item['length']}) ".(isset($item['default'])?"DEFAULT '{$item['default']}'":"")."". (isset($item['comment'])?"COMMENT '{$item['comment']}'":"")." ,";
+                                }else{
+                                    $_alertsql.=" MODIFY COLUMN `{$item['name']}`  {$item['type']} ".(isset($item['default'])?"DEFAULT '{$item['default']}'":"")."". (isset($item['comment'])?"COMMENT '{$item['comment']}'":"")." ,";
+                                }
+                            }
+                        }else{
+                            //没找到就是新增
+                            if($item['type']=="int"||$item['type']=="varchar"){
+                                 $_alertsql.=" ADD COLUMN `{$item['name']}`  {$item['type']}({$item['length']}) NULL ".(isset($item['default'])?"DEFAULT '{$item['default']}'":"")."". (isset($item['comment'])?"COMMENT '{$item['comment']}'":"").",";
+                            }else{
+                                 $_alertsql.=" ADD COLUMN `{$item['name']}`  {$item['type']} NULL ".(isset($item['default'])?"DEFAULT '{$item['default']}'":"")."". (isset($item['comment'])?"COMMENT '{$item['comment']}'":"").",";
+                            }
+                        }
+                        //DROP PRIMARY KEY,
+//ADD PRIMARY KEY (`id`, `testa`);
+
+                    }
+                    if(!empty($_prikey)&&$_prikey!=$_localprikey){
+                        $_alertsql.=" DROP PRIMARY KEY, ADD PRIMARY KEY (".implode(",", $_localprikey)."); ";
+                    }
+                    if($_alertsql!=""){
+
+                        $_alertsql=rtrim($_alertsql,",");
+                        $_alertsql=" ALTER TABLE `{$this->_tablename}` ".$_alertsql;
+                        BoDebug::Info("alert table {$_alertsql}");
+                        $_ret=$this->ExecuteNonQuery($_alertsql,null);
+                        if($_ret['err']){
+                            BoDebug::Info("alert table result:".$_ret['data']);
+                        }
+                    }
+                }else{
+                    $_createsql="  CREATE TABLE `$this->_tablename` ( ";
+                    $_createprikey="";
+
+                    foreach ($this->_fields as $item){
+                        $_auto_inc=false;
+                        if(isset($item['prikey'])){
+                            $_createprikey=$item['name'];
+                        }
+                        if(isset($item['autoinc'])){
+                            $_auto_inc=$item['autoinc'];
+                        }
+                        if($item['type']=="int"||$item['type']=="varchar"){
+                            $_createsql.=" `{$item['name']}`  {$item['type']}({$item['length']}) NOT NULL ".($_auto_inc?"AUTO_INCREMENT":"")." ";
+                            if($_auto_inc){
+                                $_createsql.=(isset($item['comment'])?"COMMENT '{$item['comment']}'":"").",";
+                            }else{
+                                $_createsql.=(isset($item['default'])?"DEFAULT '{$item['default']}'":"")."". (isset($item['comment'])?"COMMENT '{$item['comment']}'":"").",";
+                            }
+
+                        }else{
+
+                            $_createsql.=" `{$item['name']}`  {$item['type']} NOT NULL ".($_auto_inc?"AUTO_INCREMENT":"")." ";
+
+                            if($_auto_inc){
+                                $_createsql.=(isset($item['comment'])?"COMMENT '{$item['comment']}'":"").",";
+                            }else{
+                                if($item['type']!="text"){
+                                    $_createsql.=(isset($item['default'])?"DEFAULT '{$item['default']}'":"")."". (isset($item['comment'])?"COMMENT '{$item['comment']}'":"").",";
+                                }else{
+                                    $_createsql.= (isset($item['comment'])?"COMMENT '{$item['comment']}'":"").",";
+                                }
+
+                            }
+
+                        }
+                    }
+                    if($_createprikey!=""){
+                         $_createsql.="PRIMARY KEY (`{$_createprikey}`)";
+                    }
+                    $_createsql.=");";
+
+                    BoDebug::Info("create table {$_createsql}");
+                    $_ret=$this->ExecuteNonQuery($_createsql,null);
+                    if($_ret['err']){
+                         BoDebug::Info("create table result:".$_ret['data']);
+                    }
+                }
             }
         }
     }
@@ -759,6 +882,8 @@ class BoModel
         }
         return $_m;
     }
+
+
 
     public function __call($method, $arguments)
     {

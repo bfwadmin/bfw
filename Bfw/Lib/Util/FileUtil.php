@@ -10,9 +10,54 @@ class FileUtil
 {
 
     /**
+     * 获取目录下所有文件，包含子目录文件，并返回一个相对路径数组
+     * @param string $_dir
+     * @param string $_base
+     * @param array $filelist
+     */
+    function getfileArraybydir($_dir,$_base="", &$filelist) {
+
+        $_dirdata = scandir($_dir);
+
+        foreach ($_dirdata as $file) {
+
+            if (($file != '.') && ($file != '..')) {
+                if (is_dir($_dir . "/" . $file)) {
+                    self::getfilebydir($_dir . "/" . $file,$_base."/".$file, $filelist);
+                } else {
+                    $filelist[] = $_base."/".$file;
+                }
+            }
+        }
+
+    }
+
+    /**
+     * 获取目录文件md5签名值
+     * @param string $_dir
+     * @param string $_base
+     * @param array $filelist
+     */
+    function getfileMd5Arraybydir($_dir,$_base="", &$filelist) {
+
+        $_dirdata = scandir($_dir);
+
+        foreach ($_dirdata as $file) {
+
+            if (($file != '.') && ($file != '..')) {
+                if (is_dir($_dir . "/" . $file)) {
+                    self::getfilebydir($_dir . "/" . $file,$_base."/".$file, $filelist);
+                } else {
+                    $filelist[$_base."/".$file] = md5_file($_dir . "/" . $file);
+                }
+            }
+        }
+
+    }
+    /**
      * 获取目录文件列表
      *
-     * @param string $dir            
+     * @param string $dir
      * @return array
      */
     public static function getFileListByDir($dir)
@@ -31,22 +76,22 @@ class FileUtil
     /**
      * 创建目录
      *
-     * @param string $path            
+     * @param string $path
      * @return boolean
      */
     public static function CreatDir($path)
     {
         // $folders = explode("/", $path);
-        
+
         // $nFolders = count($folders);
         // for($i = 0; $i < $nFolders; $i++){
         // $newFolder = '/' . $folders[$i];
         // $path .= $newFolder;
-        
+
         // if (!file_exists($path) && !is_dir($path)) {
         // mkdir($path,0777);
         // }
-        
+
         // }
         if (! is_dir($path)) {
             if (self::CreatDir(dirname($path))) {
@@ -79,7 +124,7 @@ class FileUtil
             }
         }
         closedir($handle);
-        
+
         return $_totalsize;
     }
 
@@ -137,7 +182,7 @@ class FileUtil
     /**
      * 删除目录及文件
      *
-     * @param unknown $dirName            
+     * @param unknown $dirName
      * @return boolean
      */
     public static function delDirAndFile($dirName)
@@ -164,7 +209,7 @@ class FileUtil
             if ($filename != "." && $filename != "..") { // 文件夹文件名字为'.'和‘..’，不要对他们进行操作
                 if (is_dir($path . DS . $filename)) { // 如果读取的某个对象是文件夹，则递归
                     $zip->addEmptyDir($folder . DS . $filename);
-                    
+
                     self::addFileToZip($path . DS . $filename, $zip, $folder . DS . $filename);
                 } else { // 将文件加入zip对象
                     $zip->addFile($path . DS . $filename, $folder . DS . $filename);
@@ -176,15 +221,15 @@ class FileUtil
 
     public static function copydir($src, $des)
     {
-        
+
         if(!is_dir($src)){
             return false;
         }
-     
+
         $from_files = scandir($src);
         //如果不存在目标目录，则尝试创建
-        if(!file_exists($des)){
-            @mkdir($des);
+        if(!self::CreatDir($des)){
+            return false;
         }
         if(!empty($from_files)){
             foreach ($from_files as $file){
@@ -211,8 +256,8 @@ class FileUtil
 //                 copy($src  . $file, $des  . $file);
 //             }
 //         }
-        
-       
+
+
         return true;
     }
 
@@ -256,7 +301,7 @@ class FileUtil
                         "data" => self::getfilebydir($file, $_base . $_dir . DS, $_ex)
                     ];
                 } else {
-                    
+
                     $_ext = strrchr($file, '.');
                     if ($_ext && $_ext != $_ex) {
                         $_data[] = [
@@ -274,8 +319,8 @@ class FileUtil
     /**
      * 获取目录下的所有子目录
      *
-     * @param unknown $_dir            
-     * @param unknown $_folderdata            
+     * @param unknown $_dir
+     * @param unknown $_folderdata
      */
     public static function getsubfoloderbydir($_dir, $_base = DS, &$_folderdata)
     {
@@ -313,9 +358,9 @@ class FileUtil
     /**
      * 指定行插入数据
      *
-     * @param unknown $_src            
-     * @param unknown $_string            
-     * @param unknown $_iLine            
+     * @param unknown $_src
+     * @param unknown $_string
+     * @param unknown $_iLine
      * @return multitype:string unknown
      */
     public static function insertstrbyline($_src, $_string, $_iLine)
@@ -340,9 +385,9 @@ class FileUtil
     /**
      * 指定行删除数据
      *
-     * @param unknown $_src            
-     * @param unknown $_string            
-     * @param unknown $_iLine            
+     * @param unknown $_src
+     * @param unknown $_string
+     * @param unknown $_iLine
      * @return multitype:string unknown
      */
     public static function deletestrbyline($_src, $_string, $_iLine)
@@ -369,7 +414,7 @@ class FileUtil
      *
      * @param $git_url Example
      *            of git clone url git://github.com/someuser/somerepo.git
-     *            
+     *
      * @return bool true
      */
     public static function pullOrCloneRepo($git_url, $file_path)
@@ -377,24 +422,24 @@ class FileUtil
         if (! isset($git_url)) {
             return false;
         }
-        
+
         if (strpos($git_url, 'git') !== FALSE) {
-            
+
             if (! is_dir($file_path)) {
                 self::CreatDir($file_path);
             }
-            
+
             // $file_path = drupal_realpath($uri); // change this if not in drupal
             if (is_dir($file_path)) {
                 $first_dir = getcwd();
                 // change dir to the new path
                 $new_dir = chdir($file_path);
                 // Git init
-                
+
                 $git_init = shell_exec('git init');
                 // Git clone
                 $git_clone = shell_exec('git clone ' . $git_url);
-                
+
                 // Git pull
                 $git_pull = shell_exec('git pull');
                 // change dir back
