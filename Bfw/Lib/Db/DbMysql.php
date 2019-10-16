@@ -21,7 +21,8 @@ class DbMysql extends BoDb implements BoDbInterface
 
     private $_option = [
         \PDO::ATTR_PERSISTENT => false,
-        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
+        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+        \PDO::ATTR_EMULATE_PREPARES=>false
     ];
 
     public function __construct($_connarr = null)
@@ -501,6 +502,22 @@ class DbMysql extends BoDb implements BoDbInterface
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
             BoDebug::Info($_sql);
+//             $stmt=$this->_connection->prepare($_sql);
+//             $i=1;
+//             foreach ($_val as $item){
+//                 if(is_string($item)){
+//                     $stmt->bindParam($i,$item,\PDO::PARAM_STR);
+//                 }
+//                 if(is_int($item)){
+//                     $stmt->bindParam($i,$item,\PDO::PARAM_INT);
+//                 }
+//                 if(is_bool($item)){
+//                     $stmt->bindParam($i,$item,\PDO::PARAM_BOOL);
+//                 }
+//                 $i++;
+//             }
+//             $stmt->execute();
+
             $stmt = $this->_connection->prepare($_sql);
             $stmt->execute($_val);
             $_ldata = array();

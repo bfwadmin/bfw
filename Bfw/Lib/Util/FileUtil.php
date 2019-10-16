@@ -313,6 +313,8 @@ class FileUtil
                 }
             }
         }
+        $_type = array_column($_data,'type');
+        array_multisort($_type,SORT_ASC,$_data);
         return $_data;
     }
 

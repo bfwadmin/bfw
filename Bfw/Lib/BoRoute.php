@@ -89,21 +89,17 @@ class BoRoute
                         $i ++;
                     }
                 }
+            }
+            if($_querypara){
+                $queryparts = explode('&', substr($_querypara,1));
+                foreach ($queryparts as $param) {
+                    $item = explode('=', $param);
+                    if(isset($item[0])){
+                        $_key_arr[$item[0]]=isset($item[1])?$item[1]:"";
 
-
-                if($_querypara){
-                    $queryparts = explode('&', substr($_querypara,1));
-                    foreach ($queryparts as $param) {
-                        $item = explode('=', $param);
-                        if(isset($item[0])){
-                            $_key_arr[$item[0]]=isset($item[1])?$item[1]:"";
-
-                        }
                     }
                 }
-
             }
-
             Registry::getInstance()->set("sys_path_array_cache_data", $_key_arr);
         }
         return $_key_arr;
