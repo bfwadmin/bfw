@@ -1,14 +1,13 @@
 <?php
 namespace Lib;
 
-
 /**
+ *
  * @author wangbo
- * 路由类
+ *         路由类
  */
 class BoRoute
 {
-
 
     public static function GetParaByUrl()
     {
@@ -18,66 +17,64 @@ class BoRoute
         }
         $_key_arr = array();
         $_key_arr[DOMIAN_NAME] = "";
-        $_key_arr[CONTROL_NAME] ="";
+        $_key_arr[CONTROL_NAME] = "";
         $_key_arr[ACTION_NAME] = "";
-        $_pathurl="";
-        $_querypara=false;
-        if(isset( $_SERVER["REQUEST_URI"])){
-           $_querypara = strstr($_SERVER["REQUEST_URI"],'?');
-        }
+        $_pathurl = "";
+        $_querypara = false;
+        if (isset($_SERVER["REQUEST_URI"])) {
+            $_pathurl = $_SERVER['REQUEST_URI'];
+            $_querypara = strstr($_pathurl, '?');
+        } else
+            if (isset($_SERVER['PATH_INFO']) && $_SERVER['PATH_INFO'] != "") {
+                $_pathurl = $_SERVER['PATH_INFO'];
+            }
 
-        if(isset($_SERVER['PATH_INFO'])&&$_SERVER['PATH_INFO']!=""){
-            $_pathurl=$_SERVER['PATH_INFO'];
-
-        }else{
-            if(isset( $_SERVER["QUERY_STRING"])){
-               $_pathurl=$_SERVER['QUERY_STRING'];
-           }
+        if ($_pathurl == "") {
+            $_pathurl = "/";
         }
-        if($_pathurl==""){
-            $_pathurl="/";
-        }
-        if($_pathurl!=""){
+        if ($_pathurl != "") {
             $_routedata = &Registry::getInstance()->get("route_data");
             if (! is_null($_routedata)) {
-               foreach ( $_routedata as $_iurl => $_furl){
-                   if(isset($_furl['url'])){
-                       if (preg_match($_iurl, $_pathurl, $match)) {
-                           if (isset($_furl["method"])) {
-                               if (is_array($_furl["method"])) {
-                                   if (! in_array(HTTP_METHOD, $_furl["method"])) {
-                                       break;
-                                   }
-                               } else {
-                                   if (HTTP_METHOD != $_furl["method"]) {
-                                       break;
-                                   }
-                               }
-                           }
-                           for ($i = 1; $i < count($match); $i ++) {
-                               $_furl['url'] = str_replace("[{$i}]", $match[$i], $_furl['url']);
-                           }
-                           if (strstr($_furl['url'], "http://") || strstr($_furl['url'], "https://")) {
-                               header("location:" . $_furl['url']);
-                               die();
-                           }
-                           $_pathurl=$_furl['url'];
-                           break;
-                       }
-                   }
-               }
+                foreach ($_routedata as $_iurl => $_furl) {
+                    if (isset($_furl['url'])) {
+                        if (preg_match($_iurl, $_pathurl, $match)) {
+                            if (isset($_furl["method"])) {
+                                if (is_array($_furl["method"])) {
+                                    if (! in_array(HTTP_METHOD, $_furl["method"])) {
+                                        break;
+                                    }
+                                } else {
+                                    if (HTTP_METHOD != $_furl["method"]) {
+                                        break;
+                                    }
+                                }
+                            }
+                            for ($i = 1; $i < count($match); $i ++) {
+                                $_furl['url'] = str_replace("[{$i}]", $match[$i], $_furl['url']);
+                            }
+                            if (strstr($_furl['url'], "http://") || strstr($_furl['url'], "https://")) {
+                                header("location:" . $_furl['url']);
+                                die();
+                            }
+                            $_pathurl = $_furl['url'];
+                            break;
+                        }
+                    }
+                }
             }
+
             if (PAGE_SUFFIX != "") {
-                $_pathurl=str_replace(PAGE_SUFFIX,"",$_pathurl);
+                $_pathurl = str_replace(PAGE_SUFFIX, "", $_pathurl);
             }
-            $_patharr = explode("/", ltrim($_pathurl, "/"));
-            $_para_start=3;
-            if(defined("HOST_HIDE_DOM")){
-                $_para_start=2;
+            $_pathurlarr = explode("?", $_pathurl);
+            $_patharr = explode("/", ltrim($_pathurlarr[0], "/"));
+            $_para_start = 3;
+            if (defined("HOST_HIDE_DOM")) {
+                $_para_start = 2;
                 $_key_arr[DOMIAN_NAME] = HOST_HIDE_DOM;
                 $_key_arr[CONTROL_NAME] = isset($_patharr[0]) ? $_patharr[0] : "";
                 $_key_arr[ACTION_NAME] = isset($_patharr[1]) ? $_patharr[1] : "";
-            }else{
+            } else {
                 $_key_arr[DOMIAN_NAME] = isset($_patharr[0]) ? $_patharr[0] : "";
                 $_key_arr[CONTROL_NAME] = isset($_patharr[1]) ? $_patharr[1] : "";
                 $_key_arr[ACTION_NAME] = isset($_patharr[2]) ? $_patharr[2] : "";
@@ -90,13 +87,12 @@ class BoRoute
                     }
                 }
             }
-            if($_querypara){
-                $queryparts = explode('&', substr($_querypara,1));
+            if ($_querypara) {
+                $queryparts = explode('&', substr($_querypara, 1));
                 foreach ($queryparts as $param) {
                     $item = explode('=', $param);
-                    if(isset($item[0])){
-                        $_key_arr[$item[0]]=isset($item[1])?$item[1]:"";
-
+                    if (isset($item[0])) {
+                        $_key_arr[$item[0]] = isset($item[1]) ? $item[1] : "";
                     }
                 }
             }
@@ -104,7 +100,6 @@ class BoRoute
         }
         return $_key_arr;
     }
-
 }
 
 ?>

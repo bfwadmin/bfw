@@ -219,11 +219,11 @@
             <h1>欢迎您选择BFW</h1>
            <h4>全球首款支持webide的开发及运行框架，支持单机，伪集群，集群，SOA部署，支持code first，db first，template first开发模式，支持java php net多种流行语言，云端保存，多处开发，支持企业云部署，一个账号，随时随地打开浏览器即可开发应用，丰富的在线插件及文档，社群问题回答，模板涵盖电商、企业官网、在线教育、企业erp，oa等热门系统，支持在线模板交易，让优秀的程序员收获自己的财富</h4>
            <div class="menu">
-          <a href="http://bfw.life">进入官网</a>
+          <a href="#">进入官网</a>
                 <a href="?webide=1">进入WEBIDE开发</a>
                 <a href="?console=1">进入CONSOLE</a>
-                  <a href="http://doc.bfw.life">查看开发文档</a>
-                     <a href="http://code.bfw.life">查看优质模板代码</a></div>
+                  <a href="#">查看开发文档</a>
+                     <a href="#">查看优质模板代码</a></div>
         </div>
           <div style="margin: 0; text-align:center; color:white;">Power by BFW<sup><?=VERSION?></sup>[SOA framework]</div>
         <ul>
