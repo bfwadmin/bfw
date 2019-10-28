@@ -11,49 +11,138 @@ class FileUtil
 
     /**
      * 获取目录下所有文件，包含子目录文件，并返回一个相对路径数组
+     *
      * @param string $_dir
      * @param string $_base
      * @param array $filelist
      */
-    function getfileArraybydir($_dir,$_base="", &$filelist) {
-
+    static function getfileArraybydir($_dir, $_base = "", &$filelist)
+    {
         $_dirdata = scandir($_dir);
 
         foreach ($_dirdata as $file) {
 
             if (($file != '.') && ($file != '..')) {
                 if (is_dir($_dir . "/" . $file)) {
-                    self::getfilebydir($_dir . "/" . $file,$_base."/".$file, $filelist);
+                    self::getfilebydir($_dir . "/" . $file, $_base . "/" . $file, $filelist);
                 } else {
-                    $filelist[] = $_base."/".$file;
+                    $filelist[] = $_base . "/" . $file;
                 }
             }
         }
+    }
 
+    /**
+     * 搜索目录下所有文件，包含子目录文件，并返回一个相对路径数组
+     *
+     * @param string $_dir
+     * @param string $_base
+     * @param string $key
+     * @param array $filelist
+     */
+    static function searchfilenameArraybydir($_dir = "", $key = "", &$filelist)
+    {
+        $_dirdata = scandir($_dir);
+        if(!$_dirdata){
+            return;
+            //$filelist=[];
+        }
+        foreach ($_dirdata as $file) {
+            if (($file != '.') && ($file != '..')) {
+                if (is_dir( $_dir  . $file)) {
+                    self::searchfilenameArraybydir($_dir  . $file, $key, $filelist);
+                } else {
+                    if (strstr($file, $key)) {
+                            $filelist[] = $_dir  . $file;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 搜索目录下所有文件内容，包含子目录文件，并返回一个相对路径数组
+     *
+     * @param string $_dir
+     * @param string $_base
+     * @param string $key
+     * @param array $filelist
+     */
+    static function searchfilecontArraybydir($_dir, $key = "", &$filelist)
+    {
+        $_dirdata = scandir($_dir);
+        if(!$_dirdata){
+            return;
+        }
+
+        foreach ($_dirdata as $file) {
+            if (($file != '.') && ($file != '..')) {
+                if (is_dir( $_dir  . $file)) {
+                    self::searchfilecontArraybydir($_dir  . $file, $key, $filelist);
+                } else {
+                    $content = file_get_contents($_dir  . $file);
+                    if (strpos($content, $key) !== false) {
+                        $filelist[] = $_dir  . $file;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 搜索目录下所有文件内容，包含子目录文件，并返回一个相对路径数组
+     *
+     * @param string $_dir
+     * @param string $_base
+     * @param string $key
+     * @param array $filelist
+     */
+    static function replacefilecontArraybydir($_dir, $key = "", $val = "", &$filelist)
+    {
+        $_dirdata = scandir($_dir);
+        if(!$_dirdata){
+            return;
+        }
+        foreach ($_dirdata as $file) {
+            if (($file != '.') && ($file != '..')) {
+                if (is_dir( $_dir  . $file)) {
+                    self::replacefilecontArraybydir($_dir  . $file, $key, $val, $filelist);
+                } else {
+                    $content = file_get_contents($_dir  . $file);
+                    //echo $content;
+                    $content=str_replace($key, $val, $content,$count);
+                    if ($count>0) {
+                        file_put_contents($_dir  . $file, $content);
+                        $filelist[] = $_dir  . $file;
+                    }
+                }
+            }
+        }
     }
 
     /**
      * 获取目录文件md5签名值
+     *
      * @param string $_dir
      * @param string $_base
      * @param array $filelist
      */
-    function getfileMd5Arraybydir($_dir,$_base="", &$filelist) {
-
+    static function getfileMd5Arraybydir($_dir, $_base = "", &$filelist)
+    {
         $_dirdata = scandir($_dir);
 
         foreach ($_dirdata as $file) {
 
             if (($file != '.') && ($file != '..')) {
                 if (is_dir($_dir . "/" . $file)) {
-                    self::getfilebydir($_dir . "/" . $file,$_base."/".$file, $filelist);
+                    self::getfilebydir($_dir . "/" . $file, $_base . "/" . $file, $filelist);
                 } else {
-                    $filelist[$_base."/".$file] = md5_file($_dir . "/" . $file);
+                    $filelist[$_base . "/" . $file] = md5_file($_dir . "/" . $file);
                 }
             }
         }
-
     }
+
     /**
      * 获取目录文件列表
      *
@@ -221,42 +310,40 @@ class FileUtil
 
     public static function copydir($src, $des)
     {
-
-        if(!is_dir($src)){
+        if (! is_dir($src)) {
             return false;
         }
 
         $from_files = scandir($src);
-        //如果不存在目标目录，则尝试创建
-        if(!self::CreatDir($des)){
+        // 如果不存在目标目录，则尝试创建
+        if (! self::CreatDir($des)) {
             return false;
         }
-        if(!empty($from_files)){
-            foreach ($from_files as $file){
-                if($file == '.' || $file == '..' ){
+        if (! empty($from_files)) {
+            foreach ($from_files as $file) {
+                if ($file == '.' || $file == '..') {
                     continue;
                 }
-                if(is_dir($src.'/'.$file)){//如果是目录，则调用自身
-                    self::copydir($src.'/'.$file,$des.'/'.$file);
-                }else{//直接copy到目标文件夹
-                    copy($src.'/'.$file,$des.'/'.$file);
+                if (is_dir($src . '/' . $file)) { // 如果是目录，则调用自身
+                    self::copydir($src . '/' . $file, $des . '/' . $file);
+                } else { // 直接copy到目标文件夹
+                    copy($src . '/' . $file, $des . '/' . $file);
                 }
             }
         }
-      //  @closedir($dir);
-//         $dir = opendir($src);
-//         if (! is_dir($des)) {
-//             self::CreatDir($des);
-//         }
-//         $file = readdir($dir);
-//         if (($file != '.') && ($file != '..')) {
-//             if (is_dir($src  . $file)) {
-//                 self::copydir($src  . $file, $des . $file);
-//             } else {
-//                 copy($src  . $file, $des  . $file);
-//             }
-//         }
-
+        // @closedir($dir);
+        // $dir = opendir($src);
+        // if (! is_dir($des)) {
+        // self::CreatDir($des);
+        // }
+        // $file = readdir($dir);
+        // if (($file != '.') && ($file != '..')) {
+        // if (is_dir($src . $file)) {
+        // self::copydir($src . $file, $des . $file);
+        // } else {
+        // copy($src . $file, $des . $file);
+        // }
+        // }
 
         return true;
     }
@@ -313,8 +400,8 @@ class FileUtil
                 }
             }
         }
-        $_type = array_column($_data,'type');
-        array_multisort($_type,SORT_ASC,$_data);
+        $_type = array_column($_data, 'type');
+        array_multisort($_type, SORT_ASC, $_data);
         return $_data;
     }
 
