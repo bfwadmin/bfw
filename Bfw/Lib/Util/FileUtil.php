@@ -290,6 +290,24 @@ class FileUtil
             return rmdir($dirName);
         }
     }
+    /**删除某个目录中的所有子目录及寄文件
+     * @param unknown $dirName
+     * @param unknown $ext
+     *
+     */
+    public static function delFile($dirName,$ext=[])
+    {
+        $_dirdata = scandir($dirName);
+        foreach ($_dirdata as $file) {
+            if ($file != "." && $file != ".."&&!in_array(strtolower($file), $ext)) {
+                if (is_dir($dirName . DS . $file)) {
+                    self::delFile($dirName . DS . $file,$ext);
+                } else {
+                    @unlink($dirName . DS . $file);
+                }
+            }
+        }
+    }
 
     public static function addFileToZip($path, &$zip, $folder = '')
     {
@@ -308,7 +326,7 @@ class FileUtil
         @closedir($path);
     }
 
-    public static function copydir($src, $des)
+    public static function copydir($src, $des,$extfile=[])
     {
         if (! is_dir($src)) {
             return false;
@@ -321,11 +339,11 @@ class FileUtil
         }
         if (! empty($from_files)) {
             foreach ($from_files as $file) {
-                if ($file == '.' || $file == '..') {
+                if ($file == '.' || $file == '..'||in_array(strtolower($file), $extfile)) {
                     continue;
                 }
                 if (is_dir($src . '/' . $file)) { // 如果是目录，则调用自身
-                    self::copydir($src . '/' . $file, $des . '/' . $file);
+                    self::copydir($src . '/' . $file, $des . '/' . $file,$extfile);
                 } else { // 直接copy到目标文件夹
                     copy($src . '/' . $file, $des . '/' . $file);
                 }
