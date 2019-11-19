@@ -135,7 +135,7 @@ class FileUtil
 
             if (($file != '.') && ($file != '..')) {
                 if (is_dir($_dir . "/" . $file)) {
-                    self::getfilebydir($_dir . "/" . $file, $_base . "/" . $file, $filelist);
+                    self::getfileMd5Arraybydir($_dir . "/" . $file, $_base . "/" . $file, $filelist);
                 } else {
                     $filelist[$_base . "/" . $file] = md5_file($_dir . "/" . $file);
                 }
@@ -436,7 +436,7 @@ class FileUtil
             if (($file != '.') && ($file != '..')) {
                 if (is_dir($_base . $_dir . $file)) {
                     $_folderdata[] = $_dir . $file;
-                    self::getsubfoloderbydir(DS . $file . DS, $_base, $_folderdata);
+                    self::getsubfoloderbydir($_dir . $file . DS, $_base, $_folderdata);
                 } else {
                     // $_folderdata[] = $_dir . $file;
                 }

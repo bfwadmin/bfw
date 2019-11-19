@@ -1,4 +1,7 @@
 <?php
+if (version_compare("5.4", PHP_VERSION, ">")) {
+    die("PHP 5.4 or greater is required!!!");
+}
 use Lib\Core;
 use Lib\BoRes;
 use Lib\WebApp;
@@ -451,7 +454,7 @@ if (RUN_MODE == "S") {
 
     if (RUN_MODE == "C") {
         if (strtolower(PHP_SAPI) != "cli") {
-            if (WEB_DEBUG && DEBUG_IP == IP) {
+            if (WEB_DEBUG && (DEBUG_IP == IP||DEBUG_IP=="")) {
                 if (is_array($_exception)) {
                     BoRes::View("deverror", "System", "v1", [
                         'errmsg' => $_exception['errmsg'],
@@ -538,7 +541,7 @@ function autoloadclient($class)
 function exception_handler($_exception)
 {
     if (strtolower(PHP_SAPI) != "cli") {
-        if (WEB_DEBUG && DEBUG_IP == IP) {
+        if (WEB_DEBUG &&  (DEBUG_IP == IP || DEBUG_IP=="")) {
             BoRes::View("deverror", "System", "v1", [
                 'errmsg' => $_exception['errmsg'],
                 "errline" => $_exception['errline'],
@@ -558,7 +561,7 @@ function err_function()
     $_e = error_get_last();
     if ($_e) {
         if (strtolower(PHP_SAPI) != "cli") {
-            if (WEB_DEBUG && DEBUG_IP == IP) {
+            if (WEB_DEBUG &&  (DEBUG_IP == IP || DEBUG_IP=="") ) {
                 BoRes::View("deverror", "System", "v1", [
                     'errmsg' => $_e['message'],
                     "errline" => $_e['line'],
@@ -577,7 +580,7 @@ function err_function()
 function BoErrorHandler($errno, $errstr, $errfile, $errline)
 {
     if(defined("WEB_DEBUG")){
-        if (WEB_DEBUG && DEBUG_IP == IP) {
+        if (WEB_DEBUG && (DEBUG_IP == IP || DEBUG_IP=="")) {
             BoDebug::Info("err:" . $errstr . ",file:" . $errfile . ",line:" . $errline);
         }
         if (E_WARNING === $errno) {
