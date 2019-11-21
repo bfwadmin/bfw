@@ -8,6 +8,12 @@ namespace Lib;
 class BoSess
 {
 
+    /**
+     * 销毁session键
+     * @param string $_key
+     * @param string $_dom
+     * @return boolean
+     */
     public static function DestorySess($_key = null,$_dom=DOMIAN_VALUE)
     {
         if (strtolower(PHP_SAPI) != "cli") {
@@ -25,7 +31,15 @@ class BoSess
         }
         return true;
     }
-    // session操作 key val 失效时间 秒
+
+    /**
+     * session操作,如果 $_val设为null表示清空session键,值为空则返回session值
+     * @param string $_key 键
+     * @param string $_val值
+     * @param number $_expire 失效时间 秒
+     * @param string $_dom 域可选
+     * @return boolean|string
+     */
     public static function Session($_key, $_val = "", $_expire = 0,$_dom=DOMIAN_VALUE)
     {
         if (strtolower(PHP_SAPI) != "cli") {

@@ -21,6 +21,10 @@ class BoModel
      */
     private $_model_table_map;
 
+    protected $_cacheseconds = 0;
+
+    private $_getrelatefields="";
+
     /**
      * 验证数组
      *
@@ -122,10 +126,20 @@ class BoModel
     protected $_isview = false;
 
     protected $_cpsql = "";
+    // 相关key
+    protected $_relatekey = [];
 
     protected $_fields = [];
 
-    protected $_initrecords=[];
+    protected $_getrelatedata = false;
+
+    protected $_getrelatemodel = [];
+
+    protected $_relatedatalimit = 10;
+
+    protected $_initrecords = [];
+
+    protected $_relatedatainfo = [];
 
     /**
      * 数据库处理实例
@@ -167,16 +181,10 @@ class BoModel
                 $this->_tablename = $this->_tbpre . $_m_n;
             }
         }
-        if ($this->_dbhandle == null) {
-            if (isset($this->_connarray)) {
-                $this->_dbhandle = DbFactory::GetInstance($this->_connarray);
-            } else {
-                $this->_dbhandle = DbFactory::GetInstance();
-            }
-        }
 
-        // 如果
-        if (! empty($this->_fields)) {
+
+        // 如果开启自动创建数据库
+        if (DB_FROM_MODEL&&! empty($this->_fields)) {
 
             if (isset($this->_connarray) && $this->_connarray['dbtype'] == 'DbMysql') {
                 $_sql = "SELECT COLUMN_NAME,COLUMN_TYPE,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,IS_NULLABLE,COLUMN_DEFAULT, COLUMN_COMMENT  FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA='{$this->_connarray['dbname']}' and table_name  = '{$this->_tablename}'";
@@ -302,6 +310,16 @@ class BoModel
         }
     }
 
+    private function connect(){
+        if ($this->_dbhandle == null) {
+            if (isset($this->_connarray)) {
+                $this->_dbhandle = DbFactory::GetInstance($this->_connarray);
+            } else {
+                $this->_dbhandle = DbFactory::GetInstance();
+            }
+        }
+    }
+
     /**
      * 重置变量，防止单例问题
      */
@@ -313,9 +331,184 @@ class BoModel
         $this->_wherestr = "";
         $this->_orderstr = "";
         $this->_fieldstr = "*";
+        $this->_getrelatemodel = [];
+        $this->_relatedatalimit = 10;
+        $this->_getrelatedata = false;
+        $this->_getrelatefields="";
         return $this;
     }
 
+    /**
+     * 关联其他模型一起输出
+     *
+     * @param array $_model
+     *            模型
+     * @param int $_limit
+     *            一对多加载数据条数
+     */
+    public function Relate($_model = [], $_limit = 10,$_field="")
+    {
+        $this->_getrelatemodel = $_model;
+        $this->_relatedatalimit = $_limit;
+        $this->_getrelatedata = true;
+        $this->_getrelatefields=$_field;
+        return $this;
+    }
+
+    /**
+     * in查询
+     *
+     * @param 字段 $_field
+     * @param 字段值数组 $_arr
+     * @return \Lib\RetMsg
+     */
+    public function In($_field, $_arr)
+    {
+        if (is_string($_arr)) {
+            $_arr = explode(",", $_arr);
+        }
+        if (is_array($_arr) && ! empty($_arr)) {
+            $_strarr = array_fill(0, count($_arr), "?");
+            $_instr = implode(",", $_strarr);
+            return $this->Where("{$_field} in ({$_instr})", $_arr)->Select();
+        }
+        return Bfw::RetMsg(true, "err,in 参数无值");
+    }
+
+    private function relatesql()
+    {
+        if ($this->_getrelatedata && ! empty($this->_relatekey)) {
+            // 筛选相关数据
+            $_sel_keys = [];
+            if (! empty($this->_getrelatemodel)) {
+
+                foreach ($this->_relatekey as $item) {
+                    if (in_array($item['model'], $this->_getrelatemodel)) {
+                        $_sel_keys[] = $item;
+                    }
+                }
+            } else {
+                $_sel_keys = $this->_relatekey;
+            }
+
+            $_aliaschar = [
+                "b",
+                "c",
+                "d",
+                "e",
+                "f",
+                "i",
+                "j",
+                "k",
+                "l",
+                "m",
+                "n"
+            ];
+            $i = 0;
+            foreach ($_sel_keys as $item) {
+                $this->Alias("a");
+                if ($item['way'] == "1:1") {
+                    $this->Join($item['model'], "{$_aliaschar[$i]}.{$item['foreignkey']}=a.{$item['key']}", "b", "left");
+                }
+                if ($item['way'] == "1:n") {
+                    if($this->_getrelatefields!=""){
+                        $item['foreignfield']=$this->_getrelatefields;
+                    }
+                    $this->_relatedatainfo[] = $item;
+                }
+                if ($item['way'] == "n:n") {
+                    if($this->_getrelatefields!=""){
+                        $item['foreignfield']=$this->_getrelatefields;
+                    }
+                    $this->_relatedatainfo[] = $item;
+                }
+                $i ++;
+            }
+        }
+    }
+
+    private function getrelatedata(&$_data)
+    {
+        foreach ($_data as &$item) {
+
+            // var_dump($this->_relatedatainfo);
+            foreach ($this->_relatedatainfo as $relateinfo) {
+                if (isset($item[$relateinfo["key"]])) {
+                    if (! isset($relateinfo['foreignfield'])) {
+                        $relateinfo['foreignfield'] = "*";
+                    }
+                    // 如果是多对多
+                    $_subdata = [
+                        'err' => true,
+                        "data" => "no data"
+                    ];
+                    if ($relateinfo['way'] == "n:n") {
+                        if (isset($relateinfo['midmodel'])) {
+                            $_d = Core::LoadClass("{$relateinfo['dom']}\\Model\\Model_{$relateinfo['model']}");
+                            $_d = Core::LoadClass("{$relateinfo['dom']}\\Model\\Model_{$relateinfo['midmodel']}");
+
+                            $_subdata = $_d->Cache($this->_cacheseconds)->ExecuteReader("select nk.{$relateinfo['foreignfield']} from [{$relateinfo['midmodel']}] as ny left join [{$relateinfo['model']}] as nk on nk.{$relateinfo['foreignkey']} =ny.{$relateinfo['midforeignkey']} where ny.{$relateinfo["midkey"]}=? limit 0,{$this->_relatedatalimit};", [
+                                $item[$relateinfo["key"]]
+                            ]);
+                        }
+                    }
+                    if ($relateinfo['way'] == "1:n") {
+                        $_d = Core::LoadClass("{$relateinfo['dom']}\\Model\\Model_{$relateinfo['model']}");
+                        $_subdata = $_d->Cache($this->_cacheseconds)->ExecuteReader("select {$relateinfo['foreignfield']} from [{$relateinfo['model']}] where {$relateinfo["foreignkey"]}=? limit 0,{$this->_relatedatalimit};", [
+                            $item[$relateinfo["key"]]
+                        ]);
+                        // $relateinfo['midmodel']
+                    }
+
+                    // if($relateinfo['way']=="1:1"){
+                    // $_subdata=$this->ExecuteReader("select {$relateinfo['foreignfield']} from [{$relateinfo['model']}] where {$relateinfo["foreignkey"]}=? limit 0,1;",[$item[$relateinfo["key"]]]);
+                    // //$relateinfo['midmodel']
+                    // }
+                    if (! $_subdata['err']) {
+                        if (isset($relateinfo['dataformate'])) {
+                            // 转换成一维数组,
+                            if ($relateinfo['dataformate'] == "onedim") {
+                                $_arr = [];
+
+                                foreach ($_subdata['data'] as $items) {
+                                    $sitems = array_values($items);
+                                    if (isset($sitems[0])) {
+                                        $_arr[] = $sitems[0];
+                                    }
+                                }
+                                $item["relate_" . $relateinfo["model"]] = $_arr;
+                                // return;
+                            }
+                            // 拼接字符串 必须保证字段只有一个
+                            if ($relateinfo['dataformate'] == "string") {
+                                $_arr = [];
+                                foreach ($_subdata['data'] as $items) {
+                                    $sitems = array_values($items);
+                                    if (isset($sitems[0])) {
+                                        $_arr[] = $sitems[0];
+                                    }
+                                }
+                                $item["relate_" . $relateinfo["model"]] = implode(",", $_arr);
+                                // return;
+                            }
+                        } else {
+                            $item["relate_" . $relateinfo["model"]] = $_subdata['data'];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 切换数据库源，分布式
+     *
+     * @param string $_table
+     * @param string $_prekey
+     * @param string $_isview
+     * @param string $_connarray
+     * @param string $_tablemap
+     */
     public function ChangeDb($_table = "", $_prekey = "", $_isview = false, $_connarray = null, $_tablemap = false)
     {
         array_push($this->_oldisview, $this->_isview);
@@ -342,6 +535,9 @@ class BoModel
         }
     }
 
+    /**
+     * 数据连接切换回来
+     */
     public function ChangeBack()
     {
         if (! empty($this->_oldisview)) {
@@ -380,6 +576,7 @@ class BoModel
     public function Insert($_data, $_returnid = false)
     {
         try {
+            $this->connect();
             return ! $this->_isview ? $this->_dbhandle->insert($_data, $this->_tablename, $_returnid) : Bfw::RetMsg(true, "view not supported");
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
@@ -396,6 +593,7 @@ class BoModel
     public function InsertUpdate($_data)
     {
         try {
+            $this->connect();
             return ! $this->_isview ? $this->_dbhandle->insertupdate($_data, $this->_tablename, $this->_prikey) : Bfw::RetMsg(true, "view not supported");
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
@@ -410,6 +608,7 @@ class BoModel
     public function Update($_data)
     {
         try {
+            $this->connect();
             return ! $this->_isview ? $this->_dbhandle->update($_data, $this->_tablename, $this->_prikey) : Bfw::RetMsg(true, "view not supported");
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
@@ -425,6 +624,7 @@ class BoModel
     public function Delete($_id)
     {
         try {
+            $this->connect();
             return ! $this->_isview ? $this->_dbhandle->delete($_id, $this->_tablename, $this->_prikey) : Bfw::RetMsg(true, "view not supported");
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
@@ -441,6 +641,7 @@ class BoModel
     private function MUpdate($_wherestr, $_wherearr, $_data)
     {
         try {
+            $this->connect();
             return ! $this->_isview ? $this->_dbhandle->mutiupdate($_wherestr, $_wherearr, $this->_tablename, $_data) : Bfw::RetMsg(true, "view not supported");
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
@@ -456,6 +657,7 @@ class BoModel
     private function MDelete($_wherestr, $_wherearr)
     {
         try {
+            $this->connect();
             return ! $this->_isview ? $this->_dbhandle->mutidelete($_wherestr, $_wherearr, $this->_tablename) : Bfw::RetMsg(true, "view not supported");
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
@@ -473,10 +675,67 @@ class BoModel
     public function Single($_field, $_id)
     {
         try {
-            return $this->_dbhandle->single($_id, $_field, $this->_tablename, $this->_prikey, $this->_locktable);
+            $_data = [
+                'err' => true,
+                "data" => "no data"
+            ];
+            // 如果锁表 关联查询和 缓存失效
+            if ($this->_locktable) {
+                $this->connect();
+                return $this->_dbhandle->single($_id, $_field, $this->_tablename, $this->_prikey, $this->_locktable);
+            }
+            if ($this->_getrelatedata) {
+                // 如果是关联查询，那么lock就失效
+                $_getdata = $this->Field($_field)
+                    ->PageNum(0)
+                    ->PageSize(1)
+                    ->Where("{$this->_prikey}=?", [
+                    $_id
+                ])
+                    ->Select();
+                $_data = [
+                    'err' => $_getdata['err'],
+                    "data" => $_getdata['data'][0]
+                ];
+            } else {
+
+                $_cacheable = false;
+                $_cachekey = "";
+                if ($this->_cacheseconds > 0) {
+                    $_cachekey = "modelcache_" . md5(get_class($this) . "Single" . $this->_cacheseconds.$_field . $_id);
+                    $_cacheval = BoCache::Cache($_cachekey);
+
+
+                    if (! empty($_cacheval)) {
+                        return unserialize($_cacheval);
+                    } else {
+                        $_cacheable = true;
+                    }
+                }
+                $this->connect();
+                $_data = $this->_dbhandle->single($_id, $_field, $this->_tablename, $this->_prikey, $this->_locktable);
+
+                if ($_cacheable) {
+                   // var_dump($_data);
+                  //  echo $_cachekey;
+                    BoCache::Cache($_cachekey, serialize($_data), $this->_cacheseconds);
+                }
+            }
+            return $_data;
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
         }
+    }
+
+    /**
+     * 缓存 时间
+     *
+     * @param int $_expireseconds
+     */
+    function Cache($_expireseconds)
+    {
+        $this->_cacheseconds = $_expireseconds;
+        return $this;
     }
 
     /**
@@ -500,7 +759,29 @@ class BoModel
     public function ListData($_field, $_wherestr, $_wherearr, $_pagesize, $_page, $_orderby, $_needcount = true)
     {
         try {
-            return $this->_dbhandle->listdata($this->_tablename, $_field, $_wherestr, $_wherearr, $_pagesize, $_page, $_orderby, $_needcount);
+            $_cacheable = false;
+            $_cachekey = "";
+            if ($this->_cacheseconds > 0) {
+                $_cachekey = "modelcache_" . md5(get_class($this) . "ListData" . $_field . $_wherestr . var_export($_wherearr, true) . $_pagesize . $_page . $this->_cacheseconds . $_orderby . var_export($_needcount, true));
+                $_cacheval = BoCache::Cache($_cachekey);
+                if (! empty($_cacheval)) {
+                    return unserialize($_cacheval);
+                } else {
+                    $_cacheable = true;
+                }
+            }
+            $this->connect();
+            $_data = $this->_dbhandle->listdata($this->_tablename, $_field, $_wherestr, $_wherearr, $_pagesize, $_page, $_orderby, $_needcount);
+            $this->relatesql();
+
+            if (! empty($this->_relatedatainfo)) {
+                $this->getrelatedata($_data['data']['data']);
+            }
+
+            if ($_cacheable) {
+                BoCache::Cache($_cachekey, serialize($_data), $this->_cacheseconds);
+            }
+            return $_data;
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
         }
@@ -516,7 +797,26 @@ class BoModel
     public function Count($_wherestr, $_wherearr)
     {
         try {
-            return $this->_dbhandle->count($this->_tablename, $_wherestr, $_wherearr);
+
+            $_cacheable = false;
+            $_cachekey = "";
+            if ($this->_cacheseconds > 0) {
+                $_cachekey = "modelcache_" . md5(get_class($this) . "Count" . $this->_cacheseconds . $_wherestr . var_export($_wherearr, true));
+                $_cacheval = BoCache::Cache($_cachekey);
+                if (! empty($_cacheval)) {
+                    return unserialize($_cacheval);
+                } else {
+                    $_cacheable = true;
+                }
+            }
+            $this->connect();
+            $_data = $this->_dbhandle->count($this->_tablename, $_wherestr, $_wherearr);
+
+            if ($_cacheable) {
+                BoCache::Cache($_cachekey, serialize($_data), $this->_cacheseconds);
+            }
+            return $_data;
+            // return
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
         }
@@ -530,6 +830,7 @@ class BoModel
     public function BeginTrans()
     {
         try {
+            $this->connect();
             return ! $this->_isview ? $this->_dbhandle->begintrans() : Bfw::RetMsg(true, "view not supported");
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
@@ -545,6 +846,7 @@ class BoModel
     public function SetIsoLevel($level)
     {
         try {
+            $this->connect();
             return ! $this->_isview ? $this->_dbhandle->setisolevel($level) : Bfw::RetMsg(true, "view not supported");
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
@@ -559,6 +861,7 @@ class BoModel
     public function Commit()
     {
         try {
+            $this->connect();
             return ! $this->_isview ? $this->_dbhandle->commit() : Bfw::RetMsg(true, "view not supported");
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
@@ -573,6 +876,7 @@ class BoModel
     public function RollBack()
     {
         try {
+            $this->connect();
             return ! $this->_isview ? $this->_dbhandle->rollback() : Bfw::RetMsg(true, "view not supported");
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
@@ -589,6 +893,7 @@ class BoModel
     public function ExecuteNonQuery($_sql, $_val = null)
     {
         try {
+            $this->connect();
             $_sql = str_replace("[T]", $this->_tablename, $_sql);
             $_sql = $this->GetTableNameByTag($_sql);
             return $this->_dbhandle->executeNonquery($_sql, $_val);
@@ -606,9 +911,29 @@ class BoModel
     public function ExecuteReader($_sql, $_val = null)
     {
         try {
+
             $_sql = str_replace("[T]", $this->_tablename, $_sql);
             $_sql = $this->GetTableNameByTag($_sql);
-            return $this->_dbhandle->executereader($_sql, $_val);
+            $_cacheable = false;
+            $_cachekey = "";
+
+            if ($this->_cacheseconds > 0) {
+                $_cachekey = "modelcache_" . md5(get_class($this) . "ExecuteReader" . $this->_cacheseconds . $_sql . var_export($_val, true));
+                $_cacheval = BoCache::Cache($_cachekey);
+                if (! empty($_cacheval)) {
+                    return unserialize($_cacheval);
+                } else {
+                    $_cacheable = true;
+                }
+            }
+            $this->connect();
+            $_data = $this->_dbhandle->executereader($_sql, $_val);
+
+            if ($_cacheable) {
+                BoCache::Cache($_cachekey, serialize($_data), $this->_cacheseconds);
+            }
+
+            return $_data;
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
         }
@@ -769,6 +1094,7 @@ class BoModel
      */
     function Select()
     {
+        $this->relatesql();
         $_sql = "select " . $this->_fieldstr . " from ";
 
         $_sql .= $this->_tablename . " ";
@@ -802,7 +1128,14 @@ class BoModel
         if ($this->_page >= 0 && $this->_pagesize > 0) {
             $_sql .= " limit " . $this->_page * $this->_pagesize . "," . $this->_pagesize;
         }
-        return $this->ExecuteReader($_sql, $this->_wherearr);
+
+        $_data = $this->ExecuteReader($_sql, $this->_wherearr);
+
+        if (! empty($this->_relatedatainfo)) {
+            $this->getrelatedata($_data['data']);
+        }
+
+        return $_data;
     }
 
     /**

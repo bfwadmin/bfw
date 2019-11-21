@@ -4,8 +4,9 @@ namespace Lib;
 use Lib\Bfw;
 
 /**
+ *
  * @author wangbo
- * 服务类
+ *         服务类
  */
 class BoService
 {
@@ -29,64 +30,100 @@ class BoService
 
     public function Insert($_data, $_returnid = false)
     {
-        return $this->_modelins != null ? $this->_modelins->Insert($_data, $_returnid) : Bfw::RetMsg(true, "model bind empty");
+        if ($this->_modelins != null) {
+            return $this->_modelins != null ? $this->_modelins->Insert($_data, $_returnid) : Bfw::RetMsg(true, "model bind empty");
+        }
+        return Bfw::RetMsg(true, "Service 中没有设置关联model");
     }
 
     public function Update($_data)
     {
-        return $this->_modelins != null ? $this->_modelins->Update($_data) : Bfw::RetMsg(true, "model bind empty");
+        if ($this->_modelins != null) {
+            return $this->_modelins != null ? $this->_modelins->Update($_data) : Bfw::RetMsg(true, "model bind empty");
+        }
+        return Bfw::RetMsg(true, "Service 中没有设置关联model");
     }
 
     public function Delete($_id)
     {
-        return $this->_modelins != null ? $this->_modelins->Delete($_id) : Bfw::RetMsg(true, "model bind empty");
+        if ($this->_modelins != null) {
+            return $this->_modelins != null ? $this->_modelins->Delete($_id) : Bfw::RetMsg(true, "model bind empty");
+        }
+        return Bfw::RetMsg(true, "Service 中没有设置关联model");
     }
 
     public function Single($_field, $_id)
     {
-        return $this->_modelins != null ? $this->_modelins->Single($_field, $_id) : Bfw::RetMsg(true, "model bind empty");
+        if ($this->_modelins != null) {
+            return $this->_modelins != null ? $this->_modelins->Single($_field, $_id) : Bfw::RetMsg(true, "model bind empty");
+        }
+        return Bfw::RetMsg(true, "Service 中没有设置关联model");
     }
 
     public function ListData($_field, $_wherestr, $_wherearr, $_pagesize, $_page, $_orderby, $_needcount = true)
     {
-        return $this->_modelins != null ? $this->_modelins->ListData($_field, $_wherestr, $_wherearr, $_pagesize, $_page, $_orderby, $_needcount) : Bfw::RetMsg(true, "model bind empty");
+        if ($this->_modelins != null) {
+            return $this->_modelins != null ? $this->_modelins->ListData($_field, $_wherestr, $_wherearr, $_pagesize, $_page, $_orderby, $_needcount) : Bfw::RetMsg(true, "model bind empty");
+        }
+        return Bfw::RetMsg(true, "Service 中没有设置关联model");
     }
 
     public function Count($_wherestr, $_wherearr)
     {
-        return $this->_modelins != null ? $this->_modelins->Count($_wherestr, $_wherearr) : Bfw::RetMsg(true, "model bind empty");
+        if ($this->_modelins != null) {
+            return $this->_modelins != null ? $this->_modelins->Count($_wherestr, $_wherearr) : Bfw::RetMsg(true, "model bind empty");
+        }
+        return Bfw::RetMsg(true, "Service 中没有设置关联model");
     }
 
     public function BeginTrans()
     {
-        return $this->_modelins != null ? $this->_modelins->BeginTrans() : Bfw::RetMsg(true, "model bind empty");
+        if ($this->_modelins != null) {
+            return $this->_modelins != null ? $this->_modelins->BeginTrans() : Bfw::RetMsg(true, "model bind empty");
+        }
+        return Bfw::RetMsg(true, "Service 中没有设置关联model");
     }
 
     public function SetIsoLevel($level)
     {
-        return $this->_modelins != null ? $this->_modelins->SetIsoLevel($level) : Bfw::RetMsg(true, "model bind empty");
+        if ($this->_modelins != null) {
+            return $this->_modelins != null ? $this->_modelins->SetIsoLevel($level) : Bfw::RetMsg(true, "model bind empty");
+        }
+        return Bfw::RetMsg(true, "Service 中没有设置关联model");
     }
 
     public function Commit()
     {
-        return $this->_modelins != null ? $this->_modelins->Commit() : Bfw::RetMsg(true, "model bind empty");
+        if ($this->_modelins != null) {
+            return $this->_modelins != null ? $this->_modelins->Commit() : Bfw::RetMsg(true, "model bind empty");
+        }
+        return Bfw::RetMsg(true, "Service 中没有设置关联model");
     }
 
     public function RollBack()
     {
-        return $this->_modelins != null ? $this->_modelins->RollBack() : Bfw::RetMsg(true, "model bind empty");
+        if ($this->_modelins != null) {
+            return $this->_modelins != null ? $this->_modelins->RollBack() : Bfw::RetMsg(true, "model bind empty");
+        }
+        return Bfw::RetMsg(true, "Service 中没有设置关联model");
     }
 
     // 执行sql
     // 返回是否执行成功
     protected function ExecuteNonQuery($_sql, $_val)
     {
-        return $this->_modelins != null ? $this->_modelins->ExecuteNonQuery($_sql, $_val) : Bfw::RetMsg(true, "model bind empty");
+        if ($this->_modelins != null) {
+            return $this->_modelins != null ? $this->_modelins->ExecuteNonQuery($_sql, $_val) : Bfw::RetMsg(true, "model bind empty");
+        }
+        return Bfw::RetMsg(true, "Service 中没有设置关联model");
     }
     // 执行sql返回list数组
     protected function ExecuteReader($_sql, $_val)
     {
-        return $this->_modelins != null ? $this->_modelins->ExecuteReader($_sql, $_val) : Bfw::RetMsg(true, "model bind empty");
+        if ($this->_modelins != null) {
+            return $this->_modelins != null ? $this->_modelins->ExecuteReader($_sql, $_val) : Bfw::RetMsg(true, "model bind empty");
+        }
+        return Bfw::RetMsg(true, "Service 中没有设置关联model");
     }
     // 检测是否设置
     protected function isNullOrEmpty($p)
@@ -110,8 +147,7 @@ class BoService
         foreach ($_filterarr as $_item) {
             $_sub = [];
             foreach ($_item as $_key) {
-                if (isset($_data[$_key]))
-                {
+                if (isset($_data[$_key])) {
                     $_sub[$_key] = $_data[$_key];
                 }
             }
@@ -144,7 +180,7 @@ class BoService
 
     public function __call($method, $arguments)
     {
-		//if($method.)
+        // if($method.)
         return Bfw::RetMsg(true, $method . " not defined");
     }
 }

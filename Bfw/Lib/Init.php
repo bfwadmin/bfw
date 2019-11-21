@@ -216,7 +216,8 @@ try {
     defineinit("PLUGIN_HOST_URL", $_config_arr['App'], 'plugin_host_url', "http://a.exm.com/"); // 插件库url
     defineinit("FILTER_CONT", $_config_arr['App'], 'filter_cont', false); // 是否过滤控制器
                                                                           // 控制 器相关设置
-                                                                          // 数据库设置
+
+    defineinit("DB_FROM_MODEL", $_config_arr['App'], 'db_from_model', false); // 是否通过代码来自动创建数据库                                                             // 数据库设置
     defineinit("DB_TYPE", $_config_arr['App'], 'db_type', "Mysql");
     defineinit("DB_HOST", $_config_arr['App'], 'db_host', "127.0.0.1");
     defineinit("DB_NAME", $_config_arr['App'], 'db_name', "pmdb");

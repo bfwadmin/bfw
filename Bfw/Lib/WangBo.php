@@ -2,11 +2,13 @@
 namespace Lib;
 
 /**
+ *
  * @author wangbo
- * 创始人类
+ *         创始人类
  */
 class WangBo
 {
+
     /**
      * 锁定
      *
@@ -208,10 +210,12 @@ class WangBo
     /**
      * 成功提示
      * $this->Success("出现错误");
-     *
      * @param string $str
+     * @param string $url 跳转地址
+     * @param int $timeout 跳转倒计时秒
+     *
      */
-    protected function Success($str)
+    protected function Success($str,$url="",$timeout=3)
     {
         if (strtolower(PHP_SAPI) === "cli") {
             echo $str;
@@ -220,7 +224,30 @@ class WangBo
         if (RESPONSE_JSON || IS_AJAX_REQUEST) {
             $this->Json(Bfw::RetMsg(false, $str));
         } else {
+            if($url!=""&&strpos($url, "://")===false){
+                $_urlpara=explode("/",$url);
+                $_act="";
+                $_cont=CONTROL_VALUE;
+                    $_dom=DOMIAN_VALUE;
+                if(count($_urlpara)==1){
+                    $_act=$_urlpara[0];
+
+                }
+                if(count($_urlpara)==2){
+                    $_act=$_urlpara[1];
+                    $_cont=$_urlpara[0];
+
+                }
+                if(count($_urlpara)==3){
+                    $_act=$_urlpara[2];
+                    $_cont=$_urlpara[1];
+                    $_dom=$_urlpara[0];
+                }
+                $url= Bfw::ACLINK($_cont,$_act,"",$_dom);
+            }
             Core::S("but_msg", $str);
+            Core::S("url", $url);
+            Core::S("timeout", $timeout);
             BoRes::View($this->isMobile() ? "success_m" : "success", "System", "v1");
         }
     }
@@ -261,6 +288,32 @@ class WangBo
         if (RESPONSE_JSON) {
             $this->Json(Bfw::RetMsg(false, $msg));
         } else {
+            if (is_array($but)) {
+                foreach ($but as &$t){
+                    if(isset($t[1])&&strpos($t[1], "://")===false){
+                        $_urlpara=explode("/",$t[1]);
+                        $_act="";
+                        $_cont=CONTROL_VALUE;
+                        $_dom=DOMIAN_VALUE;
+                        if(count($_urlpara)==1){
+                            $_act=$_urlpara[0];
+
+                        }
+                        if(count($_urlpara)==2){
+                            $_act=$_urlpara[1];
+                            $_cont=$_urlpara[0];
+
+                        }
+                        if(count($_urlpara)==3){
+                            $_act=$_urlpara[2];
+                            $_cont=$_urlpara[1];
+                            $_dom=$_urlpara[0];
+                        }
+                        $t[1]= Bfw::ACLINK($_cont,$_act,"",$_dom);
+                    }
+                }
+
+            }
             if (IS_AJAX_REQUEST) {
                 if (is_array($but)) {
                     if (isset($but[0])) {
