@@ -21,6 +21,7 @@ class WangBo
         return $_lock_instance::getInstance($_key)->lock();
     }
 
+
     /**
      * 解除锁
      *
@@ -112,9 +113,31 @@ class WangBo
      */
     protected function ReDirect($url)
     {
+        if($url!=""&&strpos($url, "://")===false){
+            $_urlpara=explode("/",$url);
+            $_act="";
+            $_cont=CONTROL_VALUE;
+            $_dom=DOMIAN_VALUE;
+            if(count($_urlpara)==1){
+                $_act=$_urlpara[0];
+
+            }
+            if(count($_urlpara)==2){
+                $_act=$_urlpara[1];
+                $_cont=$_urlpara[0];
+
+            }
+            if(count($_urlpara)==3){
+                $_act=$_urlpara[2];
+                $_cont=$_urlpara[1];
+                $_dom=$_urlpara[0];
+            }
+            $url= Bfw::ACLINK($_cont,$_act,"",$_dom);
+        }
         if (IS_AJAX_REQUEST) {
             $this->Json(Bfw::RetMsg(false, "redirect:" . $url));
         } else {
+
             header('Location: ' . $url);
         }
     }
@@ -221,30 +244,38 @@ class WangBo
             echo $str;
             return;
         }
+        if($url!=""&&strpos($url, "://")===false){
+            $_urlpara=explode("/",$url);
+            $_act="";
+            $_cont=CONTROL_VALUE;
+            $_dom=DOMIAN_VALUE;
+            if(count($_urlpara)==1){
+                $_act=$_urlpara[0];
+
+            }
+            if(count($_urlpara)==2){
+                $_act=$_urlpara[1];
+                $_cont=$_urlpara[0];
+
+            }
+            if(count($_urlpara)==3){
+                $_act=$_urlpara[2];
+                $_cont=$_urlpara[1];
+                $_dom=$_urlpara[0];
+            }
+            $url= Bfw::ACLINK($_cont,$_act,"",$_dom);
+        }
         if (RESPONSE_JSON || IS_AJAX_REQUEST) {
+            if($url!=""){
+                if(IS_AJAX_REQUEST){
+                    $this->Json(Bfw::RetMsg(false, "msgredirect:" . $str . "---" . $url));
+                    return;
+                }
+            }
+
             $this->Json(Bfw::RetMsg(false, $str));
         } else {
-            if($url!=""&&strpos($url, "://")===false){
-                $_urlpara=explode("/",$url);
-                $_act="";
-                $_cont=CONTROL_VALUE;
-                    $_dom=DOMIAN_VALUE;
-                if(count($_urlpara)==1){
-                    $_act=$_urlpara[0];
 
-                }
-                if(count($_urlpara)==2){
-                    $_act=$_urlpara[1];
-                    $_cont=$_urlpara[0];
-
-                }
-                if(count($_urlpara)==3){
-                    $_act=$_urlpara[2];
-                    $_cont=$_urlpara[1];
-                    $_dom=$_urlpara[0];
-                }
-                $url= Bfw::ACLINK($_cont,$_act,"",$_dom);
-            }
             Core::S("but_msg", $str);
             Core::S("url", $url);
             Core::S("timeout", $timeout);

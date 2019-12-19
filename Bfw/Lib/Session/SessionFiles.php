@@ -40,6 +40,11 @@ class SessionFiles implements BoSessionInterface
             // if($data!=""){
             // echo $data;
             BoDebug::Info("filesession write " . $sess_id);
+
+            if (@file_get_contents(SESSION_SAVE_PATH . DS . $sess_id) == $data) {
+                touch(SESSION_SAVE_PATH . DS . $sess_id);
+                return true;
+            }
             if (($fp = @fopen(SESSION_SAVE_PATH . DS . $sess_id, "w")) != false) {
 
                 if (flock($fp, LOCK_EX)) {

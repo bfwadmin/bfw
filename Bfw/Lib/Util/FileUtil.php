@@ -10,6 +10,47 @@ class FileUtil
 {
 
     /**
+     * 自动解析编码读入文件
+     *
+     * @param string $file
+     *            文件路径
+     * @param string $charset
+     *            读取编码
+     * @return string 返回读取内容
+     */
+    static function auto_readfile($file, $charset = 'UTF-8')
+    {
+        $list = array(
+            'GBK',
+            'UTF-8',
+            'UTF-16LE',
+            'UTF-16BE',
+            'ISO-8859-1'
+        );
+        $str = file_get_contents($file);
+        foreach ($list as $item) {
+            $tmp = mb_convert_encoding($str, $item, $item);
+            if (md5($tmp) == md5($str)) {
+                return iconv($item, "UTF-8//IGNORE", $str);
+
+                return mb_convert_encoding($str, $charset, $item);
+            }
+        }
+        return "";
+    }
+
+    /**
+     * 创建目录和写入文件
+     *
+     * @param unknown $_filepath
+     */
+    static function createWrite($_filepath, $_filecont)
+    {
+        self::CreatDir(dirname($_filepath));
+        return file_put_contents($_filepath, $_filecont);
+    }
+
+    /**
      * 获取目录下所有文件，包含子目录文件，并返回一个相对路径数组
      *
      * @param string $_dir
@@ -43,17 +84,17 @@ class FileUtil
     static function searchfilenameArraybydir($_dir = "", $key = "", &$filelist)
     {
         $_dirdata = scandir($_dir);
-        if(!$_dirdata){
+        if (! $_dirdata) {
             return;
-            //$filelist=[];
+            // $filelist=[];
         }
         foreach ($_dirdata as $file) {
             if (($file != '.') && ($file != '..')) {
-                if (is_dir( $_dir  . $file)) {
-                    self::searchfilenameArraybydir($_dir  . $file, $key, $filelist);
+                if (is_dir($_dir . $file)) {
+                    self::searchfilenameArraybydir($_dir . $file, $key, $filelist);
                 } else {
                     if (strstr($file, $key)) {
-                            $filelist[] = $_dir  . $file;
+                        $filelist[] = $_dir . $file;
                     }
                 }
             }
@@ -71,18 +112,18 @@ class FileUtil
     static function searchfilecontArraybydir($_dir, $key = "", &$filelist)
     {
         $_dirdata = scandir($_dir);
-        if(!$_dirdata){
+        if (! $_dirdata) {
             return;
         }
 
         foreach ($_dirdata as $file) {
             if (($file != '.') && ($file != '..')) {
-                if (is_dir( $_dir  . $file)) {
-                    self::searchfilecontArraybydir($_dir  . $file, $key, $filelist);
+                if (is_dir($_dir . $file)) {
+                    self::searchfilecontArraybydir($_dir . $file, $key, $filelist);
                 } else {
-                    $content = file_get_contents($_dir  . $file);
+                    $content = file_get_contents($_dir . $file);
                     if (strpos($content, $key) !== false) {
-                        $filelist[] = $_dir  . $file;
+                        $filelist[] = $_dir . $file;
                     }
                 }
             }
@@ -100,20 +141,20 @@ class FileUtil
     static function replacefilecontArraybydir($_dir, $key = "", $val = "", &$filelist)
     {
         $_dirdata = scandir($_dir);
-        if(!$_dirdata){
+        if (! $_dirdata) {
             return;
         }
         foreach ($_dirdata as $file) {
             if (($file != '.') && ($file != '..')) {
-                if (is_dir( $_dir  . $file)) {
-                    self::replacefilecontArraybydir($_dir  . $file, $key, $val, $filelist);
+                if (is_dir($_dir . $file)) {
+                    self::replacefilecontArraybydir($_dir . $file, $key, $val, $filelist);
                 } else {
-                    $content = file_get_contents($_dir  . $file);
-                    //echo $content;
-                    $content=str_replace($key, $val, $content,$count);
-                    if ($count>0) {
-                        file_put_contents($_dir  . $file, $content);
-                        $filelist[] = $_dir  . $file;
+                    $content = file_get_contents($_dir . $file);
+                    // echo $content;
+                    $content = str_replace($key, $val, $content, $count);
+                    if ($count > 0) {
+                        file_put_contents($_dir . $file, $content);
+                        $filelist[] = $_dir . $file;
                     }
                 }
             }
@@ -290,18 +331,21 @@ class FileUtil
             return rmdir($dirName);
         }
     }
-    /**删除某个目录中的所有子目录及寄文件
+
+    /**
+     * 删除某个目录中的所有子目录及寄文件
+     *
      * @param unknown $dirName
      * @param unknown $ext
      *
      */
-    public static function delFile($dirName,$ext=[])
+    public static function delFile($dirName, $ext = [])
     {
         $_dirdata = scandir($dirName);
         foreach ($_dirdata as $file) {
-            if ($file != "." && $file != ".."&&!in_array(strtolower($file), $ext)) {
+            if ($file != "." && $file != ".." && ! in_array(strtolower($file), $ext)) {
                 if (is_dir($dirName . DS . $file)) {
-                    self::delFile($dirName . DS . $file,$ext);
+                    self::delFile($dirName . DS . $file, $ext);
                 } else {
                     @unlink($dirName . DS . $file);
                 }
@@ -326,7 +370,7 @@ class FileUtil
         @closedir($path);
     }
 
-    public static function copydir($src, $des,$extfile=[])
+    public static function copydir($src, $des, $extfile = [])
     {
         if (! is_dir($src)) {
             return false;
@@ -339,11 +383,11 @@ class FileUtil
         }
         if (! empty($from_files)) {
             foreach ($from_files as $file) {
-                if ($file == '.' || $file == '..'||in_array(strtolower($file), $extfile)) {
+                if ($file == '.' || $file == '..' || in_array(strtolower($file), $extfile)) {
                     continue;
                 }
                 if (is_dir($src . '/' . $file)) { // 如果是目录，则调用自身
-                    self::copydir($src . '/' . $file, $des . '/' . $file,$extfile);
+                    self::copydir($src . '/' . $file, $des . '/' . $file, $extfile);
                 } else { // 直接copy到目标文件夹
                     copy($src . '/' . $file, $des . '/' . $file);
                 }
@@ -424,7 +468,7 @@ class FileUtil
     }
 
     /**
-     * 获取目录下的所有子目录
+     * 获取目录下的所有子目录,返回相对地址
      *
      * @param unknown $_dir
      * @param unknown $_folderdata
@@ -442,6 +486,178 @@ class FileUtil
                 }
             }
         }
+    }
+
+    /**
+     *
+     * @param unknown $_dir
+     * @param string $_base
+     * @param unknown $_folderdata
+     */
+    public static function getsubfilebydir($_dir, $_base = DS, &$_folderdata, $_except = "")
+    {
+        $_exceptfolder = [];
+        $_exceptfile = [];
+        if ($_except != "") {
+            $_exceptarr = explode("|", $_except);
+            foreach ($_exceptarr as $item) {
+                $_lastword = substr($item, - 1);
+                if ($_lastword == "/" || $_lastword == "*") {
+                    $_exceptfolder[] = dirname($item);
+                } else {
+                    $_exceptfile[] = $item;
+                }
+            }
+        }
+        $_dirdata = scandir($_base . $_dir);
+        foreach ($_dirdata as $file) {
+            if (($file != '.') && ($file != '..')) {
+                if (is_dir($_base . $_dir . $file) && ! in_array($_dir . $file, $_exceptfolder)) {
+                    self::getsubfilebydir($_dir . $file . DS, $_base, $_folderdata);
+                } else {
+                    if (! in_array($_dir . $file, $_exceptfile)) {
+                        $_folderdata[] = $_dir . $file;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * sftp上传目录
+     *
+     * @param unknown $_ftpconf
+     * @param string $_local
+     * @param string $_remote
+     * @param string $_except
+     * @return boolean|multitype:NULL
+     */
+    public static function sftp_uploadfolder($_ftpconf = [], $_local = "", $_remote = "", $_except = "")
+    {
+        if (! isset($_ftpconf['host']) || ! isset($_ftpconf['user']) || ! isset($_ftpconf['pwd'])) {
+            return "连接参数错误";
+        }
+        $_conn = @ssh2_connect($_ftpconf['host'], isset($_ftpconf['port']) ? $_ftpconf['port'] : 22);
+        if (FALSE === $_conn) {
+            return "连接服务器错误";
+        }
+        // 使用username和password登录
+        $_authdata = @ssh2_auth_password($_conn, $_ftpconf['user'], $_ftpconf['pwd']);
+        if (FALSE === $_authdata) {
+            return "账号密码错误";
+        }
+        $_sftp = @ssh2_sftp($_conn);
+        if (FALSE === $_sftp) {
+            return "初始化连接出错";
+        }
+        $folderdata = [];
+        self::getsubfilebydir("", $_local, $folderdata, $_except);
+        foreach ($folderdata as $item) {
+            $remote_dir = dirname($_remote . $item);
+
+            if(!file_exists('ssh2.sftp://' . $_sftp . $remote_dir)){
+                $path_arr = explode(DS, $remote_dir);
+                unset($path_arr[0]);
+                $_pathstr=DS;
+                foreach ($path_arr as $val) {
+                    $_pathstr.=$val.DS;
+                    @ssh2_sftp_mkdir($_sftp,$_pathstr);
+                }
+            }
+            $_stream = @fopen("ssh2.sftp://{$_sftp}".$_remote.$item, 'w');
+            if(FALSE === $_stream){
+            return "创建文件错误".$_remote.$item;
+            }
+            $_data_to_send = @file_get_contents($_local.$item);
+            if(FALSE === $_data_to_send){
+            return "打开本地文件错误".$_local.$item;
+            }
+            if (@fwrite($_stream, $_data_to_send) === false){
+            return "写入文件错误".$_remote.$item;
+            }
+            @fclose($_stream);
+
+        }
+        return false;
+    }
+
+    /**
+     * ftp上传目录
+     *
+     * @param unknown $_ftpconf
+     * @param string $_local
+     * @param string $_remote
+     * @param string $_except
+     * @return boolean|multitype:NULL
+     */
+    public static function ftp_uploadfolder($_ftpconf = [], $_local = "", $_remote = "", $_except = "")
+    {
+        if (! isset($_ftpconf['host']) || ! isset($_ftpconf['user']) || ! isset($_ftpconf['pwd'])) {
+            return "连接参数错误";
+        }
+        $_conn = @ftp_connect($_ftpconf['host'], isset($_ftpconf['port']) ? $_ftpconf['port'] : 21);
+        if (FALSE === $_conn) {
+            return "连接服务器错误";
+        }
+        // 使用username和password登录
+        $_authdata = @ftp_login($_conn, $_ftpconf['user'], $_ftpconf['pwd']);
+        if (FALSE === $_authdata) {
+            ftp_quit($_conn);
+            return "账号密码错误";
+        }
+        $folderdata = [];
+        self::getsubfilebydir("", $_local, $folderdata, $_except);
+
+        ftp_chdir($_conn, "/");
+        if (@ftp_pasv($_conn, isset($_ftpconf['pasv']) ? $_ftpconf['pasv'] : false)) {
+            foreach ($folderdata as $item) {
+                $remote_dir = dirname($_remote . $item);
+                $path_arr = explode(DS, $remote_dir);
+                foreach ($path_arr as $val) {
+
+                    if (@ftp_chdir($_conn, $val) == FALSE) {
+                        $tmp = @ftp_mkdir($_conn, $val);
+                        @ftp_chdir($_conn, $val);
+                    }
+                }
+                ftp_chdir($_conn, "/");
+                ftp_put($_conn, $_remote . $item, $_local . $item, FTP_BINARY);
+            }
+        }
+        ftp_quit($_conn);
+        return false;
+    }
+
+    /**
+     * ftp上传文件
+     *
+     * @param unknown $_ftpconf
+     * @param string $_local
+     * @param string $_remote
+     * @return boolean
+     */
+    public static function ftp_uploadfile($_ftpconf = [], $_local = "", $_remote = "")
+    {
+        if (! isset($_ftpconf['host']) || ! isset($_ftpconf['user']) || ! isset($_ftpconf['pwd'])) {
+            return "连接参数错误";
+        }
+        $_conn = @ftp_connect($_ftpconf['host'], isset($_ftpconf['port']) ? $_ftpconf['port'] : 21);
+        if (FALSE === $_conn) {
+            return "连接服务器错误";
+        }
+        // 使用username和password登录
+        $_authdata = @ftp_login($_conn, $_ftpconf['user'], $_ftpconf['pwd']);
+        if (FALSE === $_authdata) {
+            ftp_quit($_conn);
+            return "账号密码错误";
+        }
+
+        $_ret = false;
+        if (@ftp_pasv($_conn, isset($_ftpconf['pasv']) ? $_ftpconf['pasv'] : false)) {
+            $_ret = @ftp_put($_conn, $_remote, $_local, FTP_BINARY);
+        }
+        ftp_quit($_conn);
+        return $_ret;
     }
 
     public static function copy_replace_text($_src, $_des, $_search, $_repalce)

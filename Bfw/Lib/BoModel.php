@@ -23,8 +23,6 @@ class BoModel
 
     protected $_cacheseconds = 0;
 
-    private $_getrelatefields="";
-
     /**
      * 验证数组
      *
@@ -131,15 +129,17 @@ class BoModel
 
     protected $_fields = [];
 
-    protected $_getrelatedata = false;
+    protected $_setrelatedata = false;
 
     protected $_getrelatemodel = [];
-
-    protected $_relatedatalimit = 10;
 
     protected $_initrecords = [];
 
     protected $_relatedatainfo = [];
+
+    protected $_relateddata = [];
+
+    protected $_relatedupdatedata = [];
 
     /**
      * 数据库处理实例
@@ -182,114 +182,141 @@ class BoModel
             }
         }
 
-
         // 如果开启自动创建数据库
-        if (DB_FROM_MODEL&&! empty($this->_fields)) {
+        if (DB_FROM_MODEL && ! empty($this->_fields)) {
+            // sqlite自动
+            if (isset($this->_connarray) && $this->_connarray['dbtype'] == 'DbSqlite') {
 
-            if (isset($this->_connarray) && $this->_connarray['dbtype'] == 'DbMysql') {
-                $_sql = "SELECT COLUMN_NAME,COLUMN_TYPE,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,IS_NULLABLE,COLUMN_DEFAULT, COLUMN_COMMENT  FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA='{$this->_connarray['dbname']}' and table_name  = '{$this->_tablename}'";
+                $_sql = "SELECT sql FROM sqlite_master WHERE tbl_name = '{$this->_tablename}' AND type = 'table'";
                 BoDebug::Info("show table field {$_sql}");
                 $_columndata = $this->ExecuteReader($_sql, null);
-                // var_dump($_columndata);
 
-                $_prisql = "SELECT k.column_name FROM information_schema.table_constraints t JOIN information_schema.key_column_usage k USING (constraint_name,table_schema,table_name) WHERE t.constraint_type='PRIMARY KEY' AND t.table_schema='{$this->_connarray['dbname']}' AND t.table_name='{$this->_tablename}'";
+                $_localprikey="";
+                $_codefieldinfo=[];
+                $_codefieldarr=[];
 
-                $_pridata = $this->ExecuteReader($_prisql, null);
-                // var_dump($_pridata);
-                $_prikey = [];
-                if (! $_pridata['err'] && ! empty($_pridata['data'])) {
-                    foreach ($_pridata['data'] as $item) {
-                        $_prikey[] = $item['column_name'];
+
+                $_convertfield=[];
+                foreach ($this->_fields as &$item) {
+                    $_codefieldarr[]=$item['name'];
+
+                    if($item['type']=="varchar"||$item['type']=="text"){
+                        $item['type']="TEXT";
                     }
+                    if($item['type']=="int"){
+                        $item['type']="INTEGER";
+                    }
+                    if($item['type']=="datetime"){
+                        $item['type']="DATETIME";
+                    }
+                    $_codefieldinfo[]=['name'=>$item['name'],"type"=>$item['type']];
+                    if (isset($item['prikey'])) {
+                        $_localprikey = $item['name'];
+                    }
+
                 }
 
-                if (! $_columndata['err'] && ! empty($_columndata['data'])) {
-                    BoDebug::Info("compare table field");
-                    $_alertsql = "";
-                    $_localprikey = [];
-                    // 进行对比
-                    foreach ($this->_fields as $item) {
-                        if (isset($item['prikey'])) {
-                            $_localprikey[] = $item['name'];
-                        }
-                        $_findcol = false;
-                        foreach ($_columndata['data'] as $citem) {
-                            if ($citem['COLUMN_NAME'] == $item['name']) {
-                                $_findcol = $citem;
-                                break;
-                            }
-                        }
-                        // 如果找到了
-                        if ($_findcol) {
-                            if ($_findcol['DATA_TYPE'] != $item['type']) {
-                                if ($item['type'] == "int" || $item['type'] == "varchar") {
-                                    $_alertsql .= " MODIFY COLUMN `{$item['name']}`  {$item['type']}({$item['length']}) " . (isset($item['default']) ? "DEFAULT '{$item['default']}'" : "") . "" . (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . " ,";
-                                } else {
-                                    $_alertsql .= " MODIFY COLUMN `{$item['name']}`  {$item['type']} " . (isset($item['default']) ? "DEFAULT '{$item['default']}'" : "") . "" . (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . " ,";
-                                }
-                            }
-                        } else {
-                            // 没找到就是新增
-                            if ($item['type'] == "int" || $item['type'] == "varchar") {
-                                $_alertsql .= " ADD COLUMN `{$item['name']}`  {$item['type']}({$item['length']}) NULL " . (isset($item['default']) ? "DEFAULT '{$item['default']}'" : "") . "" . (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . ",";
-                            } else {
-                                $_alertsql .= " ADD COLUMN `{$item['name']}`  {$item['type']} NULL " . (isset($item['default']) ? "DEFAULT '{$item['default']}'" : "") . "" . (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . ",";
-                            }
-                        }
-                        // DROP PRIMARY KEY,
-                        // ADD PRIMARY KEY (`id`, `testa`);
-                    }
-                    if (! empty($_prikey) && $_prikey != $_localprikey) {
-                        $_alertsql .= " DROP PRIMARY KEY, ADD PRIMARY KEY (" . implode(",", $_localprikey) . "); ";
-                    }
-                    if ($_alertsql != "") {
 
-                        $_alertsql = rtrim($_alertsql, ",");
-                        $_alertsql = " ALTER TABLE `{$this->_tablename}` " . $_alertsql;
-                        BoDebug::Info("alert table {$_alertsql}");
-                        $_ret = $this->ExecuteNonQuery($_alertsql, null);
-                        if ($_ret['err']) {
-                            BoDebug::Info("alert table result:" . $_ret['data']);
+
+                if (! $_columndata['err'] && ! empty($_columndata['data'])) {
+
+                    BoDebug::Info("compare table field");
+                    //获取数据表的字段结构
+                    $_litesql = $_columndata['data'][0]['sql'];
+
+                    $cut = strtok($_litesql, "(");
+
+                    while ($fieldnames[] = strtok(",")) {};
+                    $_prikey="";
+                    array_pop($fieldnames);
+                    $_fieldinfo = [];
+                    $_fieldarr=[];
+                    foreach ($fieldnames as $no => $field) {
+                        $_f = explode(" ", trim($field));
+                        $_fieldarr[]=$_f[0];
+                        $_fieldinfo[] = [
+                            'name' => $_f[0],
+                            "type" => $_f[1]
+                        ];
+                        // $fieldnames[$no] = strtok($field, " ");
+                        if (strpos($field, "PRIMARY KEY")) {
+                            $_prikey= strtok($field, " ");
                         }
+                    }
+
+                    $_intersectresult = array_intersect($_codefieldarr, $_fieldarr);
+
+                    //对比，如果有一个字段不一致，就创建新表，导入旧表数据
+                    //如果更改了主键类型
+                    if($_localprikey!=$_prikey||count($_intersectresult)!=count($_fieldarr)){
+                        $_createsql = "CREATE TABLE new_{$this->_tablename} ( ";
+                        foreach ($this->_fields as $items) {
+                            if (isset($items['prikey'])) {
+                                if(isset($items['autoinc'])){
+                                    $_createsql .= " {$items['name']}  {$items['type']} PRIMARY KEY AUTOINCREMENT,";
+                                }else{
+                                    $_createsql .= " {$items['name']}  {$items['type']} PRIMARY KEY,";
+                                }
+                            }else{
+                                $_createsql .= " {$items['name']}  {$items['type']},";
+                            }
+
+                        }
+                        $_createsql=rtrim($_createsql,",");
+                        $_createsql .= ");";
+                        BoDebug::Info("create table {$_createsql}");
+                        $_ret = $this->ExecuteNonQuery($_createsql, null);
+                        if ($_ret['err']) {
+                            BoDebug::Info("create table result:" . $_ret['data']);
+                        }
+                        $_fieldstr=implode(",", $_intersectresult);
+                        $_insertsql="INSERT INTO new_{$this->_tablename} ({$_fieldstr}) SELECT {$_fieldstr} FROM {$this->_tablename};";
+                        BoDebug::Info("copy table {$_insertsql}");
+                        $_ret = $this->ExecuteNonQuery($_insertsql, null);
+                        if ($_ret['err']) {
+                            BoDebug::Info("copy table result:" . $_ret['data']);
+                        }
+                        $_dropsql="DROP TABLE {$this->_tablename};";
+                        BoDebug::Info("drop table {$_dropsql}");
+                        $_ret = $this->ExecuteNonQuery($_dropsql, null);
+                        if ($_ret['err']) {
+                            BoDebug::Info("drop table result:" . $_ret['data']);
+                        }
+
+                        $_renamesql="ALTER TABLE new_{$this->_tablename} RENAME TO {$this->_tablename};";
+                        BoDebug::Info("rename table {$_renamesql}");
+                        $_ret = $this->ExecuteNonQuery($_renamesql, null);
+                        if ($_ret['err']) {
+                            BoDebug::Info("rename table result:" . $_ret['data']);
+                        }
+
                     }
                 } else {
-                    $_createsql = "  CREATE TABLE `$this->_tablename` ( ";
+                    $_createsql = "CREATE TABLE {$this->_tablename} ( ";
                     $_createprikey = "";
+                    $_unique_str = "";
 
-                    foreach ($this->_fields as $item) {
-                        $_auto_inc = false;
-                        if (isset($item['prikey'])) {
-                            $_createprikey = $item['name'];
-                        }
-                        if (isset($item['autoinc'])) {
-                            $_auto_inc = $item['autoinc'];
-                        }
-                        if ($item['type'] == "int" || $item['type'] == "varchar") {
-                            $_createsql .= " `{$item['name']}`  {$item['type']}({$item['length']}) NOT NULL " . ($_auto_inc ? "AUTO_INCREMENT" : "") . " ";
-                            if ($_auto_inc) {
-                                $_createsql .= (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . ",";
-                            } else {
-                                $_createsql .= (isset($item['default']) ? "DEFAULT '{$item['default']}'" : "") . "" . (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . ",";
+
+
+                    foreach ($this->_fields as $items) {
+                        if (isset($items['prikey'])) {
+                            if(isset($items['autoinc'])){
+                                $_createsql .= " {$items['name']}  {$items['type']} PRIMARY KEY AUTOINCREMENT,";
+                            }else{
+                                $_createsql .= " {$items['name']}  {$items['type']} PRIMARY KEY,";
                             }
-                        } else {
-
-                            $_createsql .= " `{$item['name']}`  {$item['type']} NOT NULL " . ($_auto_inc ? "AUTO_INCREMENT" : "") . " ";
-
-                            if ($_auto_inc) {
-                                $_createsql .= (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . ",";
-                            } else {
-                                if ($item['type'] != "text") {
-                                    $_createsql .= (isset($item['default']) ? "DEFAULT '{$item['default']}'" : "") . "" . (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . ",";
-                                } else {
-                                    $_createsql .= (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . ",";
-                                }
+                        }else{
+                            if(isset($items['unique'])&& $item['unique']){
+                                $_createsql .= " {$items['name']}  {$items['type']} UNIQUE,";
+                            }else{
+                                $_createsql .= " {$items['name']}  {$items['type']},";
                             }
+
                         }
+
                     }
-                    if ($_createprikey != "") {
-                        $_createsql .= "PRIMARY KEY (`{$_createprikey}`)";
-                    }
-                    $_createsql .= ")ENGINE = INNODB;";
+                    $_createsql=rtrim($_createsql,",");
+                    $_createsql .= ");";
 
                     BoDebug::Info("create table {$_createsql}");
                     $_ret = $this->ExecuteNonQuery($_createsql, null);
@@ -298,7 +325,6 @@ class BoModel
                     }
                     if (! empty($this->_initrecords)) {
                         if (is_array($this->_initrecords)) {
-
                             foreach ($this->_initrecords as $record) {
                                 $ret = $this->Insert($record);
                                 BoDebug::Info("init table record:" . $ret['data']);
@@ -307,10 +333,148 @@ class BoModel
                     }
                 }
             }
+
+
+
+        // mysql自动创建
+        if (isset($this->_connarray) && $this->_connarray['dbtype'] == 'DbMysql') {
+            $_sql = "SELECT COLUMN_NAME,COLUMN_TYPE,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,IS_NULLABLE,COLUMN_DEFAULT, COLUMN_COMMENT  FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA='{$this->_connarray['dbname']}' and table_name  = '{$this->_tablename}'";
+            BoDebug::Info("show table field {$_sql}");
+            $_columndata = $this->ExecuteReader($_sql, null);
+            // var_dump($_columndata);
+
+            $_prisql = "SELECT k.column_name FROM information_schema.table_constraints t JOIN information_schema.key_column_usage k USING (constraint_name,table_schema,table_name) WHERE t.constraint_type='PRIMARY KEY' AND t.table_schema='{$this->_connarray['dbname']}' AND t.table_name='{$this->_tablename}'";
+
+            $_pridata = $this->ExecuteReader($_prisql, null);
+            // var_dump($_pridata);
+            $_prikey = [];
+            if (! $_pridata['err'] && ! empty($_pridata['data'])) {
+                foreach ($_pridata['data'] as $item) {
+                    $_prikey[] = $item['column_name'];
+                }
+            }
+
+            if (! $_columndata['err'] && ! empty($_columndata['data'])) {
+                BoDebug::Info("compare table field");
+                $_alertsql = "";
+                $_localprikey = [];
+                $_unique_str = "";
+                // 进行对比
+                foreach ($this->_fields as $item) {
+                    if (isset($item['prikey'])) {
+                        $_localprikey[] = $item['name'];
+                    }
+                    $_findcol = false;
+                    foreach ($_columndata['data'] as $citem) {
+                        if ($citem['COLUMN_NAME'] == $item['name']) {
+                            $_findcol = $citem;
+                            break;
+                        }
+                    }
+                    // 如果找到了
+                    if ($_findcol) {
+                        if ($_findcol['DATA_TYPE'] != $item['type']) {
+                            if ($item['type'] == "int" || $item['type'] == "varchar") {
+                                $_alertsql .= " MODIFY COLUMN `{$item['name']}`  {$item['type']}({$item['length']}) " . (isset($item['default']) ? "DEFAULT '{$item['default']}'" : "") . "" . (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . " ,";
+                            } else {
+                                $_alertsql .= " MODIFY COLUMN `{$item['name']}`  {$item['type']} " . (isset($item['default']) ? "DEFAULT '{$item['default']}'" : "") . "" . (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . " ,";
+                            }
+                        }
+                    } else {
+                        // 没找到就是新增
+                        if ($item['type'] == "int" || $item['type'] == "varchar") {
+                            if (isset($item['unique']) && $item['unique']) {
+                                $_unique_str .= "ADD UNIQUE INDEX (`{$item['name']}`),";
+                            }
+                            $_alertsql .= " ADD COLUMN `{$item['name']}`  {$item['type']}({$item['length']}) NULL " . (isset($item['default']) ? "DEFAULT '{$item['default']}'" : "") . "" . (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . ",";
+                        } else {
+                            $_alertsql .= " ADD COLUMN `{$item['name']}`  {$item['type']} NULL " . (isset($item['default']) ? "DEFAULT '{$item['default']}'" : "") . "" . (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . ",";
+                        }
+                    }
+                    // DROP PRIMARY KEY,
+                    // ADD PRIMARY KEY (`id`, `testa`);
+                }
+
+                $_alertsql .= $_unique_str;
+                if (! empty($_prikey) && $_prikey != $_localprikey) {
+                    $_alertsql .= " DROP PRIMARY KEY, ADD PRIMARY KEY (" . implode(",", $_localprikey) . "); ";
+                }
+                if ($_alertsql != "") {
+
+                    $_alertsql = rtrim($_alertsql, ",");
+                    $_alertsql = " ALTER TABLE `{$this->_tablename}` " . $_alertsql;
+                    BoDebug::Info("alert table {$_alertsql}");
+                    $_ret = $this->ExecuteNonQuery($_alertsql, null);
+                    if ($_ret['err']) {
+                        BoDebug::Info("alert table result:" . $_ret['data']);
+                    }
+                }
+            } else {
+                $_createsql = "  CREATE TABLE `$this->_tablename` ( ";
+                $_createprikey = "";
+                $_unique_str = "";
+
+                foreach ($this->_fields as $item) {
+                    $_auto_inc = false;
+
+                    if (isset($item['prikey'])) {
+                        $_createprikey = $item['name'];
+                    }
+                    if (isset($item['unique']) && $item['unique']) {
+                        $_unique_str .= "UNIQUE INDEX (`{$item['name']}`),";
+                    }
+                    if (isset($item['autoinc'])) {
+                        $_auto_inc = $item['autoinc'];
+                    }
+                    if ($item['type'] == "int" || $item['type'] == "varchar") {
+                        $_createsql .= " `{$item['name']}`  {$item['type']}({$item['length']}) NOT NULL " . ($_auto_inc ? "AUTO_INCREMENT" : "") . " ";
+                        if ($_auto_inc) {
+                            $_createsql .= (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . ",";
+                        } else {
+                            $_createsql .= (isset($item['default']) ? "DEFAULT '{$item['default']}'" : "") . "" . (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . ",";
+                        }
+                    } else {
+
+                        $_createsql .= " `{$item['name']}`  {$item['type']} NOT NULL " . ($_auto_inc ? "AUTO_INCREMENT" : "") . " ";
+
+                        if ($_auto_inc) {
+                            $_createsql .= (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . ",";
+                        } else {
+                            if ($item['type'] != "text") {
+                                $_createsql .= (isset($item['default']) ? "DEFAULT '{$item['default']}'" : "") . "" . (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . ",";
+                            } else {
+                                $_createsql .= (isset($item['comment']) ? "COMMENT '{$item['comment']}'" : "") . ",";
+                            }
+                        }
+                    }
+                }
+                if ($_createprikey != "") {
+                    $_createsql .= $_unique_str . "PRIMARY KEY (`{$_createprikey}`)";
+                }
+
+                $_createsql .= ")ENGINE = INNODB;";
+
+                BoDebug::Info("create table {$_createsql}");
+                $_ret = $this->ExecuteNonQuery($_createsql, null);
+                if ($_ret['err']) {
+                    BoDebug::Info("create table result:" . $_ret['data']);
+                }
+                if (! empty($this->_initrecords)) {
+                    if (is_array($this->_initrecords)) {
+
+                        foreach ($this->_initrecords as $record) {
+                            $ret = $this->Insert($record);
+                            BoDebug::Info("init table record:" . $ret['data']);
+                        }
+                    }
+                }
+            }
         }
     }
+}
 
-    private function connect(){
+    private function connect()
+    {
         if ($this->_dbhandle == null) {
             if (isset($this->_connarray)) {
                 $this->_dbhandle = DbFactory::GetInstance($this->_connarray);
@@ -332,26 +496,30 @@ class BoModel
         $this->_orderstr = "";
         $this->_fieldstr = "*";
         $this->_getrelatemodel = [];
-        $this->_relatedatalimit = 10;
-        $this->_getrelatedata = false;
-        $this->_getrelatefields="";
+        $this->_setrelatedata = false;
+        $this->_setrelatedata=[];
         return $this;
     }
 
+
     /**
-     * 关联其他模型一起输出
-     *
-     * @param array $_model
-     *            模型
-     * @param int $_limit
-     *            一对多加载数据条数
+     * 关联模型
+     * @param string $_model 模型名称
+     * @param string $_data 模型数据 insert update的时候需要
+     * @param array $_model_para 模型相关参数{$limit 相关模型输出数量,_field 模型字段，$_orderby 模型排序,$_dateformate 模型输出格式 onedim或string}
+     * @return \Lib\BoModel
      */
-    public function Relate($_model = [], $_limit = 10,$_field="")
+    public function Relate($_model = "", $_data = null, $_model_para=[])
     {
-        $this->_getrelatemodel = $_model;
-        $this->_relatedatalimit = $_limit;
-        $this->_getrelatedata = true;
-        $this->_getrelatefields=$_field;
+        if($_model!=""){
+            $this->_getrelatemodel[$_model] = $_model_para;
+        }
+
+        if (! empty($_data)) {
+            $this->_relateddata[$_model] = $_data;
+        }
+
+        $this->_setrelatedata = true;
         return $this;
     }
 
@@ -377,18 +545,25 @@ class BoModel
 
     private function relatesql()
     {
-        if ($this->_getrelatedata && ! empty($this->_relatekey)) {
+        if ($this->_setrelatedata && ! empty($this->_relatekey)) {
             // 筛选相关数据
             $_sel_keys = [];
             if (! empty($this->_getrelatemodel)) {
 
-                foreach ($this->_relatekey as $item) {
-                    if (in_array($item['model'], $this->_getrelatemodel)) {
+                foreach ($this->_relatekey as &$item) {
+                    if (isset($this->_getrelatemodel[$item['model']])||isset($this->_getrelatemodel[$item['midmodel']])) {
+                        $_model=isset($item['model'])?$item['model']:$item['midmodel'];
+                        $item['foreignlimit'] = isset($this->_getrelatemodel[$_model]['limit'])?$this->_getrelatemodel[$_model]['limit']:20;
+                        $item['foreignfield'] = isset($this->_getrelatemodel[$_model]['field'])?$this->_getrelatemodel[$_model]['field']:"*";
+                        $item['foreignorderby'] = isset($this->_getrelatemodel[$_model]['orderby'])?$this->_getrelatemodel[$_model]['orderby']:"";
+                        $item['dataformate'] = isset($this->_getrelatemodel[$_model]['dataformate'])?$this->_getrelatemodel[$_model]['dataformate']:"";
                         $_sel_keys[] = $item;
                     }
                 }
             } else {
+
                 $_sel_keys = $this->_relatekey;
+
             }
 
             $_aliaschar = [
@@ -405,24 +580,45 @@ class BoModel
                 "n"
             ];
             $i = 0;
+
+
             foreach ($_sel_keys as $item) {
                 $this->Alias("a");
                 if ($item['way'] == "1:1") {
-                    $this->Join($item['model'], "{$_aliaschar[$i]}.{$item['foreignkey']}=a.{$item['key']}", "b", "left");
-                }
-                if ($item['way'] == "1:n") {
-                    if($this->_getrelatefields!=""){
-                        $item['foreignfield']=$this->_getrelatefields;
-                    }
                     $this->_relatedatainfo[] = $item;
-                }
-                if ($item['way'] == "n:n") {
-                    if($this->_getrelatefields!=""){
-                        $item['foreignfield']=$this->_getrelatefields;
-                    }
+                    $this->Join($item['model'], "{$_aliaschar[$i]}.{$item['foreignkey']}=a.{$item['key']}", "b", "left");
+                } else {
                     $this->_relatedatainfo[] = $item;
                 }
                 $i ++;
+            }
+           // var_dump($this->_relatedatainfo);
+        }
+    }
+
+    private function delrelatedata($id)
+    {
+        foreach ($this->_relatedatainfo as $relateinfo) {
+            // 如果是多对多
+            if ($relateinfo['way'] == "n:n") {
+                if (isset($relateinfo['midmodel'])) {
+                    $_d = Core::LoadClass("{$relateinfo['dom']}\\Model\\Model_{$relateinfo['midmodel']}");
+                    $_d->MDelete("{$relateinfo['midkey']}=?", [
+                        $id
+                    ]);
+                }
+            }
+            // 如果是一对一
+            if ($relateinfo['way'] == "1:1") {
+                $_d = Core::LoadClass("{$relateinfo['dom']}\\Model\\Model_{$relateinfo['model']}");
+                $_d->Delete($id);
+            }
+            // 如果是一对多
+            if ($relateinfo['way'] == "1:n") {
+                $_d = Core::LoadClass("{$relateinfo['dom']}\\Model\\Model_{$relateinfo['model']}");
+                $_d->MDelete("{$relateinfo['foreignkey']}=?", [
+                    $id
+                ]);
             }
         }
     }
@@ -431,12 +627,21 @@ class BoModel
     {
         foreach ($_data as &$item) {
 
-            // var_dump($this->_relatedatainfo);
             foreach ($this->_relatedatainfo as $relateinfo) {
                 if (isset($item[$relateinfo["key"]])) {
                     if (! isset($relateinfo['foreignfield'])) {
                         $relateinfo['foreignfield'] = "*";
                     }
+                    if (! isset($relateinfo['foreignlimit'])) {
+                        $relateinfo['foreignlimit'] = 20;
+                    }
+                    if (! isset($relateinfo['foreignorderby'])) {
+                        $relateinfo['foreignorderby'] = "";
+                    }
+                    if (! isset($relateinfo['dataformate'])) {
+                        $relateinfo['dataformate'] = "";
+                    }
+
                     // 如果是多对多
                     $_subdata = [
                         'err' => true,
@@ -447,14 +652,21 @@ class BoModel
                             $_d = Core::LoadClass("{$relateinfo['dom']}\\Model\\Model_{$relateinfo['model']}");
                             $_d = Core::LoadClass("{$relateinfo['dom']}\\Model\\Model_{$relateinfo['midmodel']}");
 
-                            $_subdata = $_d->Cache($this->_cacheseconds)->ExecuteReader("select nk.{$relateinfo['foreignfield']} from [{$relateinfo['midmodel']}] as ny left join [{$relateinfo['model']}] as nk on nk.{$relateinfo['foreignkey']} =ny.{$relateinfo['midforeignkey']} where ny.{$relateinfo["midkey"]}=? limit 0,{$this->_relatedatalimit};", [
+                            if($relateinfo['foreignorderby']!=""){
+                                $relateinfo['foreignorderby']=" order by nk.".$relateinfo['foreignorderby'];
+                            }
+                            $_subdata = $_d->Cache($this->_cacheseconds)->ExecuteReader("select nk.{$relateinfo['foreignfield']} from [{$relateinfo['midmodel']}] as ny left join [{$relateinfo['model']}] as nk on nk.{$relateinfo['foreignkey']} =ny.{$relateinfo['midforeignkey']} where ny.{$relateinfo["midkey"]}=? {$relateinfo['foreignorderby']} limit 0,{$relateinfo['foreignlimit']};", [
                                 $item[$relateinfo["key"]]
                             ]);
+
                         }
                     }
                     if ($relateinfo['way'] == "1:n") {
+                        if($relateinfo['foreignorderby']!=""){
+                            $relateinfo['foreignorderby']=" order by ".$relateinfo['foreignorderby'];
+                        }
                         $_d = Core::LoadClass("{$relateinfo['dom']}\\Model\\Model_{$relateinfo['model']}");
-                        $_subdata = $_d->Cache($this->_cacheseconds)->ExecuteReader("select {$relateinfo['foreignfield']} from [{$relateinfo['model']}] where {$relateinfo["foreignkey"]}=? limit 0,{$this->_relatedatalimit};", [
+                        $_subdata = $_d->Cache($this->_cacheseconds)->ExecuteReader("select {$relateinfo['foreignfield']} from [{$relateinfo['model']}] where {$relateinfo["foreignkey"]}=? {$relateinfo['foreignorderby']} limit 0,{$relateinfo['foreignlimit']};", [
                             $item[$relateinfo["key"]]
                         ]);
                         // $relateinfo['midmodel']
@@ -464,12 +676,13 @@ class BoModel
                     // $_subdata=$this->ExecuteReader("select {$relateinfo['foreignfield']} from [{$relateinfo['model']}] where {$relateinfo["foreignkey"]}=? limit 0,1;",[$item[$relateinfo["key"]]]);
                     // //$relateinfo['midmodel']
                     // }
+                    //var_dump($_subdata);
+                   // var_dump($relateinfo);
                     if (! $_subdata['err']) {
-                        if (isset($relateinfo['dataformate'])) {
+                        if (isset($relateinfo['dataformate'])&&$relateinfo['dataformate']!="") {
                             // 转换成一维数组,
                             if ($relateinfo['dataformate'] == "onedim") {
                                 $_arr = [];
-
                                 foreach ($_subdata['data'] as $items) {
                                     $sitems = array_values($items);
                                     if (isset($sitems[0])) {
@@ -478,8 +691,7 @@ class BoModel
                                 }
                                 $item["relate_" . $relateinfo["model"]] = $_arr;
                                 // return;
-                            }
-                            // 拼接字符串 必须保证字段只有一个
+                            }else
                             if ($relateinfo['dataformate'] == "string") {
                                 $_arr = [];
                                 foreach ($_subdata['data'] as $items) {
@@ -490,11 +702,101 @@ class BoModel
                                 }
                                 $item["relate_" . $relateinfo["model"]] = implode(",", $_arr);
                                 // return;
+                            }else{
+                                $item["relate_" . $relateinfo["model"]] = $_subdata['data'];
                             }
+
                         } else {
                             $item["relate_" . $relateinfo["model"]] = $_subdata['data'];
                         }
                     }
+                }
+            }
+        }
+    }
+
+    private function updaterelatedata($id)
+    {
+
+        foreach ($this->_relatedatainfo as $relateinfo) {
+            // 如果是多对多
+
+            if ($relateinfo['way'] == "n:n") {
+
+                if (isset($relateinfo['midmodel']) && isset($this->_relateddata[$relateinfo['midmodel']])) {
+
+                    $_d = Core::LoadClass("{$relateinfo['dom']}\\Model\\Model_{$relateinfo['midmodel']}");
+                    $_d->MDelete("{$relateinfo['midkey']}=?", [
+                        $id
+                    ]);
+
+                    $_insertdata=[];
+                    foreach ($this->_relateddata[$relateinfo['midmodel']] as $item){
+                        $_insertdata[]=[$relateinfo['midforeignkey']=>$item,$relateinfo['midkey']=>$id];
+                    }
+
+//                     foreach ($this->_relateddata[$relateinfo['midmodel']] as &$item) {
+//                         $item[$relateinfo['midkey']] = $id;
+//                     }
+
+                    $_d->MInsert($_insertdata);
+                }
+            }
+            // 如果是一对一
+            if ($relateinfo['way'] == "1:1") {
+                if (isset($relateinfo['model']) && isset($this->_relateddata[$relateinfo['model']])) {
+                    $_d = Core::LoadClass("{$relateinfo['dom']}\\Model\\Model_{$relateinfo['model']}");
+                    $this->_relateddata[$relateinfo['model']][$relateinfo['foreignkey']] = $id;
+                    $_d->Update($this->_relateddata[$relateinfo['model']]);
+                }
+            }
+            // 如果是一对多
+            if ($relateinfo['way'] == "1:n") {
+                if (isset($relateinfo['model']) && isset($this->_relateddata[$relateinfo['model']])) {
+                    $_d = Core::LoadClass("{$relateinfo['dom']}\\Model\\Model_{$relateinfo['model']}");
+                    $_d->Update($this->_relateddata[$relateinfo['model']]);
+                }
+            }
+        }
+    }
+
+    private function insertrelatedata($id)
+    {
+        foreach ($this->_relatedatainfo as $relateinfo) {
+            // 如果是多对多
+
+            if ($relateinfo['way'] == "n:n") {
+                if (isset($relateinfo['midmodel']) && isset($this->_relateddata[$relateinfo['midmodel']])) {
+                    $_d = Core::LoadClass("{$relateinfo['dom']}\\Model\\Model_{$relateinfo['midmodel']}");
+
+                    $_insertdata=[];
+                    foreach ($this->_relateddata[$relateinfo['midmodel']] as $item){
+                        $_insertdata[]=[$relateinfo['midforeignkey']=>$item,$relateinfo['midkey']=>$id];
+                    }
+//                     foreach ($this->_relateddata[$relateinfo['midmodel']] as &$item) {
+//                         $item[$relateinfo['midkey']] = $id;
+//                     }
+
+                    $_d->MInsert($_insertdata);
+                }
+            }
+            // 如果是一对一
+            if ($relateinfo['way'] == "1:1") {
+                if (isset($relateinfo['model']) && isset($this->_relateddata[$relateinfo['model']])) {
+                    $_d = Core::LoadClass("{$relateinfo['dom']}\\Model\\Model_{$relateinfo['model']}");
+                    $this->_relateddata[$relateinfo['model']][$relateinfo['foreignkey']] = $id;
+                    $_d->Insert($this->_relateddata[$relateinfo['model']]);
+                }
+            }
+            // 如果是一对多
+            if ($relateinfo['way'] == "1:n") {
+                if (isset($relateinfo['model']) && isset($this->_relateddata[$relateinfo['model']])) {
+                    $_d = Core::LoadClass("{$relateinfo['dom']}\\Model\\Model_{$relateinfo['model']}");
+                    foreach ($this->_relateddata[$relateinfo['model']] as &$item) {
+                        $item[$relateinfo['foreignkey']] = $id;
+                    }
+
+                    $_d->MInsert($this->_relateddata[$relateinfo['model']]);
                 }
             }
         }
@@ -576,8 +878,19 @@ class BoModel
     public function Insert($_data, $_returnid = false)
     {
         try {
+            if ($this->_isview) {
+                Bfw::RetMsg(true, "view not supported");
+            }
+            $this->relatesql();
+
             $this->connect();
-            return ! $this->_isview ? $this->_dbhandle->insert($_data, $this->_tablename, $_returnid) : Bfw::RetMsg(true, "view not supported");
+            $_ret = $this->_dbhandle->insert($_data, $this->_tablename, true);
+            if (! empty($this->_relateddata)) {
+                if (! $_ret['err']) {
+                    $this->insertrelatedata($_ret['data']);
+                }
+            }
+            return $_ret;
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
         }
@@ -608,8 +921,21 @@ class BoModel
     public function Update($_data)
     {
         try {
+
+            if ($this->_isview) {
+                Bfw::RetMsg(true, "view not supported");
+            }
+            $this->relatesql();
             $this->connect();
-            return ! $this->_isview ? $this->_dbhandle->update($_data, $this->_tablename, $this->_prikey) : Bfw::RetMsg(true, "view not supported");
+            $_ret = $this->_dbhandle->update($_data, $this->_tablename, $this->_prikey);
+            if (! empty($this->_relateddata)) {
+                if (! $_ret['err']) {
+                    $this->updaterelatedata($_data[$this->_prikey]);
+                }
+            }
+            return $_ret;
+            // $this->connect();
+            // return ! $this->_isview ? $this->_dbhandle->update($_data, $this->_tablename, $this->_prikey) : Bfw::RetMsg(true, "view not supported");
         } catch (DbException $e) {
             return Bfw::RetMsg(true, $e->getMessage());
         }
@@ -624,9 +950,46 @@ class BoModel
     public function Delete($_id)
     {
         try {
+            $this->relatesql();
             $this->connect();
-            return ! $this->_isview ? $this->_dbhandle->delete($_id, $this->_tablename, $this->_prikey) : Bfw::RetMsg(true, "view not supported");
+            $_data = ! $this->_isview ? $this->_dbhandle->delete($_id, $this->_tablename, $this->_prikey) : Bfw::RetMsg(true, "view not supported");
+            if ($this->_setrelatedata) {
+                if (! $_data['err']) {
+                    $this->delrelatedata($_id);
+                }
+            }
+            return $_data;
         } catch (DbException $e) {
+            return Bfw::RetMsg(true, $e->getMessage());
+        }
+    }
+
+    /**
+     * 批量插入
+     *
+     * @param array $_wherestr
+     * @param array $_wherearr
+     * @param array $_data
+     */
+    private function MInsert($_data)
+    {
+        if ($this->_isview) {
+            return Bfw::RetMsg(true, "view not supported");
+        }
+
+        try {
+            $this->connect();
+            $this->BeginTrans();
+
+            foreach ($_data as $_record) {
+                if (is_array($_record)) {
+                    $this->Insert($_record);
+                }
+            }
+            $this->Commit();
+            return Bfw::RetMsg(false, true);
+        } catch (DbException $e) {
+            $this->RollBack();
             return Bfw::RetMsg(true, $e->getMessage());
         }
     }
@@ -684,7 +1047,7 @@ class BoModel
                 $this->connect();
                 return $this->_dbhandle->single($_id, $_field, $this->_tablename, $this->_prikey, $this->_locktable);
             }
-            if ($this->_getrelatedata) {
+            if ($this->_setrelatedata) {
                 // 如果是关联查询，那么lock就失效
                 $_getdata = $this->Field($_field)
                     ->PageNum(0)
@@ -702,9 +1065,8 @@ class BoModel
                 $_cacheable = false;
                 $_cachekey = "";
                 if ($this->_cacheseconds > 0) {
-                    $_cachekey = "modelcache_" . md5(get_class($this) . "Single" . $this->_cacheseconds.$_field . $_id);
+                    $_cachekey = "modelcache_" . md5(get_class($this) . "Single" . $this->_cacheseconds . $_field . $_id);
                     $_cacheval = BoCache::Cache($_cachekey);
-
 
                     if (! empty($_cacheval)) {
                         return unserialize($_cacheval);
@@ -716,8 +1078,8 @@ class BoModel
                 $_data = $this->_dbhandle->single($_id, $_field, $this->_tablename, $this->_prikey, $this->_locktable);
 
                 if ($_cacheable) {
-                   // var_dump($_data);
-                  //  echo $_cachekey;
+                    // var_dump($_data);
+                    // echo $_cachekey;
                     BoCache::Cache($_cachekey, serialize($_data), $this->_cacheseconds);
                 }
             }
@@ -1125,11 +1487,33 @@ class BoModel
         if (! empty($this->_orderstr)) {
             $_sql .= " order by " . $this->_orderstr;
         }
+        if(!is_numeric($this->_page)){
+            $this->_page=0;
+        }
         if ($this->_page >= 0 && $this->_pagesize > 0) {
-            $_sql .= " limit " . $this->_page * $this->_pagesize . "," . $this->_pagesize;
+            if($this->_connarray['dbtype'] == 'DbSqlite'||$this->_connarray['dbtype'] == 'DbPgsql'){
+                $_sql .= " limit {$this->_pagesize} offset {$this->_page}";
+            }elseif ($this->_connarray['dbtype'] == 'DbMysql'){
+                $_sql .= " limit " . $this->_page * $this->_pagesize . "," . $this->_pagesize;
+            }elseif($this->_connarray['dbtype'] == 'DbAccess'){
+                //$_sql .= " limit " . $this->_page * $this->_pagesize . "," . $this->_pagesize;
+            }elseif($this->_connarray['dbtype'] == 'DbMssql'){
+                $_sql .= " offset " . ($this->_page+1) * $this->_pagesize . " rows  fetch next " . $this->_pagesize." rows only";
+            }else{
+                $_sql .= " limit " . $this->_page * $this->_pagesize . "," . $this->_pagesize;
+            }
         }
 
         $_data = $this->ExecuteReader($_sql, $this->_wherearr);
+        if($this->_connarray['dbtype'] == 'DbAccess'){
+            if(!$_data['err']&&!empty($_data['data'])){
+                $_start= $this->_pagesize * ($this->_page-2);//偏移量，当前页-2乘以每页显示条数
+                $_data['data'] = array_slice($_data['data'] ,$_start,$this->_pagesize);
+            }
+
+            //$_sql .= " limit " . $this->_page * $this->_pagesize . "," . $this->_pagesize;
+        }
+
 
         if (! empty($this->_relatedatainfo)) {
             $this->getrelatedata($_data['data']);

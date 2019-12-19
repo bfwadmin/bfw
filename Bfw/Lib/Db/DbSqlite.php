@@ -307,7 +307,7 @@ class DbSqlite extends BoDb implements BoDbInterface
                     $_page = 0;
                 }
                 $_pagenum = $_pagesize * $_page;
-                $sql = $sql . " LIMIT {$_pagenum},{$_pagesize};";
+                $sql = $sql . " LIMIT {$_pagesize} offset {$_page};";
             }
             // BoDebug::Info($sql);
             // echo $sql;

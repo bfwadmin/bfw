@@ -13,13 +13,15 @@ function builderurl($c, $a, $d)
         $_baseurl .= $_urlarr['path'];
     }
 
-    $routype = isset($_GET['route']) ? $_GET['route'] : 0;
-    if ($routype == 0) {
-        return $_baseurl . "?" . DOMIAN_NAME . "=" . $d . "&" . CONTROL_NAME . "=" . $c . "&" . ACTION_NAME . "=" . $a;
+    //$routype = isset($_GET['route']) ? $_GET['route'] : 0;
+    if (ROUTETYPE == 1) {
+        return $_baseurl . "?".ROUTER_NAME."=" . $d . "|". $c . "|". $a;
     } else
-        if ($routype == 2) {
+        if (ROUTETYPE == 2) {
             return $_baseurl . $c . "/" . $a;
-        } else {
+        } else if(ROUTETYPE ==0) {
+            return $_baseurl . "?" . DOMIAN_NAME . "=" . $d . "&" . CONTROL_NAME . "=" . $c . "&" . ACTION_NAME . "=" . $a;
+        }else{
             return "";
         }
 }

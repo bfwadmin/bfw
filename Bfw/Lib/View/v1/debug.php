@@ -53,12 +53,11 @@
 }
 
 #debug_pannel h1 {
-	font-size: 20px;
+	font-size: 28px;
 	font-weight: 700;
 	padding: 0;
 	margin: 0;
 	color: #adadad;
-	height: 10%;
 }
 
 #debug_sql_ul, #debug_cachel_ul, #debug_session_ul {
@@ -67,6 +66,7 @@
 
 .debug_tab {
 	padding: 5px 0;
+	line-height:40px;
 }
 
 .debug_tab span {
@@ -100,21 +100,20 @@
 	<div style="clear: both;">
 		<div
 			style="width: 70px; cursor: pointer; text-align: center; float: right; background: #212121;"
-			onclick="document.getElementById('debug_pannel').style.display='none';">隐藏</div>
-		<h1>
-			Debug Info [spend {<span style="color: #a6ff0a;"><?=$spendtime?></span>}
-			secs,import <span style="color: #039cdb;"><?= count ($import_info ) ?></span> files  <?=\Lib\Bfw::IIF($islogserver, "<span
-			style='color: green; font-weight: bold;'>L</span>", "")?> ],[mem:<span
-				style="color: #dbaa64;"><?=($totalmem / 1024 / 1024) ?>M</span>]
+			onclick="document.getElementById('debug_pannel').style.display='none';">×</div>
+		<h1>调试信息 [花费{<span style="color: #039cdb;"><?=round($spendtime,4)?></span>}秒,加载了 <span style="color: #039cdb;"><?= count ($import_info ) ?></span> 个文件  <?=\Lib\Bfw::IIF($islogserver, "<span style='color: green; font-weight: bold;'>L</span>", "")?> ],[消耗内存:<span style="color: #039cdb;"><?=round($totalmem / 1024 / 1024,4)?>M</span>]
 		</h1>
 		<div class="debug_tab">
-			<span onclick="debug_show_info(0,1);">all</span><span
-				onclick="debug_show_info(1,'#debug_import_ul');" >loadedfile</span><span
-				onclick="debug_show_info(1,'#debug_cache_ul');" >cache</span><span
-				onclick="debug_show_info(1,'#debug_sql_ul');" >sql</span><span
-				onclick="debug_show_info(1,'#debug_session_ul');" >session</span>
-				<span  onclick="debug_show_info(1,'#debug_service_ul');" >service</span>
-				<span onclick="debug_show_info(1,'#debug_queue_ul');" >queue</span><span onclick="debug_show_info(1,'#debug_lock_ul');" >lock</span><span onclick="debug_show_info(1,'#debug_other_ul');" >info</span><span onclick="debug_show_info(1,'#debug_err_ul');" >err</span>
+			<span onclick="debug_show_info(0,1);">所有信息</span><span
+				onclick="debug_show_info(1,'#debug_import_ul');" >加载的文件</span><span
+				onclick="debug_show_info(1,'#debug_cache_ul');" >缓存</span><span
+				onclick="debug_show_info(1,'#debug_sql_ul');" >sql语句</span><span
+				onclick="debug_show_info(1,'#debug_session_ul');" >会话</span>
+				<span  onclick="debug_show_info(1,'#debug_service_ul');" >服务</span>
+				<span onclick="debug_show_info(1,'#debug_queue_ul');" >队列</span>
+				<span onclick="debug_show_info(1,'#debug_lock_ul');" >锁</span>
+				<span onclick="debug_show_info(1,'#debug_other_ul');" >调试信息</span>
+				<span onclick="debug_show_info(1,'#debug_err_ul');" >错误</span>
 		</div>
 	</div>
 

@@ -114,6 +114,11 @@ class ArrayUtil
         }
     }
 
+    /**
+     * 转换成一维数组
+     * @param unknown $_arr
+     * @return multitype:unknown
+     */
     public static function ConvertToOne(&$_arr)
     {
         $ret = array();
@@ -266,7 +271,7 @@ class ArrayUtil
                             break;
                         default:
                             $_ret = $_obj->$_rule[1]($_sarr[$_rule[0]]);
-                            if ($_ret) {
+                            if (isset($_ret['err'])&&$_ret['err']) {
                                 return $_ret;
                             }
                             break;

@@ -40,6 +40,19 @@ class WebApp extends WangBo
      */
     public function Execute($_controler, $_action, $_domian)
     {
+
+        //生成通讯账号密码
+        if(isset($_GET['genratessh'])){
+            $_keypath=DATA_DIR.DS."bfwssh.php";
+            if(file_exists($_keypath)){
+                echo "已经生成过";
+            }else{
+                if(file_put_contents($_keypath, "<?php \$_sshconfig=['name'=>'sddfd','pwd'=>'dddd'];?>")){
+                    echo "生成成功";
+                }
+            }
+            return;
+        }
         // 开发者身份
         if (RUN_MODE == "D") {
             $_boins = Core::LoadClass("Lib\\BoDev");
@@ -91,6 +104,15 @@ class WebApp extends WangBo
                 BoRes::View("hello", "System", "v1");
                 exit();
             }
+            //路由转化
+            if(isset($_GET['getbfwsoaactionlinkurl'])){
+                $_urls=explode("|", base64_decode($_GET['getbfwsoaactionlinkurl']));
+                if(count($_urls)>=4){
+                    BoRes::Redirect(BoRes::Actlink($_urls[1],$_urls[2],$_urls[3],$_urls[0]));
+                    return;
+                }
+            }
+
             $_boins = Core::LoadClass("Lib\\BoCustomer");
             return $_boins->work($_controler, $_action, $_domian);
         } else {

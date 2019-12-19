@@ -7,7 +7,7 @@ use Lib\Exception\DbException;
 use Lib\Bfw;
 require_once BFW_LIB . DS . "Lib" . DS . "Db" . DS . 'BoDb.php';
 
-class DbMssql extends BoDb implements BoDbInterface
+class DbPgsql extends BoDb implements BoDbInterface
 {
 
     protected $_connection = null;
@@ -30,19 +30,21 @@ class DbMssql extends BoDb implements BoDbInterface
             $_connarr = BoConfig::Config("Db", "localconfig");
         }
 
-        if (PATH_SEPARATOR == ':') {
-            $this->_connectstr = "dblib:host={$_connarr['dbhost']}:{$_connarr['dbport']};dbname={$_connarr['dbname']}";
-        } else {
-            $this->_connectstr = "sqlsrv:Server={$_connarr['dbhost']}:{$_connarr['dbport']};Database={$_connarr['dbname']}";
-        }
+
 
         $this->_username = $_connarr['dbuser'];
         $this->_password = $_connarr['dbpwd'];
+        $this->_connectstr ="pgsql:host={$_connarr['dbhost']};port={$_connarr['dbport']};dbname={$_connarr['dbname']}";
 
         try {
             $this->_connection = new \PDO($this->_connectstr, $this->_username, $this->_password);
+            if(isset($_connarr['dbcharset'])){
 
-            BoDebug::Info("mssql connect " . $this->_connectstr);
+                $_con_charset=$_connarr['dbcharset'];
+                $this->_connection->query('SET NAMES '.$_con_charset);
+            }
+
+            BoDebug::Info("pgsql connect " . $this->_connectstr);
         } catch (\PDOException $e) {
             throw new DbException($e->getMessage());
         }
@@ -395,8 +397,8 @@ class DbMssql extends BoDb implements BoDbInterface
                 if ($_page == "" || $_page == null) {
                     $_page = 0;
                 }
-                $_pagenum = $_pagesize * ($_page+1);
-                $sql = $sql . " offset {$_pagenum}  rows  fetch next " . $_pagesize." rows only;";
+                $_pagenum = $_pagesize * $_page;
+                $sql = $sql . " LIMIT {$_pagesize} offset {$_page};";
             }
             // BoDebug::Info($sql);
             // echo $sql;

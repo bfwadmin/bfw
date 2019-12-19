@@ -187,6 +187,13 @@ class BoRes
                 break;
         }
     }
+    /**
+     * 跳转
+     * @param string $_url
+     */
+    public static function Redirect($_url){
+        header('Location: ' . $_url);
+    }
 
     /**
      * 控制器动作器链接

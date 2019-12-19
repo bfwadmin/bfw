@@ -21,7 +21,7 @@ class BoControler extends WangBo
     /**
      * 使用模板引擎，默认是系统自带，可选smarty
      *
-     * @param string $tempeng            
+     * @param string $tempeng
      */
     protected function UseTemp($tempeng = "sys")
     {
@@ -36,7 +36,7 @@ class BoControler extends WangBo
     /**
      * smarty缓存时间 单位 秒
      *
-     * @param number $ctime            
+     * @param number $ctime
      */
     protected function CachePage($ctime = 0)
     {
@@ -53,8 +53,8 @@ class BoControler extends WangBo
     /**
      * 获取view的cache
      *
-     * @param string $_view            
-     * @param string $_add            
+     * @param string $_view
+     * @param string $_add
      * @throws CoreException
      * @return Ambigous <boolean, object>
      */
@@ -105,7 +105,7 @@ class BoControler extends WangBo
                 $out .= "Host: " . $_SERVER['HTTP_HOST'] . "\r\n";
                 $out .= "Connection: Close\r\n\r\n";
                 fwrite($fp, $out);
-                
+
                 fclose($fp);
             }
         } catch (\Exception $e) {
@@ -165,9 +165,13 @@ class BoControler extends WangBo
         } else {
             $_paradata = array_merge($_POST, $_GET);
         }
-        
+
         foreach ($_paradata as $keys => $values) {
-            if (in_array(strtolower($keys), array_change_key_case($_filterarr, CASE_LOWER))) {
+            if(FORM_VAR_CASE_SENS){
+                $keys=strtolower($keys);
+                $_filterarr=array_change_key_case($_filterarr, CASE_LOWER);
+            }
+            if (in_array($keys,$_filterarr)) {
                 if ($_nohtml) {
                     if (is_array($values)) {
                         $newarr = array();
@@ -198,7 +202,7 @@ class BoControler extends WangBo
     /**
      * 过滤数据
      *
-     * @param string $data            
+     * @param string $data
      * @return mixed
      */
     protected function FilterBadWords($data)
@@ -297,8 +301,8 @@ class BoControler extends WangBo
      * 模板赋值变量
      * $this->Assign("变量名","值");
      *
-     * @param string $key            
-     * @param object $val            
+     * @param string $key
+     * @param object $val
      */
     protected function Assign($key, $val)
     {
@@ -358,7 +362,7 @@ class BoControler extends WangBo
             }
         }
     }
-    
+
     // public function Display
     // 数据层接口
     // $this->Dao("数据对象");

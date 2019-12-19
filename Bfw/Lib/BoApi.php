@@ -18,10 +18,23 @@ class BoApi
         return "";
     }
 
+
+    private function getlineVal($str, $line=1)
+    {
+
+        $_linearr=explode("*", $str);
+
+        if(isset($_linearr[$line])){
+            return trim($_linearr[$line]);
+        }
+
+        return "";
+    }
+
     public function Show()
     {
         $_filelist = FileUtil::getFileListByDir(APP_ROOT . DS . "App" . DS . DOMIAN_VALUE . DS . "Controler" . DS);
-        $_readmefile = APP_ROOT . DS . "App" . DS . DOMIAN_VALUE . DS . "readme";
+        $_readmefile = APP_ROOT . DS . "App" . DS . DOMIAN_VALUE . DS . "readme.md";
         $_readmedata = "";
         if (file_exists($_readmefile)) {
             $_readmedata = file_get_contents($_readmefile);
@@ -33,9 +46,11 @@ class BoApi
             $_control_name_dll = "App\\" . DOMIAN_VALUE . "\\Controler\\" . $_control_name;
             $r = new \reflectionclass($_control_name_dll);
             $_cont_act_a = [];
-            $_mdoc = str_replace("*", "</br>", str_replace("*/", "", str_replace("/**", "", $r->getDocComment())));
-            $_title = $this->getVal($_mdoc, "t");
-            $_desc = $this->getVal($_mdoc, "d");
+            $_mdoc=str_replace("*/", "", str_replace("/**", "", $r->getDocComment()));
+            $_title = $this->getlineVal($_mdoc);
+            $_desc = $this->getlineVal($_mdoc,2);
+            $_mdoc = str_replace("*", "</br>", $_mdoc);
+
             $_cont_act_a[] = [
                 "doccomment" => [
                     $_title,
@@ -45,9 +60,11 @@ class BoApi
             foreach ($r->getmethods() as $key => $methodobj) {
                 if ($methodobj->ispublic()) {
                     if ($methodobj->name != "__get") {
-                        $_doc = str_replace("*", "</br>", str_replace("*/", "", str_replace("/**", "", $methodobj->getDocComment())));
-                        $_title = $this->getVal($_doc, "t");
-                        $_desc = $this->getVal($_doc, "d");
+                        $_doc=str_replace("*/", "", str_replace("/**", "", $methodobj->getDocComment()));
+                        $_title = $this->getlineVal($_doc);
+                        $_desc = $this->getlineVal($_doc,2);
+                        $_doc = str_replace("*", "</br>", $_doc);
+
                         $_cont_act_a[] = array(
                             $methodobj->name,
                             $_title,

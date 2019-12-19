@@ -137,6 +137,10 @@ try {
         $_defaultcont,
         $_defaultact
     ];
+
+    if(!defined("HOST_HIDE_DOM")){
+        define("HOST_HIDE_DOM", $_defaultdom);
+    }
     if (strtolower(PHP_SAPI) === 'cli') {
         // BoSocket::Start();
         global $argv;
@@ -204,6 +208,7 @@ try {
         include APP_ROOT . DS . "App" . DS . DOMIAN_VALUE . DS . "Config" . DS . "Config.php";
     }
     // 系统定义常量
+    defineinit("FORM_VAR_CASE_SENS", $_config_arr['App'], 'form_var_case_sens', false); // 是否区分form传递变量大小写
     defineinit("TIMEZONE", $_config_arr['App'], 'timezone', "PRC"); // 時區
     defineinit("WEB_DEBUG", $_config_arr['App'], 'web_debug', false); // 调试模式
     defineinit("DEBUG_IP", $_config_arr['App'], 'debug_ip', "127.0.0.1"); // 可以调试的机器

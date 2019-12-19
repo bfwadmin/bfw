@@ -1,63 +1,58 @@
 <?php
 namespace Lib\Db;
 
-use Lib\BoConfig;
-use Lib\BoDebug;
-use Lib\Exception\DbException;
 use Lib\Bfw;
-require_once BFW_LIB . DS . "Lib" . DS . "Db" . DS . 'BoDb.php';
+use Lib\Exception\DbException;
+use Lib\BoDebug;
+use Lib\BoConfig;
+require_once APP_ROOT . DS . "Lib" . DS . "Db" . DS . 'BoDb.php';
 
-class DbMssql extends BoDb implements BoDbInterface
+class DbAccess extends BoDb implements BoDbInterface
 {
 
-    protected $_connection = null;
+    private $_connection = null;
 
-    protected $_host = "127.0.0.1";
+    private $_connectstr = "";
 
-    protected $_dbname = "test";
+    private $_username = "";
 
-    protected $_username = "sa";
+    private $_password = "";
 
-    protected $_password = "";
+    private $_intrans = false;
 
-    protected $_charset = "utf8";
+    private $_option = [
+        \PDO::ATTR_PERSISTENT => false,
+        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
+    ];
 
-    protected $_persistent = false;
-
-    public function __construct($_connarr)
+    public function __construct($_connarr = null)
     {
-        if (! is_null($_connarr) && is_array($_connarr)) {} else {
-            $_connarr = BoConfig::Config("Db", "localconfig");
-        }
-
-        if (PATH_SEPARATOR == ':') {
-            $this->_connectstr = "dblib:host={$_connarr['dbhost']}:{$_connarr['dbport']};dbname={$_connarr['dbname']}";
+        if (! is_null($_connarr) && is_array($_connarr)) {
         } else {
-            $this->_connectstr = "sqlsrv:Server={$_connarr['dbhost']}:{$_connarr['dbport']};Database={$_connarr['dbname']}";
+            $_connarr=BoConfig::Config("Db", "localconfig");
         }
-
         $this->_username = $_connarr['dbuser'];
         $this->_password = $_connarr['dbpwd'];
-
+        $this->_connectstr ="odbc:DRIVER={Microsoft Access Driver (*.mdb)}; DBQ=".$_connarr['dbhost'].DS."{$_connarr['dbname']}.mdb";
         try {
-            $this->_connection = new \PDO($this->_connectstr, $this->_username, $this->_password);
-
-            BoDebug::Info("mssql connect " . $this->_connectstr);
+            $this->_connection = new \PDO($this->_connectstr, $this->_username, $this->_password, $this->_option);
+            if(isset($_connarr['createsql'])){
+                $this->_connection->exec($_connarr['createsql']);
+            }
+            BoDebug::Info("access connect " . $this->_connectstr);
         } catch (\PDOException $e) {
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
 
-    public function single($_id, $_field, $_tablename, $_key, $_islock = false)
+    public function single($_id, $_field, $_tablename, $_key,$_lock=false)
     {
         try {
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
+
             $sql = "SELECT {$_field} FROM  {$_tablename} WHERE {$_key}=:id";
-            if ($_islock) {
-                $sql .= "  FOR UPDATE";
-            }
             BoDebug::Info($sql);
             $stmt = $this->_connection->prepare($sql);
             $stmt->execute(array(
@@ -69,12 +64,11 @@ class DbMssql extends BoDb implements BoDbInterface
             }
             return Bfw::RetMsg(false, $_ldata);
         } catch (\PDOException $e) {
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
 
-    public function insertupdate($_data, $_tablename, $_key)
-    {
+    public function insertupdate($_data, $_tablename, $_key){
         try {
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
@@ -123,10 +117,9 @@ class DbMssql extends BoDb implements BoDbInterface
             }
         } catch (\PDOException $e) {
             // return Bfw::RetMsg(true, $e->getMessage());
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
-
     public function insert($_data, $_tablename, $_returnid = false)
     {
         try {
@@ -169,58 +162,7 @@ class DbMssql extends BoDb implements BoDbInterface
             }
         } catch (\PDOException $e) {
             // return Bfw::RetMsg(true, $e->getMessage());
-            throw new DbException($e->getMessage());
-        }
-    }
-
-    public function mutiupdate($_wherestr, $_wherearr, $_tablename, $_data)
-    {
-        try {
-            if (! is_array($_data)) {
-                return Bfw::RetMsg(true, "data值必为数组");
-            }
-            if (is_null($this->_connection)) {
-                return Bfw::RetMsg(true, "数据库连接失败");
-            }
-
-            if (! empty($_data)) {
-
-                $sql = "";
-                $val = array();
-                foreach ($_data as $_k => $_val) {
-
-                    if (! is_null($_val)) {
-                        if (is_array($_val) && count($_val) >= 2 && is_numeric($_val[1]) && in_array($_val[0], [
-                            '-',
-                            '+'
-                        ])) {
-                            $sql .= $_k . "=" . $_k . $_val[0] . $_val[1] . ",";
-                        } else {
-                            $sql .= "{$_k}=?,";
-                            $val[] = $_val;
-                        }
-                    }
-                }
-
-                if ($sql != "") {
-                    $sql = substr($sql, 0, strlen($sql) - 1);
-                }
-                $_wherearr = array_merge($val, $_wherearr);
-                $sql = "UPDATE {$_tablename} SET " . $sql . " WHERE " . $_wherestr;
-                // die($sql.var_export($val,true));
-                BoDebug::Info($sql);
-                $issuccess = $this->_connection->prepare($sql)->execute($_wherearr);
-                if ($issuccess) {
-                    return Bfw::RetMsg(false, true);
-                } else {
-                    return Bfw::RetMsg(false, false);
-                }
-            } else {
-                return Bfw::RetMsg(true, "数据不能为空");
-            }
-        } catch (\PDOException $e) {
-
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
 
@@ -240,7 +182,6 @@ class DbMssql extends BoDb implements BoDbInterface
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
-
             if (! empty($_data)) {
 
                 $sql = "";
@@ -284,68 +225,38 @@ class DbMssql extends BoDb implements BoDbInterface
             }
         } catch (\PDOException $e) {
 
-            throw new DbException($e->getMessage());
-        }
-    }
-
-    public function mutidelete($_wherestr, $_wherearr, $_tablename)
-    {
-        try {
-            if (is_null($this->_connection)) {
-                return Bfw::RetMsg(true, "数据库连接失败");
-            }
-            if (empty($_wherestr)) {
-                return Bfw::RetMsg(true, "条件不能为空");
-            }
-            $sql = "DELETE FROM  {$_tablename} WHERE " . $_wherestr;
-            BoDebug::Info($_wherestr);
-            BoDebug::Info($sql);
-            $issuccess = $this->_connection->prepare($sql)->execute($_wherearr);
-            if ($issuccess) {
-                return Bfw::RetMsg(false, true);
-            } else {
-                return Bfw::RetMsg(false, false);
-            }
-        } catch (\PDOException $e) {
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
 
     public function delete($_id, $_tablename, $_key)
     {
         try {
-            // $_singledata = $this->single($_id, $_key, $_tablename, $_key);
-            // if ($_singledata['err']) {
-            // return $_singledata;
-            // }
-            // if ($_singledata['data'] == null) {
-            // return Bfw::RetMsg(true, "data_null");
-            // }
+            $_singledata = $this->single($_id, $_key, $_tablename, $_key);
+            if ($_singledata['err']) {
+                return $_singledata;
+            }
+            if ($_singledata['data'] == null) {
+                return Bfw::RetMsg(true, "data_null");
+            }
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
             }
             if (empty($_id)) {
-                return Bfw::RetMsg(true, "主键不能空值");
+                return Bfw::RetMsg(true, "主键空值");
             }
-            $_wherestr = "";
-            $_id_arr = explode(",", $_id);
-            foreach ($_id_arr as $_i) {
-                $_wherestr .= " {$_key}=? or";
-            }
-            if ($_wherestr != "") {
-                $_wherestr = substr($_wherestr, 0, strlen($_wherestr) - 2);
-            }
-            $sql = "DELETE FROM  {$_tablename} WHERE " . $_wherestr;
-            BoDebug::Info($_id);
+            $sql = "DELETE FROM  {$_tablename} WHERE {$_key}=:id";
             BoDebug::Info($sql);
-            $issuccess = $this->_connection->prepare($sql)->execute($_id_arr);
+            $issuccess = $this->_connection->prepare($sql)->execute(array(
+                ':id' => $_id
+            ));
             if ($issuccess) {
                 return Bfw::RetMsg(false, true);
             } else {
                 return Bfw::RetMsg(false, false);
             }
         } catch (\PDOException $e) {
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
 
@@ -372,12 +283,14 @@ class DbMssql extends BoDb implements BoDbInterface
             BoDebug::TickStop($sql_count);
             return Bfw::RetMsg(false, $_lcount);
         } catch (\PDOException $e) {
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
 
     public function listdata($_tablename, $_field, $_wherestr, $_wherearr, $_pagesize, $_page, $_orderby, $_needcount)
     {
+
+
         try {
             if (is_null($this->_connection)) {
                 return Bfw::RetMsg(true, "数据库连接失败");
@@ -395,8 +308,8 @@ class DbMssql extends BoDb implements BoDbInterface
                 if ($_page == "" || $_page == null) {
                     $_page = 0;
                 }
-                $_pagenum = $_pagesize * ($_page+1);
-                $sql = $sql . " offset {$_pagenum}  rows  fetch next " . $_pagesize." rows only;";
+                $_pagenum = $_pagesize * $_page;
+               // $sql = $sql . " LIMIT {$_pagenum},{$_pagesize};";
             }
             // BoDebug::Info($sql);
             // echo $sql;
@@ -417,12 +330,16 @@ class DbMssql extends BoDb implements BoDbInterface
                     $_lcount = $row[0];
                 }
             }
+
+            //采用php内存分页法
+            $_start= $_pagesize * ($_page-2);//偏移量，当前页-2乘以每页显示条数
+            $_ldata = array_slice($_ldata,$_start,$_pagesize);
             return Bfw::RetMsg(false, array(
                 "count" => $_lcount,
                 "data" => $_ldata
             ));
         } catch (\PDOException $e) {
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
 
@@ -439,7 +356,7 @@ class DbMssql extends BoDb implements BoDbInterface
                 return $this->_connection->beginTransaction();
             }
         } catch (\PDOException $e) {
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
 
@@ -456,7 +373,7 @@ class DbMssql extends BoDb implements BoDbInterface
                 return false;
             }
         } catch (\PDOException $e) {
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
 
@@ -473,7 +390,7 @@ class DbMssql extends BoDb implements BoDbInterface
                 return false;
             }
         } catch (\PDOException $e) {
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
 
@@ -491,7 +408,7 @@ class DbMssql extends BoDb implements BoDbInterface
                 return Bfw::RetMsg(false, false);
             }
         } catch (\PDOException $e) {
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
 
@@ -510,7 +427,7 @@ class DbMssql extends BoDb implements BoDbInterface
             }
             return Bfw::RetMsg(false, $_ldata);
         } catch (\PDOException $e) {
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
 
@@ -537,7 +454,7 @@ class DbMssql extends BoDb implements BoDbInterface
             }
             return $this->_connection->query("SET SESSION TRANSACTION ISOLATION LEVEL {$isolevel};");
         } catch (\PDOException $e) {
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
 
@@ -564,10 +481,81 @@ class DbMssql extends BoDb implements BoDbInterface
             }
             return Bfw::RetMsg(false, $_ldata);
         } catch (\PDOException $e) {
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
+    public function mutidelete($_wherestr, $_wherearr, $_tablename)
+    {
+        try {
+            if (is_null($this->_connection)) {
+                return Bfw::RetMsg(true, "数据库连接失败");
+            }
+            if (empty($_wherestr)) {
+                return Bfw::RetMsg(true, "条件不能为空");
+            }
+            $sql = "DELETE FROM  {$_tablename} WHERE " . $_wherestr;
+            BoDebug::Info($_wherestr);
+            BoDebug::Info($sql);
+            $issuccess = $this->_connection->prepare($sql)->execute($_wherearr);
+            if ($issuccess) {
+                return Bfw::RetMsg(false, true);
+            } else {
+                return Bfw::RetMsg(false, false);
+            }
+        } catch (\PDOException $e) {
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
+        }
+    }
+    public function mutiupdate($_wherestr, $_wherearr, $_tablename, $_data)
+    {
+        try {
+            if (! is_array($_data)) {
+                return Bfw::RetMsg(true, "data值必为数组");
+            }
+            if (is_null($this->_connection)) {
+                return Bfw::RetMsg(true, "数据库连接失败");
+            }
 
+            if (! empty($_data)) {
+
+                $sql = "";
+                $val = array();
+                foreach ($_data as $_k => $_val) {
+
+                    if (! is_null($_val)) {
+                        if (is_array($_val) && count($_val) >= 2 && is_numeric($_val[1]) && in_array($_val[0], [
+                            '-',
+                            '+'
+                        ])) {
+                            $sql .= $_k . "=" . $_k . $_val[0] . $_val[1] . ",";
+                        } else {
+                            $sql .= "{$_k}=?,";
+                            $val[] = $_val;
+                        }
+                    }
+                }
+
+                if ($sql != "") {
+                    $sql = substr($sql, 0, strlen($sql) - 1);
+                }
+                $_wherearr=array_merge($val,$_wherearr);
+                $sql = "UPDATE {$_tablename} SET " . $sql . " WHERE " . $_wherestr;
+                // die($sql.var_export($val,true));
+                BoDebug::Info($sql);
+                $issuccess = $this->_connection->prepare($sql)->execute($_wherearr);
+                if ($issuccess) {
+                    return Bfw::RetMsg(false, true);
+                } else {
+                    return Bfw::RetMsg(false, false);
+                }
+            } else {
+                return Bfw::RetMsg(true, "数据不能为空");
+            }
+        } catch (\PDOException $e) {
+
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
+        }
+    }
     /**
      * 获取表信息
      *
@@ -597,13 +585,12 @@ class DbMssql extends BoDb implements BoDbInterface
 
             return Bfw::RetMsg(false, $_ldata);
         } catch (\PDOException $e) {
-            throw new DbException($e->getMessage());
+            throw new DbException(iconv('GB2312', 'UTF-8', $e->getMessage()));
         }
     }
 
     function __destruct()
     {
-        BoDebug::Info("mysql close");
         $this->_connection = null;
     }
 }

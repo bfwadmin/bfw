@@ -40,8 +40,9 @@ class DbMysql extends BoDb implements BoDbInterface
             $_con_charset="utf8";
             if(isset($_connarr['dbcharset'])){
                 $_con_charset=$_connarr['dbcharset'];
+                $this->_connection->query('SET NAMES '.$_con_charset);
             }
-            $this->_connection->query('SET NAMES '.$_con_charset);
+
             BoDebug::Info("mysql connect " . $this->_connectstr);
         } catch (\PDOException $e) {
             throw new DbException($e->getMessage());
